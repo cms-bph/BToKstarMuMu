@@ -163,6 +163,8 @@ private:
 
   void hltReport(const edm::Event&);
 
+  bool isGenKstarCharged(const reco::Candidate *);
+  bool isGenKshort(const reco::Candidate *);
 
   bool matchMuonTrack (const edm::Event&, const reco::TrackRef);
   bool matchMuonTracks (const edm::Event&, const vector<reco::TrackRef>);
@@ -2078,13 +2080,65 @@ void
 BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
   edm::Handle<reco::GenParticleCollection> genparticles;
   iEvent.getByLabel(GenParticlesLabel_, genparticles );
-  for( size_t i = 0; i < genparticles->size(); ++ i ) {
+
+  // loop over all gen particles
+  for( size_t i = 0; i < genparticles->size(); ++i ) {
     const reco::GenParticle & p = (*genparticles)[i];
-    if (abs(p.pdgId())==BPLUS_PDG_ID) {
-      cout << "found b+" << endl; 
+
+    // only select B+ or B- candidate 
+    if ( abs(p.pdgId()) != BPLUS_PDG_ID ) continue; 
+    
+    // loop over all B+/- daughters 
+
+    int nGenKstarCharged = 0; 
+    for ( size_t j = 0; j < p.numberOfDaughters(); ++j){
+      const reco::Candidate * dau = p.daughter(j);
+
+      if (isGenKstarCharged(dau)) nGenKstarCharged++; 
+      
     }
+
   }
 }
+
+bool
+BToKstarMuMu::isGenKstarCharged(const reco::Candidate *p){
+
+  cout << p->pdgId() << endl;
+  
+  if ( abs(p->pdgId()) != KSTARPLUS_PDG_ID ) return false; 
+  
+  int nGenKshort = 0; 
+  for ( size_t j = 0; j < p->numberOfDaughters(); ++j){
+    const reco::Candidate * dau = p->daughter(j);
+    
+    if ( isGenKshort(dau) ) nGenKshort ++;  
+        
+  }
+
+  return true; 
+}
+
+
+bool
+BToKstarMuMu::isGenKshort(const reco::Candidate *p){
+
+  if ( abs(p->pdgId()) != KSHORTZERO_PDG_ID ) return false; 
+  
+  // int nGenKshort = 0; 
+  // for ( size_t j = 0; j < p.numberOfDaughters(); ++j){
+  //   const reco::Candidate * dau = p.daughter(j);
+    
+  //   if ( isGenKshort(dau) ) nGenKshort ++;  
+        
+  // }
+
+  return true; 
+}
+
+
+
+
 
 void 
 BToKstarMuMu::saveKshortVariables(reco::VertexCompositeCandidate iKshort)
