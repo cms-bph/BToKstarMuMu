@@ -165,6 +165,7 @@ private:
 
   bool isGenKstarCharged(const reco::Candidate *);
   bool isGenKshort(const reco::Candidate *);
+  bool isGenMuonP(const reco::Candidate *);
 
   bool matchMuonTrack (const edm::Event&, const reco::TrackRef);
   bool matchMuonTracks (const edm::Event&, const vector<reco::TrackRef>);
@@ -2088,31 +2089,38 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     // only select B+ or B- candidate 
     if ( abs(p.pdgId()) != BPLUS_PDG_ID ) continue; 
     
-    // loop over all B+/- daughters 
+    int ikst(-1), imum(-1), imup(-1); 
 
-    int nGenKstarCharged = 0; 
+    // loop over all B+/- daughters 
     for ( size_t j = 0; j < p.numberOfDaughters(); ++j){
       const reco::Candidate * dau = p.daughter(j);
 
-      if (isGenKstarCharged(dau)) nGenKstarCharged++; 
+      if (abs(dau->pdgId()) == KSTARPLUS_PDG_ID) ikst = j; 
+
+      if (dau->pdgId() == MUONMINUS_PDG_ID) imum = j; 
       
+      if (dau->pdgId() == -MUONMINUS_PDG_ID) imup = j; 
     }
 
+    if (ikst != -1 && imum != -1 && imup != -1) {
+      const reco::Candidate * genkst = p.daughter(ikst);
+      
+      
+    }
   }
 }
 
 bool
 BToKstarMuMu::isGenKstarCharged(const reco::Candidate *p){
-
-  cout << p->pdgId() << endl;
-  
-  if ( abs(p->pdgId()) != KSTARPLUS_PDG_ID ) return false; 
+  if ( abs(p->pdgId()) != KSTARPLUS_PDG_ID ) 
+    return false; 
   
   int nGenKshort = 0; 
   for ( size_t j = 0; j < p->numberOfDaughters(); ++j){
     const reco::Candidate * dau = p->daughter(j);
     
-    if ( isGenKshort(dau) ) nGenKshort ++;  
+    if ( isGenKshort(dau) )
+      nGenKshort ++;  
         
   }
 
@@ -2122,22 +2130,20 @@ BToKstarMuMu::isGenKstarCharged(const reco::Candidate *p){
 
 bool
 BToKstarMuMu::isGenKshort(const reco::Candidate *p){
-
-  if ( abs(p->pdgId()) != KSHORTZERO_PDG_ID ) return false; 
+  if ( abs(p->pdgId()) != KSHORTZERO_PDG_ID )
+    return false; 
   
-  // int nGenKshort = 0; 
-  // for ( size_t j = 0; j < p.numberOfDaughters(); ++j){
-  //   const reco::Candidate * dau = p.daughter(j);
-    
-  //   if ( isGenKshort(dau) ) nGenKshort ++;  
-        
-  // }
-
   return true; 
 }
 
 
-
+bool
+BToKstarMuMu::isGenMuonP(const reco::Candidate *p){
+  if ( abs(p->pdgId()) != MUONMINUS_PDG_ID )
+    return false; 
+  
+  return true; 
+}
 
 
 void 
