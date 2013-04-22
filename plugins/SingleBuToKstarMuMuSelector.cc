@@ -5,6 +5,7 @@
 #define SingleBuToKstarMuMuSelector_cxx
 
 #include <iostream>
+#include <sstream>
 #include "SingleBuToKstarMuMuSelector.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -97,10 +98,55 @@ void SingleBuToKstarMuMuSelector::SlaveTerminate(){
   // 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
 
+TString 
+SingleBuToKstarMuMuSelector::get_option_value(TString option, TString name){
+  cout << "Enter funciton option value" << endl; 
+ 
+  stringstream ss;
+  string s;
+  // char c = 'a';
+  // ss << c;
+  // ss >> s;
+  
+  string option_str; 
+  ss << option.Data(); 
+  ss >> option_str; 
+  
+  vector<string> args;
+  // istringstream f("denmark;sweden;india;us");
+  istringstream f(option_str);
+  // string s;    
+  while (getline(f, s, ';')) {
+    // cout << s << endl;
+    args.push_back(s);
+  }
+  
+  cout << "Inside get option value" << endl; 
+  for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
+    cout << ">>>>>ssss: " << *it << endl;
+    
+  }
+ 
+  return ""; 
+  
+}
 
 void SingleBuToKstarMuMuSelector::Terminate(){
   TString option = GetOption();
-  TString outfile; 
+  // TString outfile; 
+  TString outfile = get_option_value(option, "outfile"); 
+
+  cout << ">>>>> Found outfile = " << outfile << endl; 
+
+  // vector<string> args;
+  // istringstream f("denmark;sweden;india;us");
+  // string s;    
+  // while (getline(f, s, ';')) {
+  //   cout << s << endl;
+  //   args.push_back(s);
+  // }
+  
+  
   if (option.BeginsWith("outfile=")) {
     option.ReplaceAll("outfile=","");
     if (!(option.IsNull())) outfile = option;
@@ -233,14 +279,16 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString infile = argv[1]; 
-  TString outfile = argv[2]; 
+  TString label = argv[1]; 
+  TString infile = argv[2]; 
+  TString outfile = argv[3]; 
   
+  Printf("label: '%s'", label.Data());
   Printf("input file: '%s'", infile.Data());
   Printf("output file: '%s'", outfile.Data());
  
   TString option; 
-  option.Form("outfile=%s", outfile.Data()); 
+  option.Form("label=%s;outfile=%s", label.Data(), outfile.Data()); 
 
   TChain *ch = new TChain("tree"); 
   ch->Add(infile.Data()); 
