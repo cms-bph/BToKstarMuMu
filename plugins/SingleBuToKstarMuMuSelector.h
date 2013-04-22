@@ -308,7 +308,8 @@ public :
    void SaveMuMu(int); 
    void SaveKstar(int); 
    void SaveB(int); 
-   
+   string TString_to_string(TString);
+   TString get_option_value(string, string);    
 };
 
 #endif
