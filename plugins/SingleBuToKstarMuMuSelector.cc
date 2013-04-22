@@ -102,7 +102,6 @@ void SingleBuToKstarMuMuSelector::SlaveTerminate(){
 string 
 SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
   stringstream ss;
-
   string str; 
   ss << Tstr.Data(); 
   ss >> str; 
@@ -111,7 +110,7 @@ SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
 
 TString 
 SingleBuToKstarMuMuSelector::get_option_value(string option, string name){
-  cout << "Enter funciton option value" << endl; 
+  // cout << "Enter funciton option value" << endl; 
  
   // stringstream ss;
   // string s;
@@ -135,22 +134,37 @@ SingleBuToKstarMuMuSelector::get_option_value(string option, string name){
     args.push_back(s);
   }
   
-  cout << "Inside get option value" << endl; 
+  // cout << "Inside get option value" << endl; 
   string value; 
   for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
     value = *it; 
-    // cout << ">>>>>ssss: " << *it << endl;
-    cout << ">>>>>value: " << value << endl;
-   
-    // unsigned found = *it.find(name);
     
-    value.replace(value.find(name), name.length()-1, "newlabel");
-    cout << ">>>>>changed value: " << value << endl;
+    cout << "\narg: " << value << endl;  
+ 
+  }
+
+  // for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
+  //  value = *it; 
+    // cout << ">>>>>ssss: " << *it << endl;
+    // cout << ">>>>>value: " << value 
+    // 	 << ", name: " << name << endl;
+   
+    // unsigned found = value.find(name);
+    // if (found == string::npos) continue; 
+
+    // cout << "found: " << name << "inside: " << value << endl; 
+    // value.replace(value.find(name), name.length()-1, "newlabel");
+    // string new_value = value.substr(value.find(name), name.length());
+    // cout << ">>>>>changed value: " << new_value << endl;
     
     // std::cout << str << '\n';
-
+    // if (found!=string::npos){
+    //   // string new_value = value.substr(value.find(name), name.length());
+    //   value.replace(value.find(name), name.length(), "newlabel");
+    //   // cout << ">>>>>changed value: " << new_value << endl;
+    // }
     
-  }
+  // }
  
   return ""; 
   
@@ -163,7 +177,7 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   TString outfile = get_option_value(option, "outfile"); 
 
   // cout << ">>>>> Found outfile = " << outfile << endl; 
-  cout << "string option = " << option << endl; 
+  // cout << "string option = " << option << endl; 
 
   // vector<string> args;
   // istringstream f("denmark;sweden;india;us");
