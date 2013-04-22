@@ -98,32 +98,57 @@ void SingleBuToKstarMuMuSelector::SlaveTerminate(){
   // 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
 
+
+string 
+SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
+  stringstream ss;
+
+  string str; 
+  ss << Tstr.Data(); 
+  ss >> str; 
+  return str;
+}
+
 TString 
-SingleBuToKstarMuMuSelector::get_option_value(TString option, TString name){
+SingleBuToKstarMuMuSelector::get_option_value(string option, string name){
   cout << "Enter funciton option value" << endl; 
  
-  stringstream ss;
-  string s;
-  // char c = 'a';
-  // ss << c;
-  // ss >> s;
+  // stringstream ss;
+  // string s;
+  // // char c = 'a';
+  // // ss << c;
+  // // ss >> s;
   
-  string option_str; 
-  ss << option.Data(); 
-  ss >> option_str; 
+  //string option_str; 
+  // ss << option.Data(); 
+  // ss >> option_str; 
   
+  // string option_str = TString_to_string(option); 
+
   vector<string> args;
   // istringstream f("denmark;sweden;india;us");
-  istringstream f(option_str);
-  // string s;    
+  // istringstream f(option_str);
+  istringstream f(option);
+  string s;    
   while (getline(f, s, ';')) {
     // cout << s << endl;
     args.push_back(s);
   }
   
   cout << "Inside get option value" << endl; 
+  string value; 
   for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
-    cout << ">>>>>ssss: " << *it << endl;
+    value = *it; 
+    // cout << ">>>>>ssss: " << *it << endl;
+    cout << ">>>>>value: " << value << endl;
+   
+    // unsigned found = *it.find(name);
+    
+    value.replace(value.find(name), name.length()-1, "newlabel");
+    cout << ">>>>>changed value: " << value << endl;
+    
+    // std::cout << str << '\n';
+
     
   }
  
@@ -132,11 +157,13 @@ SingleBuToKstarMuMuSelector::get_option_value(TString option, TString name){
 }
 
 void SingleBuToKstarMuMuSelector::Terminate(){
-  TString option = GetOption();
+  // TString option = GetOption();
+  string option = GetOption();
   // TString outfile; 
   TString outfile = get_option_value(option, "outfile"); 
 
-  cout << ">>>>> Found outfile = " << outfile << endl; 
+  // cout << ">>>>> Found outfile = " << outfile << endl; 
+  cout << "string option = " << option << endl; 
 
   // vector<string> args;
   // istringstream f("denmark;sweden;india;us");
@@ -147,11 +174,12 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   // }
   
   
-  if (option.BeginsWith("outfile=")) {
-    option.ReplaceAll("outfile=","");
-    if (!(option.IsNull())) outfile = option;
-  }
+  // if (option.BeginsWith("outfile=")) {
+  //   option.ReplaceAll("outfile=","");
+  //   if (!(option.IsNull())) outfile = option;
+  // }
 
+  // TString outfile = "test.root"; 
   TFile file(outfile.Data(), "recreate"); 
   fOutput->Write();
   
