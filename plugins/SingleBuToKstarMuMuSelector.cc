@@ -174,7 +174,9 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
     double blxysig = blsbs->at(i)/blsbserr->at(i); 
     if (blxysig < 12 ) continue; 
     if (bcosalphabs->at(i) < 0.99) continue; 
-    if (bctau->at(i) < 0.03) continue; 
+    
+    if ( label == "Run2011v10.1" ) 
+      if (bctau->at(i) < 0.03) continue; 
 
     Kstarmass = GetKstarMass(i);
     float kstar_mass_delta; 
