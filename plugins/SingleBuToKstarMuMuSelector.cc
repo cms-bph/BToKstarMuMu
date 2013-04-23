@@ -103,11 +103,17 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
 
 
 Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
+
+  string option = GetOption();
+  string label = get_option_value(option, "label"); 
+  
+  // cout << "label: " << label << endl; 
+
   GetEntry(entry); 
   n_processed_ += 1; 
   Nb = bmass->size(); 
   
-  int i = SelectB(); 
+  int i = SelectB(label); 
   if ( i != -1) {
     n_selected_ += 1; 
 
@@ -154,10 +160,11 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 }
 
 
-int SingleBuToKstarMuMuSelector::SelectB(){
+int SingleBuToKstarMuMuSelector::SelectB(string label){
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
-
+  cout << "label: " << label << endl; 
+  
   if ( ! HasGoodDimuon() ) return -1; 
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
