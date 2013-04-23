@@ -166,7 +166,6 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
 
-  
   if ( ! HasGoodDimuon() ) return -1; 
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
@@ -177,6 +176,14 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
     if (bcosalphabs->at(i) < 0.99) continue; 
     if (bctau->at(i) < 0.03) continue; 
 
+    Kstarmass = GetKstarMass(i);
+    float kstar_mass_delta; 
+    if ( label == "Run2011v11.1" ) 
+      kstar_mass_delta = 0.08; 
+      
+    if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
+	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
+      continue; 
 
     if (bvtxcl->at(i) > best_bvtxcl) {
       best_bvtxcl = bvtxcl->at(i); 
@@ -220,12 +227,11 @@ void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
 
 
 void SingleBuToKstarMuMuSelector::SaveKstar(int i){
-  TLorentzVector ks, pi, kstar; 
-  ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-  pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-  kstar = ks + pi; 
-  Kstarmass = kstar.M();
- 
+  // TLorentzVector ks, pi, kstar; 
+  // ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
+  // pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
+  // kstar = ks + pi; 
+  Kstarmass = GetKstarMass(i);
 }
 
 
@@ -243,8 +249,13 @@ void SingleBuToKstarMuMuSelector::SaveB(int i){
 
 }
 
-
-
+double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
+  TLorentzVector ks, pi, kstar; 
+  ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
+  pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
+  kstar = ks + pi; 
+  return kstar.M();
+}
 
 
 #ifndef __CINT__ 
