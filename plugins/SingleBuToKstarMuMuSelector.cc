@@ -181,7 +181,7 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
     Kstarmass = GetKstarMass(i);
     float kstar_mass_delta; 
     if ( label == "Run2011v11.1" ) 
-      kstar_mass_delta = 0.08; 
+      kstar_mass_delta = 0.06; 
       
     if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
