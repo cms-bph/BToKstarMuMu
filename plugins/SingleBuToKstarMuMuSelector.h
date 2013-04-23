@@ -303,13 +303,12 @@ public :
    virtual void    Terminate();
 
    // ClassDef(SingleBuToKstarMuMuSelector,0);
-   int SelectB(); 
+   int SelectB(string); 
    bool HasGoodDimuon(); 
    void SaveMuMu(int); 
    void SaveKstar(int); 
    void SaveB(int); 
-   string TString_to_string(TString);
-   TString get_option_value(string, string);    
+   double GetKstarMass(int); 
 };
 
 #endif
