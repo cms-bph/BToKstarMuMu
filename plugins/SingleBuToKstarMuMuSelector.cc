@@ -53,72 +53,23 @@ void str_replace(std::string& str, const std::string& oldStr,
 
 
 string get_option_value(string option, string name){
-  // cout << "Enter funciton option value" << endl; 
- 
-  // stringstream ss;
-  // string s;
-  // // char c = 'a';
-  // // ss << c;
-  // // ss >> s;
-  
-  //string option_str; 
-  // ss << option.Data(); 
-  // ss >> option_str; 
-  
-  // string option_str = TString_to_string(option); 
-
   vector<string> args;
-  // istringstream f("denmark;sweden;india;us");
-  // istringstream f(option_str);
   istringstream f(option);
   string s;    
   while (getline(f, s, ';')) {
-    // cout << s << endl;
     args.push_back(s);
   }
   
-  // cout << "Inside get option value" << endl; 
   string value; 
   for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
     value = *it; 
-    
-    // cout << "\narg: " << value << endl;  
-
     unsigned found = value.find(name);
-    // cout << "nops=" << string::npos << endl; 
     if (found == 0) {
-      // std::cout << "first " << name << " found at: " << found << '\n';
       str_replace(value, name+"=", ""); 
       break; 
     }
-    // cout << ">>> replaced version: " << value << endl; 
   }
-
   return value; 
-  // for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
-  //  value = *it; 
-    // cout << ">>>>>ssss: " << *it << endl;
-    // cout << ">>>>>value: " << value 
-    // 	 << ", name: " << name << endl;
-   
-    // unsigned found = value.find(name);
-    // if (found == string::npos) continue; 
-
-    // cout << "found: " << name << "inside: " << value << endl; 
-    // value.replace(value.find(name), name.length()-1, "newlabel");
-    // string new_value = value.substr(value.find(name), name.length());
-    // cout << ">>>>>changed value: " << new_value << endl;
-    
-    // std::cout << str << '\n';
-    // if (found!=string::npos){
-    //   // string new_value = value.substr(value.find(name), name.length());
-    //   value.replace(value.find(name), name.length(), "newlabel");
-    //   // cout << ">>>>>changed value: " << new_value << endl;
-    // }
-    
-  // }
- 
-  // return ""; 
 }
 
 
@@ -181,43 +132,15 @@ void SingleBuToKstarMuMuSelector::SlaveTerminate(){
   // 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
 
-
-// string 
-// SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
-//   stringstream ss;
-//   string str; 
-//   ss << Tstr.Data(); 
-//   ss >> str; 
-//   return str;
-// }
-
-
-
 void SingleBuToKstarMuMuSelector::Terminate(){
-  // TString option = GetOption();
   string option = GetOption();
-  // TString outfile; 
   TString outfile = get_option_value(option, "outfile"); 
-
-  // cout << ">>>>> Found outfile = " << outfile << endl; 
-  // cout << "string option = " << option << endl; 
-
-  // vector<string> args;
-  // istringstream f("denmark;sweden;india;us");
-  // string s;    
-  // while (getline(f, s, ';')) {
-  //   cout << s << endl;
-  //   args.push_back(s);
-  // }
-  
   
   // if (option.BeginsWith("outfile=")) {
   //   option.ReplaceAll("outfile=","");
   //   if (!(option.IsNull())) outfile = option;
   // }
 
-  // TString outfile = "test.root"; 
-  cout << ">>>>>> Outfile = " << outfile << endl; 
   TFile file(outfile.Data(), "recreate"); 
   fOutput->Write();
   
@@ -228,7 +151,6 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 	 n_processed_, n_selected_, 
 	 t_now_.Convert() - t_begin_.Convert(), 
 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
-  
 }
 
 
