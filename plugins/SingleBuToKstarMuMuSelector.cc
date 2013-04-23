@@ -39,6 +39,19 @@ double Blxysig = 0;
 double Bcosalphabs = 0; 
 double Bctau = 0; 
 
+
+void str_replace(std::string& str, const std::string& oldStr,
+		 const std::string& newStr)
+{
+  size_t pos = 0;
+  while((pos = str.find(oldStr, pos)) != std::string::npos)
+  {
+    str.replace(pos, oldStr.length(), newStr);
+    pos += newStr.length();
+  }
+}
+
+
 void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
   
   t_begin_.Set(); 
@@ -140,7 +153,11 @@ SingleBuToKstarMuMuSelector::get_option_value(string option, string name){
     value = *it; 
     
     cout << "\narg: " << value << endl;  
- 
+    str_replace(value,  name, "AAA"); 
+    
+    cout << ">>> replaced version: " << value << endl; 
+
+      
   }
 
   // for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
@@ -314,6 +331,8 @@ void print_usage(){
        << " -j \t\tNumber of workers\n" 
        << endl; 
 }
+
+
 
 int main(int argc, char** argv) {
  if ( (argc < 2) or option_exists(argv, argv+argc, "-h") ){
