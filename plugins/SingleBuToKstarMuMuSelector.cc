@@ -161,9 +161,11 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 
 
 int SingleBuToKstarMuMuSelector::SelectB(string label){
+  if ( label != "Run2011v11.1" ) return -1;  
+
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
-  cout << "label: " << label << endl; 
+
   
   if ( ! HasGoodDimuon() ) return -1; 
 
