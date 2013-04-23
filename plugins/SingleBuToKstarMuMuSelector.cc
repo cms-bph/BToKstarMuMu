@@ -52,6 +52,76 @@ void str_replace(std::string& str, const std::string& oldStr,
 }
 
 
+string get_option_value(string option, string name){
+  // cout << "Enter funciton option value" << endl; 
+ 
+  // stringstream ss;
+  // string s;
+  // // char c = 'a';
+  // // ss << c;
+  // // ss >> s;
+  
+  //string option_str; 
+  // ss << option.Data(); 
+  // ss >> option_str; 
+  
+  // string option_str = TString_to_string(option); 
+
+  vector<string> args;
+  // istringstream f("denmark;sweden;india;us");
+  // istringstream f(option_str);
+  istringstream f(option);
+  string s;    
+  while (getline(f, s, ';')) {
+    // cout << s << endl;
+    args.push_back(s);
+  }
+  
+  // cout << "Inside get option value" << endl; 
+  string value; 
+  for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
+    value = *it; 
+    
+    // cout << "\narg: " << value << endl;  
+
+    unsigned found = value.find(name);
+    // cout << "nops=" << string::npos << endl; 
+    if (found == 0) {
+      // std::cout << "first " << name << " found at: " << found << '\n';
+      str_replace(value, name+"=", ""); 
+      break; 
+    }
+    // cout << ">>> replaced version: " << value << endl; 
+  }
+
+  return value; 
+  // for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
+  //  value = *it; 
+    // cout << ">>>>>ssss: " << *it << endl;
+    // cout << ">>>>>value: " << value 
+    // 	 << ", name: " << name << endl;
+   
+    // unsigned found = value.find(name);
+    // if (found == string::npos) continue; 
+
+    // cout << "found: " << name << "inside: " << value << endl; 
+    // value.replace(value.find(name), name.length()-1, "newlabel");
+    // string new_value = value.substr(value.find(name), name.length());
+    // cout << ">>>>>changed value: " << new_value << endl;
+    
+    // std::cout << str << '\n';
+    // if (found!=string::npos){
+    //   // string new_value = value.substr(value.find(name), name.length());
+    //   value.replace(value.find(name), name.length(), "newlabel");
+    //   // cout << ">>>>>changed value: " << new_value << endl;
+    // }
+    
+  // }
+ 
+  // return ""; 
+}
+
+
 void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
   
   t_begin_.Set(); 
@@ -112,80 +182,16 @@ void SingleBuToKstarMuMuSelector::SlaveTerminate(){
 }
 
 
-string 
-SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
-  stringstream ss;
-  string str; 
-  ss << Tstr.Data(); 
-  ss >> str; 
-  return str;
-}
+// string 
+// SingleBuToKstarMuMuSelector::TString_to_string(TString Tstr){
+//   stringstream ss;
+//   string str; 
+//   ss << Tstr.Data(); 
+//   ss >> str; 
+//   return str;
+// }
 
-TString 
-SingleBuToKstarMuMuSelector::get_option_value(string option, string name){
-  // cout << "Enter funciton option value" << endl; 
- 
-  // stringstream ss;
-  // string s;
-  // // char c = 'a';
-  // // ss << c;
-  // // ss >> s;
-  
-  //string option_str; 
-  // ss << option.Data(); 
-  // ss >> option_str; 
-  
-  // string option_str = TString_to_string(option); 
 
-  vector<string> args;
-  // istringstream f("denmark;sweden;india;us");
-  // istringstream f(option_str);
-  istringstream f(option);
-  string s;    
-  while (getline(f, s, ';')) {
-    // cout << s << endl;
-    args.push_back(s);
-  }
-  
-  // cout << "Inside get option value" << endl; 
-  string value; 
-  for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
-    value = *it; 
-    
-    cout << "\narg: " << value << endl;  
-    str_replace(value,  name, "AAA"); 
-    
-    cout << ">>> replaced version: " << value << endl; 
-
-      
-  }
-
-  // for(vector<string>::iterator it = args.begin(); it != args.end(); ++it) {
-  //  value = *it; 
-    // cout << ">>>>>ssss: " << *it << endl;
-    // cout << ">>>>>value: " << value 
-    // 	 << ", name: " << name << endl;
-   
-    // unsigned found = value.find(name);
-    // if (found == string::npos) continue; 
-
-    // cout << "found: " << name << "inside: " << value << endl; 
-    // value.replace(value.find(name), name.length()-1, "newlabel");
-    // string new_value = value.substr(value.find(name), name.length());
-    // cout << ">>>>>changed value: " << new_value << endl;
-    
-    // std::cout << str << '\n';
-    // if (found!=string::npos){
-    //   // string new_value = value.substr(value.find(name), name.length());
-    //   value.replace(value.find(name), name.length(), "newlabel");
-    //   // cout << ">>>>>changed value: " << new_value << endl;
-    // }
-    
-  // }
- 
-  return ""; 
-  
-}
 
 void SingleBuToKstarMuMuSelector::Terminate(){
   // TString option = GetOption();
@@ -211,6 +217,7 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   // }
 
   // TString outfile = "test.root"; 
+  cout << ">>>>>> Outfile = " << outfile << endl; 
   TFile file(outfile.Data(), "recreate"); 
   fOutput->Write();
   
