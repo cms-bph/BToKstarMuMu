@@ -301,6 +301,8 @@ private:
   // vector<int> *genbchg; // +1 for b+, -1 for b-
   vector<double> *genbpx, *genbpy, *genbpz;
   vector<double> *genkstpx, *genkstpy, *genkstpz;
+  vector<double> *genkspx, *genkspy, *genkspz;
+  vector<double> *genpipx, *genpipy, *genpipz;
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
   
@@ -393,6 +395,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   genbpx(0), genbpy(0), genbpz(0), 
   genkstpx(0), genkstpy(0), genkstpz(0), 
+  genkspx(0), genkspy(0), genkspz(0), 
+  genpipx(0), genpipy(0), genpipz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0)
 
@@ -612,6 +616,12 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genkstpx", &genkstpx);
     tree_->Branch("genkstpy", &genkstpy);
     tree_->Branch("genkstpz", &genkstpz);
+    tree_->Branch("genkspx", &genkspx);
+    tree_->Branch("genkspy", &genkspy);
+    tree_->Branch("genkspz", &genkspz);
+    tree_->Branch("genpipx", &genpipx);
+    tree_->Branch("genpipy", &genpipy);
+    tree_->Branch("genpipz", &genpipz);
     tree_->Branch("genmumpx", &genmumpx);
     tree_->Branch("genmumpy", &genmumpy);
     tree_->Branch("genmumpz", &genmumpz);
@@ -2106,39 +2116,56 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     // only select B+ or B- candidate 
     if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
-    int ikst(-1), imum(-1), imup(-1); 
+    int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1); 
 
     // loop over all B+/- daughters 
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
-      const reco::Candidate * dau = b.daughter(j);
-
-      if (abs(dau->pdgId()) == KSTARPLUS_PDG_ID) ikst = j; 
-
-      if (dau->pdgId() == MUONMINUS_PDG_ID) imum = j; 
-      
-      if (dau->pdgId() == -MUONMINUS_PDG_ID) imup = j; 
+      const reco::Candidate  &dau = *(b.daughter(j));
+      if (dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
+      if (dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
+      if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;  
     }
 
     if (ikst == -1 || imum == -1 || imup == -1) continue; 
+
+    const reco::Candidate & kst = *(b.daughter(ikst));
     
+    for ( size_t j = 0; j < kst.numberOfDaughters(); ++j){
+      const reco::Candidate  &dau = *(kst.daughter(j));
+      if (abs(dau.pdgId()) == KSHORTZERO_PDG_ID) iks = j; 
+      if (abs(dau.pdgId()) == PIONPLUS_PDG_ID) ipi = j; 
+    }
+
+    if (iks == -1 || ipi == -1) continue; 
+
+    const reco::Candidate & ks = *(kst.daughter(iks));
+    const reco::Candidate & pi = *(kst.daughter(ipi));
+    const reco::Candidate & mum = *(b.daughter(imum));
+    const reco::Candidate & mup = *(b.daughter(imup));
+
     genbpx->push_back(b.px());
     genbpy->push_back(b.py());
     genbpz->push_back(b.pz());
  
-    const reco::Candidate & kst = *(b.daughter(ikst));
-    genkstpx->push_back(kst.px());
-    genkstpy->push_back(kst.py());
-    genkstpz->push_back(kst.pz());
- 
-    const reco::Candidate & mum = *(b.daughter(imum));
     genmumpx->push_back(mum.px());
     genmumpy->push_back(mum.py());
     genmumpz->push_back(mum.pz());
 
-    const reco::Candidate & mup = *(b.daughter(imup));
     genmuppx->push_back(mup.px());
     genmuppy->push_back(mup.py());
     genmuppz->push_back(mup.pz());
+
+    genkstpx->push_back(kst.px());
+    genkstpy->push_back(kst.py());
+    genkstpz->push_back(kst.pz());
+    
+    genkspx->push_back(ks.px());
+    genkspy->push_back(ks.py());
+    genkspz->push_back(ks.pz());
+
+    genpipx->push_back(pi.px());
+    genpipy->push_back(pi.py());
+    genpipz->push_back(pi.pz());
     
   }
 }
