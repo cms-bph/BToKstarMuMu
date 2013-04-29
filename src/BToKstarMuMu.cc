@@ -299,8 +299,8 @@ private:
 
   // GenInfo
   // vector<int> *genbchg; // +1 for b+, -1 for b-
-  vector<double> *genbpx; //  *genbpxerr, *genbpy, *genbpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
-  
+  vector<double> *genbpx, *genbpy, *genbpz;
+  vector<double> *genkstpx, *genkstpy, *genkstpz;
   
  
 };
@@ -376,7 +376,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
 
-  bmu1chg(0), bmu2chg(0), bpi1chg(0), bmu1px(0),  bmu1py(0),  bmu1pz(0), bmu1mass(0), bmu1masserr(0), 
+  bmu1chg(0), bmu2chg(0), bpi1chg(0), bmu1px(0),  bmu1py(0), bmu1pz(0), bmu1mass(0), bmu1masserr(0), 
   bmu2px(0),  bmu2py(0),  bmu2pz(0), bmu2mass(0), bmu2masserr(0),
   bpi1px(0),  bpi1py(0),  bpi1pz(0), bpi1mass(0), bpi1masserr(0), 
   bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0), 
@@ -389,7 +389,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   b3vtxcl(0), b3vtxx(0), b3vtxxerr(0), b3vtxy(0), b3vtxyerr(0), b3vtxz(0), b3vtxzerr(0), 
   b3cosalphabs(0), b3cosalphabserr(0), b3lsbs(0), b3lsbserr(0), b3ctau(0), b3ctauerr(0), 
 
-  genbpx(0)
+  genbpx(0), genbpy(0), genbpz(0), 
+  genkstpx(0), genkstpy(0), genkstpz(0)
  {
    //now do what ever initialization is needed
 
@@ -601,6 +602,11 @@ BToKstarMuMu::beginJob()
 
   if (SaveGenInfo_) {
     tree_->Branch("genbpx", &genbpx);
+    tree_->Branch("genbpy", &genbpy);
+    tree_->Branch("genbpz", &genbpz);
+    tree_->Branch("genkstpx", &genkstpx);
+    tree_->Branch("genkstpy", &genkstpy);
+    tree_->Branch("genkstpz", &genkstpz);
   }
 
 
@@ -2084,16 +2090,16 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
   // loop over all gen particles
   for( size_t i = 0; i < genparticles->size(); ++i ) {
-    const reco::GenParticle & p = (*genparticles)[i];
+    const reco::GenParticle & b = (*genparticles)[i];
 
     // only select B+ or B- candidate 
-    if ( abs(p.pdgId()) != BPLUS_PDG_ID ) continue; 
+    if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
     int ikst(-1), imum(-1), imup(-1); 
 
     // loop over all B+/- daughters 
-    for ( size_t j = 0; j < p.numberOfDaughters(); ++j){
-      const reco::Candidate * dau = p.daughter(j);
+    for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
+      const reco::Candidate * dau = b.daughter(j);
 
       if (abs(dau->pdgId()) == KSTARPLUS_PDG_ID) ikst = j; 
 
@@ -2102,11 +2108,18 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (dau->pdgId() == -MUONMINUS_PDG_ID) imup = j; 
     }
 
-    if (ikst != -1 && imum != -1 && imup != -1) {
-      const reco::Candidate * genkst = p.daughter(ikst);
-      
-      
-    }
+    if (ikst == -1 || imum == -1 || imup == -1) continue; 
+    
+    genbpx->push_back(b.px());
+    genbpy->push_back(b.py());
+    genbpz->push_back(b.pz());
+ 
+    const reco::Candidate & kst = *(b.daughter(ikst));
+    genkstpx->push_back(kst.px());
+    genkstpy->push_back(kst.py());
+    genkstpz->push_back(kst.pz());
+ 
+     
   }
 }
 
