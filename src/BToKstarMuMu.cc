@@ -301,6 +301,8 @@ private:
   // vector<int> *genbchg; // +1 for b+, -1 for b-
   vector<double> *genbpx, *genbpy, *genbpz;
   vector<double> *genkstpx, *genkstpy, *genkstpz;
+  vector<double> *genmumpx, *genmumpy, *genmumpz;
+  vector<double> *genmuppx, *genmuppy, *genmuppz;
   
  
 };
@@ -390,10 +392,13 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   b3cosalphabs(0), b3cosalphabserr(0), b3lsbs(0), b3lsbserr(0), b3ctau(0), b3ctauerr(0), 
 
   genbpx(0), genbpy(0), genbpz(0), 
-  genkstpx(0), genkstpy(0), genkstpz(0)
- {
-   //now do what ever initialization is needed
+  genkstpx(0), genkstpy(0), genkstpz(0), 
+  genmumpx(0), genmumpy(0), genmumpz(0),
+  genmuppx(0), genmuppy(0), genmuppz(0)
 
+{ 
+  //now do what ever initialization is needed
+  
   assert(TriggerNames_.size() == LastFilterNames_.size());
   for (size_t i = 0; i < TriggerNames_.size(); ++i)
     mapTriggerToLastFilter_[TriggerNames_[i]] = LastFilterNames_[i];
@@ -607,6 +612,12 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genkstpx", &genkstpx);
     tree_->Branch("genkstpy", &genkstpy);
     tree_->Branch("genkstpz", &genkstpz);
+    tree_->Branch("genmumpx", &genmumpx);
+    tree_->Branch("genmumpy", &genmumpy);
+    tree_->Branch("genmumpz", &genmumpz);
+    tree_->Branch("genmuppx", &genmuppx);
+    tree_->Branch("genmuppy", &genmuppy);
+    tree_->Branch("genmuppz", &genmuppz);
   }
 
 
@@ -2119,7 +2130,16 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genkstpy->push_back(kst.py());
     genkstpz->push_back(kst.pz());
  
-     
+    const reco::Candidate & mum = *(b.daughter(imum));
+    genmumpx->push_back(mum.px());
+    genmumpy->push_back(mum.py());
+    genmumpz->push_back(mum.pz());
+
+    const reco::Candidate & mup = *(b.daughter(imup));
+    genmuppx->push_back(mup.px());
+    genmuppy->push_back(mup.py());
+    genmuppz->push_back(mup.pz());
+    
   }
 }
 
