@@ -1,13 +1,17 @@
-#BINDIR=$(HOME)/local/bin
-FLAGS=-Wall
-FLAGS+=`root-config --cflags --libs`
-FLAGS+=-lProof
+GCCFLAGS=-Wall -g
+ROOTFLAGS=`root-config --cflags --libs`
 
-all: SingleBuToKstarMuMuSelector
+SELECTORFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lProof
+FIGURESFLAGS=$(GCCFLAGS) $(ROOTFLAGS) 
+
+all: SingleBuToKstarMuMuSelector SingleBuToKstarMuMuFigures
 	@echo "Full build successful."
 
 SingleBuToKstarMuMuSelector: SingleBuToKstarMuMuSelector.cc 
-	g++ $(FLAGS) $< -o $@
+	g++ $(SELECTORFLAGS) $< -o $@
+
+SingleBuToKstarMuMuFigures: SingleBuToKstarMuMuFigures.cc 
+	g++ $(FIGURESFLAGS) $< -o $@
 
 clean:
-	rm -rf SingleBuToKstarMuMuSelector 
+	rm -rf SingleBuToKstarMuMuSelector SingleBuToKstarMuMuFigures 
