@@ -111,7 +111,8 @@ void set_root_style(int stat=1110, int grid=0){
 bool sel_bmass_res(TString label, double mumumass){
   if (label == "Run2011v10.3" or 
       label == "Run2011v10.4" or
-      label == "Run2011v10.5"
+      label == "Run2011v10.5" or
+      label == "Run2011v11.1"
       ){
     double jpsimass_min = JPSI_MASS - 5*0.03 ; // 2.94692
     double jpsimass_max = JPSI_MASS + 5*0.03 ; // 3.24692
