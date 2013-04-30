@@ -461,8 +461,6 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   event = iEvent.id().event() ;
   lumiblock = iEvent.luminosityBlock(); 
 
-
-
   hltReport(iEvent);
 
   if ( hasBeamSpot(iEvent) ) {
@@ -490,6 +488,14 @@ BToKstarMuMu::beginJob()
 {
   fout_ = new TFile(FileName_.c_str(), "RECREATE");
   fout_->cd();
+
+  for(int i=0; i<kHistNameSize; i++) {
+    BToKstarMuMuFigures[i] = new TH1F(hist_args[i].name, hist_args[i].title,
+				       hist_args[i].n_bins,
+				       hist_args[i].x_min, hist_args[i].x_max);
+  }
+  
+
   tree_ = new TTree ("tree", "BToKstarMuMu");
 
   tree_->Branch("run", &run, "run/i");
@@ -668,6 +674,11 @@ BToKstarMuMu::endJob()
 {
   fout_->cd();
   tree_->Write();
+  
+  for(int i = 0; i < kHistNameSize; i++) {
+    BToKstarMuMuFigures[i]->Write();
+    BToKstarMuMuFigures[i]->Delete();
+  }
   fout_->Close();
 }
 
@@ -1834,13 +1845,17 @@ BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
       reco::TrackRef muTrackp = iMuonP->innerTrack(); 
       if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
       
-   
+        TLorentzVector mu1, mu2, dimu; 
+	// cout << muTrackm->px() << endl; 
+	
+	mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
+	mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
+	dimu = mu1 + mu2; 
+	BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
 
     }
     
-    
   }
-
 
 
   return false; 
