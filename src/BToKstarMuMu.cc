@@ -132,7 +132,7 @@ private:
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   
 
-  bool buildBuToPiMuMu(const edm::Event &); 
+  // bool buildBuToPiMuMu(const edm::Event &); 
   bool buildBuToKstarMuMu(const edm::Event &); 
 
   void computeLS (double, double, double, double, double, double, double, double, double, 
@@ -205,11 +205,11 @@ private:
   void saveBuCosAlpha(RefCountedKinematicTree); 
   void saveBuLsig(RefCountedKinematicTree);
   void saveBuCtau(RefCountedKinematicTree); 
-  void saveBuToPiMuMu(RefCountedKinematicTree); 
-  void saveBu3Vertex(RefCountedKinematicTree); 
-  void saveBu3CosAlpha(RefCountedKinematicTree); 
-  bool saveBu3Lsig(RefCountedKinematicTree);
-  void saveBu3Ctau(RefCountedKinematicTree); 
+  // void saveBuToPiMuMu(RefCountedKinematicTree); 
+  // void saveBu3Vertex(RefCountedKinematicTree); 
+  // void saveBu3CosAlpha(RefCountedKinematicTree); 
+  // bool saveBu3Lsig(RefCountedKinematicTree);
+  // void saveBu3Ctau(RefCountedKinematicTree); 
   void saveGenInfo(const edm::Event&); 
   void saveKshortVariables(reco::VertexCompositeCandidate); 
 
@@ -265,11 +265,11 @@ private:
   pat::CompositeCandidateCollection KstarChargedCandidates_; 
 
   // B meson
-  pat::CompositeCandidateCollection BuCandidates_, 
-    BuToPiMuMuCandidates_; 
+  pat::CompositeCandidateCollection BuCandidates_;  
+  //   BuToPiMuMuCandidates_; 
   double BMaxMass_; 
   double BuMass_; 
-  double B3MinMass_, B3MaxMass_, B3MinLsBs_; 
+  // double B3MinMass_, B3MaxMass_, B3MinLsBs_; 
   
 
   // Across the event 
@@ -318,14 +318,14 @@ private:
 
 
   // B to pi mu mu variables 
-  vector<int> *b3mu1chg, *b3mu2chg, *b3pi1chg; 
-  vector<double> *b3mu1px, *b3mu1py, *b3mu1pz, *b3mu2px, *b3mu2py, *b3mu2pz, 
-    *b3pi1px, *b3pi1py, *b3pi1pz; 
+  // vector<int> *b3mu1chg, *b3mu2chg, *b3pi1chg; 
+  // vector<double> *b3mu1px, *b3mu1py, *b3mu1pz, *b3mu2px, *b3mu2py, *b3mu2pz, 
+  //   *b3pi1px, *b3pi1py, *b3pi1pz; 
 
-  vector<int> *b3chg; // +1 for b+, -1 for b-
-  vector<double> *b3px, *b3pxerr, *b3py, *b3pyerr, *b3pz, *b3pzerr, *b3mass, *b3masserr; 
-  vector<double> *b3vtxcl, *b3vtxx, *b3vtxxerr, *b3vtxy, *b3vtxyerr, *b3vtxz, *b3vtxzerr; 
-  vector<double> *b3cosalphabs, *b3cosalphabserr, *b3lsbs, *b3lsbserr, *b3ctau, *b3ctauerr; 
+  // vector<int> *b3chg; // +1 for b+, -1 for b-
+  // vector<double> *b3px, *b3pxerr, *b3py, *b3pyerr, *b3pz, *b3pzerr, *b3mass, *b3masserr; 
+  // vector<double> *b3vtxcl, *b3vtxx, *b3vtxxerr, *b3vtxy, *b3vtxyerr, *b3vtxz, *b3vtxzerr; 
+  // vector<double> *b3cosalphabs, *b3cosalphabserr, *b3lsbs, *b3lsbserr, *b3ctau, *b3ctauerr; 
 
   // GenInfo
   // vector<int> *genbchg; // +1 for b+, -1 for b-
@@ -388,9 +388,9 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
   BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
-  B3MinMass_(iConfig.getUntrackedParameter<double>("B3MinMass")),
-  B3MaxMass_(iConfig.getUntrackedParameter<double>("B3MaxMass")),
-  B3MinLsBs_(iConfig.getUntrackedParameter<double>("B3MinLsBs")),
+  // B3MinMass_(iConfig.getUntrackedParameter<double>("B3MinMass")),
+  // B3MaxMass_(iConfig.getUntrackedParameter<double>("B3MaxMass")),
+  // B3MinLsBs_(iConfig.getUntrackedParameter<double>("B3MinLsBs")),
 
 
   tree_(0), 
@@ -418,13 +418,13 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   bpi1px(0),  bpi1py(0),  bpi1pz(0), bpi1mass(0), bpi1masserr(0), 
   bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0), 
 
-  b3mu1chg(0), b3mu2chg(0), b3pi1chg(0),
-  b3mu1px(0),  b3mu1py(0),  b3mu1pz(0), 
-  b3mu2px(0),  b3mu2py(0),  b3mu2pz(0), 
-  b3pi1px(0),  b3pi1py(0),  b3pi1pz(0), 
-  b3chg(0), b3px(0), b3pxerr(0), b3py(0), b3pyerr(0), b3pz(0), b3pzerr(0), b3mass(0), b3masserr(0),
-  b3vtxcl(0), b3vtxx(0), b3vtxxerr(0), b3vtxy(0), b3vtxyerr(0), b3vtxz(0), b3vtxzerr(0), 
-  b3cosalphabs(0), b3cosalphabserr(0), b3lsbs(0), b3lsbserr(0), b3ctau(0), b3ctauerr(0), 
+  // b3mu1chg(0), b3mu2chg(0), b3pi1chg(0),
+  // b3mu1px(0),  b3mu1py(0),  b3mu1pz(0), 
+  // b3mu2px(0),  b3mu2py(0),  b3mu2pz(0), 
+  // b3pi1px(0),  b3pi1py(0),  b3pi1pz(0), 
+  // b3chg(0), b3px(0), b3pxerr(0), b3py(0), b3pyerr(0), b3pz(0), b3pzerr(0), b3mass(0), b3masserr(0),
+  // b3vtxcl(0), b3vtxx(0), b3vtxxerr(0), b3vtxy(0), b3vtxyerr(0), b3vtxz(0), b3vtxzerr(0), 
+  // b3cosalphabs(0), b3cosalphabserr(0), b3lsbs(0), b3lsbserr(0), b3ctau(0), b3ctauerr(0), 
 
   genbpx(0), genbpy(0), genbpz(0), 
   genkstpx(0), genkstpy(0), genkstpz(0), 
@@ -614,40 +614,40 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bksmasserr", &bksmasserr);
 
   // B to pi mu mu 
-  tree_->Branch("b3mu1chg", &b3mu1chg);
-  tree_->Branch("b3mu2chg", &b3mu2chg);
-  tree_->Branch("b3pi1chg", &b3pi1chg);
-  tree_->Branch("b3mu1px", &b3mu1px);
-  tree_->Branch("b3mu1py", &b3mu1py);
-  tree_->Branch("b3mu1pz", &b3mu1pz);
-  tree_->Branch("b3mu2px", &b3mu2px);
-  tree_->Branch("b3mu2py", &b3mu2py);
-  tree_->Branch("b3mu2pz", &b3mu2pz);
-  tree_->Branch("b3pi1px", &b3pi1px);
-  tree_->Branch("b3pi1py", &b3pi1py);
-  tree_->Branch("b3pi1pz", &b3pi1pz);
-  tree_->Branch("b3chg", &b3chg);
-  tree_->Branch("b3px", &b3px);
-  tree_->Branch("b3pxerr", &b3pxerr);
-  tree_->Branch("b3py", &b3py);
-  tree_->Branch("b3pyerr", &b3pyerr);
-  tree_->Branch("b3pz", &b3pz);
-  tree_->Branch("b3pzerr", &b3pzerr);
-  tree_->Branch("b3mass", &b3mass);
-  tree_->Branch("b3masserr", &b3masserr);
-  tree_->Branch("b3vtxcl", &b3vtxcl);
-  tree_->Branch("b3vtxx", &b3vtxx);
-  tree_->Branch("b3vtxxerr", &b3vtxxerr);
-  tree_->Branch("b3vtxy", &b3vtxy);
-  tree_->Branch("b3vtxyerr", &b3vtxyerr);
-  tree_->Branch("b3vtxz", &b3vtxz);
-  tree_->Branch("b3vtxzerr", &b3vtxzerr);
-  tree_->Branch("b3cosalphabs", &b3cosalphabs);
-  tree_->Branch("b3cosalphabserr", &b3cosalphabserr);
-  tree_->Branch("b3lsbs", &b3lsbs);
-  tree_->Branch("b3lsbserr", &b3lsbserr);
-  tree_->Branch("b3ctau", &b3ctau);
-  tree_->Branch("b3ctauerr", &b3ctauerr);
+  // tree_->Branch("b3mu1chg", &b3mu1chg);
+  // tree_->Branch("b3mu2chg", &b3mu2chg);
+  // tree_->Branch("b3pi1chg", &b3pi1chg);
+  // tree_->Branch("b3mu1px", &b3mu1px);
+  // tree_->Branch("b3mu1py", &b3mu1py);
+  // tree_->Branch("b3mu1pz", &b3mu1pz);
+  // tree_->Branch("b3mu2px", &b3mu2px);
+  // tree_->Branch("b3mu2py", &b3mu2py);
+  // tree_->Branch("b3mu2pz", &b3mu2pz);
+  // tree_->Branch("b3pi1px", &b3pi1px);
+  // tree_->Branch("b3pi1py", &b3pi1py);
+  // tree_->Branch("b3pi1pz", &b3pi1pz);
+  // tree_->Branch("b3chg", &b3chg);
+  // tree_->Branch("b3px", &b3px);
+  // tree_->Branch("b3pxerr", &b3pxerr);
+  // tree_->Branch("b3py", &b3py);
+  // tree_->Branch("b3pyerr", &b3pyerr);
+  // tree_->Branch("b3pz", &b3pz);
+  // tree_->Branch("b3pzerr", &b3pzerr);
+  // tree_->Branch("b3mass", &b3mass);
+  // tree_->Branch("b3masserr", &b3masserr);
+  // tree_->Branch("b3vtxcl", &b3vtxcl);
+  // tree_->Branch("b3vtxx", &b3vtxx);
+  // tree_->Branch("b3vtxxerr", &b3vtxxerr);
+  // tree_->Branch("b3vtxy", &b3vtxy);
+  // tree_->Branch("b3vtxyerr", &b3vtxyerr);
+  // tree_->Branch("b3vtxz", &b3vtxz);
+  // tree_->Branch("b3vtxzerr", &b3vtxzerr);
+  // tree_->Branch("b3cosalphabs", &b3cosalphabs);
+  // tree_->Branch("b3cosalphabserr", &b3cosalphabserr);
+  // tree_->Branch("b3lsbs", &b3lsbs);
+  // tree_->Branch("b3lsbserr", &b3lsbserr);
+  // tree_->Branch("b3ctau", &b3ctau);
+  // tree_->Branch("b3ctauerr", &b3ctauerr);
 
   if (SaveGenInfo_) {
     tree_->Branch("genbpx", &genbpx);
@@ -745,7 +745,8 @@ BToKstarMuMu::clearVariables(){
   kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear();
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
   DimuonCandidates_.clear();  KshortCandidates_.clear(); 
-  KstarChargedCandidates_.clear(); BuCandidates_.clear(); BuToPiMuMuCandidates_.clear();
+  KstarChargedCandidates_.clear(); BuCandidates_.clear();
+  // BuToPiMuMuCandidates_.clear();
   bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear(); bpz->clear(); bpzerr->clear(); 
   bchg->clear(); bmass->clear(); bmasserr->clear(); 
   bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear(); bvtxyerr->clear();
@@ -758,14 +759,21 @@ BToKstarMuMu::clearVariables(){
   bpi1px->clear();   bpi1py->clear();   bpi1pz->clear(); bpi1mass->clear();  bpi1masserr->clear();
   bkspx->clear();   bkspy->clear();   bkspz->clear(); bksmass->clear();  bksmasserr->clear();
 
-  b3mu1chg->clear(); b3mu2chg->clear(); b3pi1chg->clear(); 
-  b3mu1px->clear();   b3mu1py->clear();   b3mu1pz->clear(); 
-  b3mu2px->clear();   b3mu2py->clear();   b3mu2pz->clear(); 
-  b3pi1px->clear();   b3pi1py->clear();   b3pi1pz->clear();
-  b3chg->clear();  
-  b3px->clear(); b3pxerr->clear(); b3py->clear();  b3pyerr->clear(); b3pz->clear(); b3pzerr->clear(); 
-  b3chg->clear(); b3mass->clear(); b3masserr->clear();  b3cosalphabs->clear(); b3cosalphabserr->clear(); 
-  b3lsbs->clear(); b3lsbserr->clear();  b3ctau->clear(); b3ctauerr->clear(); 
+  // b3mu1chg->clear(); b3mu2chg->clear(); b3pi1chg->clear(); 
+  // b3mu1px->clear();   b3mu1py->clear();   b3mu1pz->clear(); 
+  // b3mu2px->clear();   b3mu2py->clear();   b3mu2pz->clear(); 
+  // b3pi1px->clear();   b3pi1py->clear();   b3pi1pz->clear();
+  // b3chg->clear();  
+  // b3px->clear(); b3pxerr->clear(); b3py->clear();  b3pyerr->clear(); b3pz->clear(); b3pzerr->clear(); 
+  // b3chg->clear(); b3mass->clear(); b3masserr->clear();  b3cosalphabs->clear(); b3cosalphabserr->clear(); 
+  // b3lsbs->clear(); b3lsbserr->clear();  b3ctau->clear(); b3ctauerr->clear(); 
+  genbpx->clear();    genbpy->clear();    genbpz->clear(); 
+  genkstpx->clear();  genkstpy->clear();  genkstpz->clear(); 
+  genkspx->clear();   genkspy->clear();   genkspz->clear(); 
+  genpipx->clear();   genpipy->clear();   genpipz->clear(); 
+  genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
+  genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
+   
 }
 
 
@@ -1129,57 +1137,57 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 }
 
 
-bool 
-BToKstarMuMu::buildBuToPiMuMu(const edm::Event& iEvent)
-{
-  BuToPiMuMuCandidates_.clear();
-  pat::CompositeCandidate BuToPiMuMuCandidate;
-  RefCountedKinematicTree vertexFitTree; 
+// bool 
+// BToKstarMuMu::buildBuToPiMuMu(const edm::Event& iEvent)
+// {
+//   BuToPiMuMuCandidates_.clear();
+//   pat::CompositeCandidate BuToPiMuMuCandidate;
+//   RefCountedKinematicTree vertexFitTree; 
 
-  edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
-  iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
+//   edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
+//   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
   
-  // loop over the tracks to find additional pi+ or pi-
-  for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
-	iTrack != thePATTrackHandle->end(); ++iTrack ) {
+//   // loop over the tracks to find additional pi+ or pi-
+//   for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
+// 	iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
-    reco::TrackRef pionTrack = iTrack->track(); 
-    if ( pionTrack.isNull() ) continue; 
+//     reco::TrackRef pionTrack = iTrack->track(); 
+//     if ( pionTrack.isNull() ) continue; 
     
-    if ( matchMuonTrack(iEvent, pionTrack) ) continue; 
+//     if ( matchMuonTrack(iEvent, pionTrack) ) continue; 
     
-    for ( pat::CompositeCandidateCollection::const_iterator iDimuon 
-	   = DimuonCandidates_.begin(); iDimuon != DimuonCandidates_.end(); ++iDimuon) {
+//     for ( pat::CompositeCandidateCollection::const_iterator iDimuon 
+// 	   = DimuonCandidates_.begin(); iDimuon != DimuonCandidates_.end(); ++iDimuon) {
       
-      reco::TrackRef mu1Track = iDimuon->daughter(0)->get<reco::TrackRef>();   
-      reco::TrackRef mu2Track = iDimuon->daughter(1)->get<reco::TrackRef>(); 
+//       reco::TrackRef mu1Track = iDimuon->daughter(0)->get<reco::TrackRef>();   
+//       reco::TrackRef mu2Track = iDimuon->daughter(1)->get<reco::TrackRef>(); 
  
-      if ( ! hasGoodBuVertex(mu1Track, mu2Track, pionTrack, vertexFitTree) ) continue; 
+//       if ( ! hasGoodBuVertex(mu1Track, mu2Track, pionTrack, vertexFitTree) ) continue; 
  
-      if ( ! hasGoodBu3Mass(vertexFitTree) ) continue; 
+//       if ( ! hasGoodBu3Mass(vertexFitTree) ) continue; 
 
-      if ( ! saveBu3Lsig(vertexFitTree) ) continue; 
+//       if ( ! saveBu3Lsig(vertexFitTree) ) continue; 
 
-      BuToPiMuMuCandidate.setCharge(iTrack->charge()); 
-      BuToPiMuMuCandidates_.push_back(BuToPiMuMuCandidate);      
+//       BuToPiMuMuCandidate.setCharge(iTrack->charge()); 
+//       BuToPiMuMuCandidates_.push_back(BuToPiMuMuCandidate);      
 
-      b3chg->push_back(iTrack->charge()); 
-      saveBuToPiMuMu(vertexFitTree);   
-      saveBu3Vertex(vertexFitTree); 
-      saveBu3CosAlpha(vertexFitTree); 
-      saveBu3Ctau(vertexFitTree); 
+//       b3chg->push_back(iTrack->charge()); 
+//       saveBuToPiMuMu(vertexFitTree);   
+//       saveBu3Vertex(vertexFitTree); 
+//       saveBu3CosAlpha(vertexFitTree); 
+//       saveBu3Ctau(vertexFitTree); 
 
-    }
-  }
+//     }
+//   }
   
-  if ( BuToPiMuMuCandidates_.size() > 0) {
-    edm::LogInfo("myBu") << "Found " << BuToPiMuMuCandidates_.size()  << " Bu -> pi mu mu."; 
-    return true;
-  }
+//   if ( BuToPiMuMuCandidates_.size() > 0) {
+//     edm::LogInfo("myBu") << "Found " << BuToPiMuMuCandidates_.size()  << " Bu -> pi mu mu."; 
+//     return true;
+//   }
   
-  else
-    return false; 
-}
+//   else
+//     return false; 
+// }
 
 
 void 
@@ -1635,15 +1643,15 @@ BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree)
   return true; 
 }
 
-bool 
-BToKstarMuMu::hasGoodBu3Mass(RefCountedKinematicTree vertexFitTree)
-{
-  vertexFitTree->movePointerToTheTop();
-  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
-  if ( b_KP->currentState().mass() < B3MinMass_ 
-       ||  b_KP->currentState().mass() > B3MaxMass_ ) return false;  
-  return true; 
-}
+// bool 
+// BToKstarMuMu::hasGoodBu3Mass(RefCountedKinematicTree vertexFitTree)
+// {
+//   vertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+//   if ( b_KP->currentState().mass() < B3MinMass_ 
+//        ||  b_KP->currentState().mass() > B3MaxMass_ ) return false;  
+//   return true; 
+// }
 
 
 
@@ -1989,42 +1997,42 @@ BToKstarMuMu::saveBuCosAlpha(RefCountedKinematicTree vertexFitTree)
   
 }
 
-void 
-BToKstarMuMu::saveBu3CosAlpha(RefCountedKinematicTree vertexFitTree)
-{
-  // alpha is the angle in the transverse plane between the B0 momentum
-  // and the seperation between the B0 vertex and the beamspot
+// void 
+// BToKstarMuMu::saveBu3CosAlpha(RefCountedKinematicTree vertexFitTree)
+// {
+//   // alpha is the angle in the transverse plane between the B0 momentum
+//   // and the seperation between the B0 vertex and the beamspot
 
-  vertexFitTree->movePointerToTheTop();
-  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
-  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+//   vertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+//   RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
   
   
-  double cosAlphaBS, cosAlphaBSErr;
-  computeCosAlpha(b_KP->currentState().globalMomentum().x(),
-		  b_KP->currentState().globalMomentum().y(), 
-		  b_KP->currentState().globalMomentum().z(),
-		  b_KV->position().x() - beamSpot_.position().x(),
-		  b_KV->position().y() - beamSpot_.position().y(),
-		  b_KV->position().z() - beamSpot_.position().z(),
-		  b_KP->currentState().kinematicParametersError().matrix()(3,3),
-		  b_KP->currentState().kinematicParametersError().matrix()(4,4),
-		  b_KP->currentState().kinematicParametersError().matrix()(5,5),
-		  b_KP->currentState().kinematicParametersError().matrix()(3,4),
-		  b_KP->currentState().kinematicParametersError().matrix()(3,5),
-		  b_KP->currentState().kinematicParametersError().matrix()(4,5),
-		  b_KV->error().cxx() + beamSpot_.covariance()(0,0),
-		  b_KV->error().cyy() + beamSpot_.covariance()(1,1),
-		  b_KV->error().czz() + beamSpot_.covariance()(2,2),
-		  b_KV->error().matrix()(0,1) + beamSpot_.covariance()(0,1),
-		  b_KV->error().matrix()(0,2) + beamSpot_.covariance()(0,2),
-		  b_KV->error().matrix()(1,2) + beamSpot_.covariance()(1,2),
-		  &cosAlphaBS,&cosAlphaBSErr);	  
+//   double cosAlphaBS, cosAlphaBSErr;
+//   computeCosAlpha(b_KP->currentState().globalMomentum().x(),
+// 		  b_KP->currentState().globalMomentum().y(), 
+// 		  b_KP->currentState().globalMomentum().z(),
+// 		  b_KV->position().x() - beamSpot_.position().x(),
+// 		  b_KV->position().y() - beamSpot_.position().y(),
+// 		  b_KV->position().z() - beamSpot_.position().z(),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(3,3),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(4,4),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(5,5),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(3,4),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(3,5),
+// 		  b_KP->currentState().kinematicParametersError().matrix()(4,5),
+// 		  b_KV->error().cxx() + beamSpot_.covariance()(0,0),
+// 		  b_KV->error().cyy() + beamSpot_.covariance()(1,1),
+// 		  b_KV->error().czz() + beamSpot_.covariance()(2,2),
+// 		  b_KV->error().matrix()(0,1) + beamSpot_.covariance()(0,1),
+// 		  b_KV->error().matrix()(0,2) + beamSpot_.covariance()(0,2),
+// 		  b_KV->error().matrix()(1,2) + beamSpot_.covariance()(1,2),
+// 		  &cosAlphaBS,&cosAlphaBSErr);	  
 
-  b3cosalphabs->push_back(cosAlphaBS);
-  b3cosalphabserr->push_back(cosAlphaBSErr); 
+//   b3cosalphabs->push_back(cosAlphaBS);
+//   b3cosalphabserr->push_back(cosAlphaBSErr); 
   
-}
+// }
 
 
 
@@ -2062,28 +2070,28 @@ BToKstarMuMu::saveBuLsig(RefCountedKinematicTree vertexFitTree)
 }
 
 
-bool 
-BToKstarMuMu::saveBu3Lsig(RefCountedKinematicTree vertexFitTree)
-{
-  vertexFitTree->movePointerToTheTop();
-  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
-  double LSBS, LSBSErr; 
+// bool 
+// BToKstarMuMu::saveBu3Lsig(RefCountedKinematicTree vertexFitTree)
+// {
+//   vertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+//   double LSBS, LSBSErr; 
 
-  computeLS (b_KV->position().x(), b_KV->position().y(), 0.0,
-	     beamSpot_.position().x(), beamSpot_.position().y(), 0.0,
-	     b_KV->error().cxx(), b_KV->error().cyy(), 0.0,
-	     b_KV->error().matrix()(0,1), 0.0, 0.0, 
-	     beamSpot_.covariance()(0,0), beamSpot_.covariance()(1,1), 0.0,
-	     beamSpot_.covariance()(0,1), 0.0, 0.0,
-	     &LSBS,&LSBSErr);
+//   computeLS (b_KV->position().x(), b_KV->position().y(), 0.0,
+// 	     beamSpot_.position().x(), beamSpot_.position().y(), 0.0,
+// 	     b_KV->error().cxx(), b_KV->error().cyy(), 0.0,
+// 	     b_KV->error().matrix()(0,1), 0.0, 0.0, 
+// 	     beamSpot_.covariance()(0,0), beamSpot_.covariance()(1,1), 0.0,
+// 	     beamSpot_.covariance()(0,1), 0.0, 0.0,
+// 	     &LSBS,&LSBSErr);
   
-  if (LSBS < B3MinLsBs_ ) return false; 
+//   if (LSBS < B3MinLsBs_ ) return false; 
 
-  b3lsbs->push_back(LSBS);
-  b3lsbserr->push_back(LSBSErr); 
-  return true; 
+//   b3lsbs->push_back(LSBS);
+//   b3lsbserr->push_back(LSBSErr); 
+//   return true; 
  
-}
+// }
 
 void 
 BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree, 
@@ -2137,70 +2145,70 @@ BToKstarMuMu::saveBuCtau(RefCountedKinematicTree vertexFitTree)
 }
 
 
-void 
-BToKstarMuMu::saveBu3Ctau(RefCountedKinematicTree vertexFitTree)
-{
-  double bctau_temp, bctauerr_temp; 
-  computeCtau(vertexFitTree, bctau_temp, bctauerr_temp); 
-  b3ctau->push_back(bctau_temp);
-  b3ctauerr->push_back(bctauerr_temp); 
-}
+// void 
+// BToKstarMuMu::saveBu3Ctau(RefCountedKinematicTree vertexFitTree)
+// {
+//   double bctau_temp, bctauerr_temp; 
+//   computeCtau(vertexFitTree, bctau_temp, bctauerr_temp); 
+//   b3ctau->push_back(bctau_temp);
+//   b3ctauerr->push_back(bctauerr_temp); 
+// }
 
 
-void 
-BToKstarMuMu::saveBuToPiMuMu(RefCountedKinematicTree vertexFitTree)
-{
-  vertexFitTree->movePointerToTheTop(); // B+ or B- 
-  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+// void 
+// BToKstarMuMu::saveBuToPiMuMu(RefCountedKinematicTree vertexFitTree)
+// {
+//   vertexFitTree->movePointerToTheTop(); // B+ or B- 
+//   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
 
-  b3px->push_back(b_KP->currentState().globalMomentum().x());
-  b3pxerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(3,3) ) );
-  b3py->push_back(b_KP->currentState().globalMomentum().y());
-  b3pyerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(4,4) ) );
-  b3pz->push_back(b_KP->currentState().globalMomentum().z());
-  b3pzerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(5,5) ) );
-  b3mass->push_back(b_KP->currentState().mass()); 
-  b3masserr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(6,6) ) );
+//   b3px->push_back(b_KP->currentState().globalMomentum().x());
+//   b3pxerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(3,3) ) );
+//   b3py->push_back(b_KP->currentState().globalMomentum().y());
+//   b3pyerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(4,4) ) );
+//   b3pz->push_back(b_KP->currentState().globalMomentum().z());
+//   b3pzerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(5,5) ) );
+//   b3mass->push_back(b_KP->currentState().mass()); 
+//   b3masserr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(6,6) ) );
 
-  vertexFitTree->movePointerToTheFirstChild(); // mu1 
-  RefCountedKinematicParticle mu1_KP = vertexFitTree->currentParticle();
+//   vertexFitTree->movePointerToTheFirstChild(); // mu1 
+//   RefCountedKinematicParticle mu1_KP = vertexFitTree->currentParticle();
 
-  b3mu1chg->push_back(mu1_KP->currentState().particleCharge()); 
-  b3mu1px->push_back(mu1_KP->currentState().globalMomentum().x());
-  b3mu1py->push_back(mu1_KP->currentState().globalMomentum().y());
-  b3mu1pz->push_back(mu1_KP->currentState().globalMomentum().z());
+//   b3mu1chg->push_back(mu1_KP->currentState().particleCharge()); 
+//   b3mu1px->push_back(mu1_KP->currentState().globalMomentum().x());
+//   b3mu1py->push_back(mu1_KP->currentState().globalMomentum().y());
+//   b3mu1pz->push_back(mu1_KP->currentState().globalMomentum().z());
 
-  vertexFitTree->movePointerToTheNextChild(); // mu2 
-  RefCountedKinematicParticle mu2_KP = vertexFitTree->currentParticle();
+//   vertexFitTree->movePointerToTheNextChild(); // mu2 
+//   RefCountedKinematicParticle mu2_KP = vertexFitTree->currentParticle();
 
-  b3mu2chg->push_back(mu2_KP->currentState().particleCharge()); 
-  b3mu2px->push_back(mu2_KP->currentState().globalMomentum().x());
-  b3mu2py->push_back(mu2_KP->currentState().globalMomentum().y());
-  b3mu2pz->push_back(mu2_KP->currentState().globalMomentum().z());
+//   b3mu2chg->push_back(mu2_KP->currentState().particleCharge()); 
+//   b3mu2px->push_back(mu2_KP->currentState().globalMomentum().x());
+//   b3mu2py->push_back(mu2_KP->currentState().globalMomentum().y());
+//   b3mu2pz->push_back(mu2_KP->currentState().globalMomentum().z());
  
-  vertexFitTree->movePointerToTheNextChild(); // pi1 
-  RefCountedKinematicParticle pi1_KP = vertexFitTree->currentParticle();
+//   vertexFitTree->movePointerToTheNextChild(); // pi1 
+//   RefCountedKinematicParticle pi1_KP = vertexFitTree->currentParticle();
 
-  b3pi1chg->push_back(pi1_KP->currentState().particleCharge()); 
-  b3pi1px->push_back(pi1_KP->currentState().globalMomentum().x());
-  b3pi1py->push_back(pi1_KP->currentState().globalMomentum().y());
-  b3pi1pz->push_back(pi1_KP->currentState().globalMomentum().z());
-}
+//   b3pi1chg->push_back(pi1_KP->currentState().particleCharge()); 
+//   b3pi1px->push_back(pi1_KP->currentState().globalMomentum().x());
+//   b3pi1py->push_back(pi1_KP->currentState().globalMomentum().y());
+//   b3pi1pz->push_back(pi1_KP->currentState().globalMomentum().z());
+// }
 
-void 
-BToKstarMuMu::saveBu3Vertex(RefCountedKinematicTree vertexFitTree){
-  vertexFitTree->movePointerToTheTop();
-  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
-  b3vtxcl->push_back( ChiSquaredProbability((double)(b_KV->chiSquared()),
-					   (double)(b_KV->degreesOfFreedom())) );
+// void 
+// BToKstarMuMu::saveBu3Vertex(RefCountedKinematicTree vertexFitTree){
+//   vertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+//   b3vtxcl->push_back( ChiSquaredProbability((double)(b_KV->chiSquared()),
+// 					   (double)(b_KV->degreesOfFreedom())) );
 
-  b3vtxx->push_back((*b_KV).position().x());  
-  b3vtxxerr->push_back(sqrt( abs(b_KV->error().cxx()) ));
-  b3vtxy->push_back((*b_KV).position().y());  
-  b3vtxyerr->push_back(sqrt( abs(b_KV->error().cyy()) ));
-  b3vtxz->push_back((*b_KV).position().z()); 
-  b3vtxzerr->push_back(sqrt( abs(b_KV->error().czz()) ));
-}
+//   b3vtxx->push_back((*b_KV).position().x());  
+//   b3vtxxerr->push_back(sqrt( abs(b_KV->error().cxx()) ));
+//   b3vtxy->push_back((*b_KV).position().y());  
+//   b3vtxyerr->push_back(sqrt( abs(b_KV->error().cyy()) ));
+//   b3vtxz->push_back((*b_KV).position().z()); 
+//   b3vtxzerr->push_back(sqrt( abs(b_KV->error().czz()) ));
+// }
 
 
 void
