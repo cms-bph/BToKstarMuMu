@@ -94,7 +94,7 @@ struct HistArgs{
 
 enum HistName{
   h_mumumass,
-  h_pipimass,
+  h_kshortmass,
   kHistNameSize
 };
 
@@ -103,7 +103,7 @@ enum HistName{
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 4},
-  {"h_pipimass", "#pi^{+}#pi^{-} invariant mass; M(#pi^{+}#pi^{-}) [GeV]", 100, 0.2, 0.8},
+  {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
 
 // Define histograms 
@@ -257,6 +257,8 @@ private:
   float KshortMassErr_; 
   pat::CompositeCandidateCollection KshortCandidates_; 
 
+  double DimukshortMinMass_, DimukshortMaxMass_; 
+  
   // Kstar
   double KstarChargedTrackMinPt_; 
   double KstarMinMass_, KstarMaxMass_; 
@@ -378,6 +380,9 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
   KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
   KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
+  DimukshortMinMass_(iConfig.getUntrackedParameter<double>("DimukshortMinMass")),
+  DimukshortMaxMass_(iConfig.getUntrackedParameter<double>("DimukshortMaxMass")),
+
   KstarChargedTrackMinPt_(iConfig.getUntrackedParameter<double>("KstarChargedTrackMinPt")),
   KstarMinMass_(iConfig.getUntrackedParameter<double>("KstarMinMass")),
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
@@ -1833,33 +1838,50 @@ BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
   
   if( patMuonHandle->size() < 2 ) return false;
   
+  // loop over mu-
   for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
        iMuonM != patMuonHandle->end(); iMuonM++){
     
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
     if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
 
+    // loop over mu+ 
     for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
 	 iMuonP != patMuonHandle->end(); iMuonP++){
 
       reco::TrackRef muTrackp = iMuonP->innerTrack(); 
       if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
       
-        TLorentzVector mu1, mu2, dimu; 
-	// cout << muTrackm->px() << endl; 
-	
-	mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
-	mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
-	dimu = mu1 + mu2; 
-	BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
+      // book the mumu mass histogram 
+      TLorentzVector mu1, mu2, dimu; 
+      mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
+      mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
+      dimu = mu1 + mu2; 
+      BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
 
+      // loop over kshort 
+      edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
+      iEvent.getByLabel(KshortLabel_, theKshorts);
+      if ( theKshorts->size() <= 0) continue;
+      
+      for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
+	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
+	
+	BToKstarMuMuFigures[h_kshortmass]->Fill(iKshort->mass()); 
+	
+	TLorentzVector kshort, dimukshort; 
+	kshort.SetXYZM(iKshort->px(), iKshort->py(), iKshort->pz(), KshortMass_); 
+	dimukshort = dimu + kshort; 
+
+	// cout << iKshort->px() << iKshort->mass(); 
+	if ( dimukshort.M() > DimukshortMinMass_  && dimukshort.M() < DimukshortMaxMass_ ) 
+	  return true; 
+	
+      }
     }
-    
   }
 
-
   return false; 
-
 }
 
 
