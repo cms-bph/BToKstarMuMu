@@ -68,6 +68,7 @@
 #include <TTree.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
+#include <TH1.h>
 
 using namespace std;
 
@@ -81,6 +82,32 @@ const int KSHORTZERO_PDG_ID = 310;
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
 
+
+// Structures 
+struct HistArgs{
+  char name[128];
+  char title[128];
+  int n_bins;
+  double x_min;
+  double x_max;
+};
+
+enum HistName{
+  h_mumumass,
+  h_pipimass,
+  kHistNameSize
+};
+
+// Global hist args
+
+HistArgs hist_args[kHistNameSize] = {
+  // name, title, n_bins, x_min, x_max  
+  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 4},
+  {"h_pipimass", "#pi^{+}#pi^{-} invariant mass; M(#pi^{+}#pi^{-}) [GeV]", 100, 0.2, 0.8},
+};
+
+// Define histograms 
+TH1F *BToKstarMuMuFigures[kHistNameSize];
 
 //
 // class declaration
@@ -131,7 +158,7 @@ private:
 
   bool hasGoodKshortVertex(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
-
+  bool hasGoodDimuonKshortMass(const edm::Event&);  
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
@@ -142,7 +169,8 @@ private:
 
   bool hasGoodBuMass(RefCountedKinematicTree); 
   bool hasGoodBu3Mass(RefCountedKinematicTree); 
-  bool hasGoodBuVertex(reco::TrackRef, reco::TrackRef, reco::TrackRef, RefCountedKinematicTree&); 
+  bool hasGoodBuVertex(reco::TrackRef, reco::TrackRef, 
+		       reco::TrackRef, RefCountedKinematicTree&); 
   bool hasGoodBuVertex(const pat::CompositeCandidate, const pat::CompositeCandidate,
 		       RefCountedKinematicTree&, RefCountedKinematicTree &); 
   bool hasGoodBuVertex(const pat::CompositeCandidate, const pat::CompositeCandidate,
@@ -248,7 +276,7 @@ private:
   reco::Vertex primaryVertex_;
 
 
-  // ---- Root Tree Variables ---- 
+  // ---- Root Variables ---- 
   TFile* fout_;
   TTree* tree_;
   
@@ -442,6 +470,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     if ( bFieldHandle_.isValid() 
 	 && hasPrimaryVertex(iEvent) 
+	 && hasGoodDimuonKshortMass(iEvent) 
 	 && hasDimuon(iEvent)
 	 && hasKshort(iEvent) 
 	 // && hasKstarCharged(iEvent) 
@@ -1783,6 +1812,39 @@ BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon,
   if ( bDecayVertexMC->chiSquared()<0 || bDecayVertexMC->chiSquared()>1000 ) return false; 
 
   return true; 
+}
+
+bool
+BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
+{
+  edm::Handle< vector<pat::Muon> > patMuonHandle;
+  iEvent.getByLabel(MuonLabel_, patMuonHandle);
+  
+  if( patMuonHandle->size() < 2 ) return false;
+  
+  for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
+       iMuonM != patMuonHandle->end(); iMuonM++){
+    
+    reco::TrackRef muTrackm = iMuonM->innerTrack(); 
+    if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
+
+    for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
+	 iMuonP != patMuonHandle->end(); iMuonP++){
+
+      reco::TrackRef muTrackp = iMuonP->innerTrack(); 
+      if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
+      
+   
+
+    }
+    
+    
+  }
+
+
+
+  return false; 
+
 }
 
 
