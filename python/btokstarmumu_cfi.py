@@ -22,19 +22,19 @@ process.MessageLogger = cms.Service(
         myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
         myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
         myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        ), 
+    ), 
      message = cms.untracked.PSet(
-        threshold = cms.untracked.string('INFO'),
-        INFO = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
-        myHLT = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
-        myVertex = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
-        myDimuon = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        myKshort = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        myMuonMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
-        myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
-        myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        )
+         threshold = cms.untracked.string('INFO'),
+         INFO = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
+         myHLT = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
+         myVertex = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
+         myDimuon = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+         myKshort = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+         myMuonMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
+         myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+         myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
+         myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+     )
     )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
@@ -56,7 +56,7 @@ makeTrackCandidates(process,
                     isolation    = {},                            
                     isoDeposits  = [],                            
                     mcAs         = None          
-    )    
+)    
 
 from PhysicsTools.PatAlgos.tools.coreTools import *
 removeMCMatching(process, ['All'], outputInProcess = False)
@@ -64,7 +64,7 @@ removeMCMatching(process, ['All'], outputInProcess = False)
 
 process.localV0Candidates = cms.EDProducer(
     "V0Producer",
-                                     
+    
     # InputTag that tells which TrackCollection to use for vertexing
     trackRecoAlgorithm = cms.InputTag('generalTracks'),
 
@@ -80,13 +80,13 @@ process.localV0Candidates = cms.EDProducer(
     #  NOTE: useSmoothing is automatically set to FALSE
     #  if using the AdaptiveVertexFitter (which is NOT recommended)
     useSmoothing = cms.bool(True),
-                                     
+    
     # Select tracks using TrackBase::TrackQuality.
     # Select ALL tracks by leaving this vstring empty, which
     #   is equivalent to using 'loose'
     #trackQualities = cms.vstring('highPurity', 'goodIterative'),
     trackQualities = cms.vstring('loose'),
-                                     
+    
     # The next parameters are cut values.
     # All distances are in cm, all energies in GeV, as usual.
 
@@ -176,17 +176,21 @@ process.ntuple = cms.EDAnalyzer(
     PionMassErr = cms.untracked.double(0.13957018*1e-6),
     KshortMass = cms.untracked.double(0.497614), 
     KshortMassErr = cms.untracked.double(0.000024),
+ 
+    DimukshortMinMass = cms.untracked.double(2.0),
+    DimukshortMaxMass = cms.untracked.double(8.0),
+
     KstarChargedTrackMinPt = cms.untracked.double(0.0), # [GeV/c]
     KstarMinMass = cms.untracked.double(0.49), # [GeV/c2] K*+ mass = 891.66 +- 0.26 MeV 
     KstarMaxMass = cms.untracked.double(1.29), # [GeV/c2] K*0 mass = 895.94 +- 0.26 MeV
 
-    BMaxMass = cms.untracked.double(10.0), # [GeV/c2]n B+ mass = 5279 MeV 
+    BMaxMass = cms.untracked.double(8.0), # [GeV/c2]n B+ mass = 5279 MeV 
     BuMass = cms.untracked.double(5.27925),
     
     B3MinMass = cms.untracked.double(4.5), 
     B3MaxMass = cms.untracked.double(6.0), 
     B3MinLsBs = cms.untracked.double(0.5),
-    )
+)
 
 
 # Remove not used from PAT 
