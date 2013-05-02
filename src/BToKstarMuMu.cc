@@ -767,13 +767,15 @@ BToKstarMuMu::clearVariables(){
   // b3px->clear(); b3pxerr->clear(); b3py->clear();  b3pyerr->clear(); b3pz->clear(); b3pzerr->clear(); 
   // b3chg->clear(); b3mass->clear(); b3masserr->clear();  b3cosalphabs->clear(); b3cosalphabserr->clear(); 
   // b3lsbs->clear(); b3lsbserr->clear();  b3ctau->clear(); b3ctauerr->clear(); 
-  genbpx->clear();    genbpy->clear();    genbpz->clear(); 
-  genkstpx->clear();  genkstpy->clear();  genkstpz->clear(); 
-  genkspx->clear();   genkspy->clear();   genkspz->clear(); 
-  genpipx->clear();   genpipy->clear();   genpipz->clear(); 
-  genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
-  genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
-   
+  if (SaveGenInfo_) {
+    genbpx->clear();    genbpy->clear();    genbpz->clear(); 
+    genkstpx->clear();  genkstpy->clear();  genkstpz->clear(); 
+    genkspx->clear();   genkspy->clear();   genkspz->clear(); 
+    genpipx->clear();   genpipy->clear();   genpipz->clear(); 
+    genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
+    genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
+  }
+
 }
 
 
