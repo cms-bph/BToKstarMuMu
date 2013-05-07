@@ -189,7 +189,7 @@ process.ntuple = cms.EDAnalyzer(
 
     BMaxMass = cms.untracked.double(8.0), # [GeV/c2]n B+ mass = 5279 MeV 
     BuMass = cms.untracked.double(5.27925),
-    
+    BMaxCandNum =  cms.untracked.int32(200),
     # B3MinMass = cms.untracked.double(4.5), 
     # B3MaxMass = cms.untracked.double(6.0), 
     # B3MinLsBs = cms.untracked.double(0.5),
