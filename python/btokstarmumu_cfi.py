@@ -1,4 +1,6 @@
 import FWCore.ParameterSet.Config as cms
+import os 
+cmssw_version = os.environ['CMSSW_VERSION']
 
 process = cms.Process("Ntuple")
 
@@ -43,6 +45,9 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.GeometryExtended_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+if 'CMSSW_5_3' in cmssw_version: 
+    process.load('Configuration.Geometry.GeometryIdeal_cff')
+ 
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
 # add track candidates
@@ -59,8 +64,11 @@ makeTrackCandidates(process,
 )    
 
 from PhysicsTools.PatAlgos.tools.coreTools import *
-removeMCMatching(process, ['All'], outputInProcess = False)
+if 'CMSSW_4_2' in cmssw_version: 
+    removeMCMatching(process, ['All'], outputInProcess = False)
 
+if 'CMSSW_5_3' in cmssw_version: 
+    removeMCMatching(process, ['All'], outputModules=[])
 
 process.localV0Candidates = cms.EDProducer(
     "V0Producer",
@@ -202,8 +210,11 @@ process.patDefaultSequence.remove(process.patJetPartons)
 process.patDefaultSequence.remove(process.patJetPartonAssociation)
 process.patDefaultSequence.remove(process.patJetFlavourAssociation)
 process.patDefaultSequence.remove(process.patJets)
-process.patDefaultSequence.remove(process.metJESCorAK5CaloJet)
-process.patDefaultSequence.remove(process.metJESCorAK5CaloJetMuons)
+
+if 'CMSSW_4_2' in cmssw_version: 
+    process.patDefaultSequence.remove(process.metJESCorAK5CaloJet)
+    process.patDefaultSequence.remove(process.metJESCorAK5CaloJetMuons)
+
 process.patDefaultSequence.remove(process.patMETs)
 process.patDefaultSequence.remove(process.selectedPatJets)
 process.patDefaultSequence.remove(process.cleanPatJets)
