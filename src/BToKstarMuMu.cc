@@ -269,6 +269,7 @@ private:
   //   BuToPiMuMuCandidates_; 
   double BMaxMass_; 
   double BuMass_; 
+  int BMaxCandNum_;  
   // double B3MinMass_, B3MaxMass_, B3MinLsBs_; 
   
 
@@ -388,6 +389,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
   BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
+  BMaxCandNum_(iConfig.getUntrackedParameter<int>("BMaxCandNum")),
   // B3MinMass_(iConfig.getUntrackedParameter<double>("B3MinMass")),
   // B3MaxMass_(iConfig.getUntrackedParameter<double>("B3MaxMass")),
   // B3MinLsBs_(iConfig.getUntrackedParameter<double>("B3MinLsBs")),
@@ -1110,6 +1112,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
 	
 	nBu++; 
+
+	if (nBu > BMaxCandNum_) break; 
 	// BuCandidate.setCharge(iKstarCharged->charge()); 
 	// BuCandidate.setCharge(iTrack->charge()); 
 	// BuCandidates_.push_back(BuCandidate);      
