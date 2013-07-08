@@ -81,7 +81,7 @@ const int PIONPLUS_PDG_ID = 211;
 const int KSHORTZERO_PDG_ID = 310; 
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
-
+const double PI = 3.141592653589793;
 
 // Structures 
 struct HistArgs{
@@ -147,9 +147,9 @@ private:
   
   void computeCtau(RefCountedKinematicTree, double &, double &);
   double computeEta (double, double, double); 
-
+  double computePhi (double, double, double); 
+  double computeEtaPhiDistance (double, double, double,	double, double, double); 
   void clearVariables(); 
-
 
   bool hasBeamSpot(const edm::Event&);
 
@@ -2142,13 +2142,41 @@ BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree,
 
 }
 
-double BToKstarMuMu::computeEta (double Px,
-				 double Py,
-				 double Pz)
+double 
+BToKstarMuMu::computeEta (double Px,
+			  double Py,
+			  double Pz)
 {
   double P = sqrt(Px*Px + Py*Py + Pz*Pz);
   return 0.5*log((P + Pz) / (P - Pz));
 }
+
+double 
+BToKstarMuMu::computePhi (double Px,
+			  double Py,
+			  double Pz)
+{
+  double phi = atan(Py / Px);
+  if (Px < 0 && Py < 0) phi = phi - PI;
+  if (Px < 0 && Py > 0) phi = phi + PI;
+  return phi;
+}
+
+double
+BToKstarMuMu::computeEtaPhiDistance (double Px1,
+				     double Py1,
+				     double Pz1,
+				     double Px2,
+				     double Py2,
+				     double Pz2)
+{
+  double phi1 = computePhi (Px1,Py1,Pz1);
+  double eta1 = computeEta (Px1,Py1,Pz1);
+  double phi2 = computePhi (Px2,Py2,Pz2);
+  double eta2 = computeEta (Px2,Py2,Pz2);
+  return sqrt((eta1-eta2) * (eta1-eta2) + (phi1-phi2) * (phi1-phi2));
+}
+
 
 void 
 BToKstarMuMu::saveBuCtau(RefCountedKinematicTree vertexFitTree)
@@ -2482,27 +2510,40 @@ BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMu
 void
 BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 
+  double deltaEtaPhi; 
+
+  cout << "RECO B size = " << bmass->size() << endl ; 
+  cout << "GEN Mu1 size = " << genmumpx->size() << endl ; 
+  
+
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-    cout << bmass->at(i); 
+    // cout << bmass->at(i); 
 
     // truch match with mu-
     if ( bmu1chg->at(i) < 0 ) {
-      cout << "bmu1px = " << bmu1px->at(i)
-	   << "; bmu1py = " << bmu1py->at(i)
-	   << "; bmu1pz = " << bmu1px->at(i) << endl; 
+      // cout << "bmu1px = " << bmu1px->at(i)
+      // 	   << "; bmu1py = " << bmu1py->at(i)
+      // 	   << "; bmu1pz = " << bmu1px->at(i) << endl; 
 
-      double Px = bmu1px->at(i); 
-      double Py = bmu1py->at(i); 
-      double Pz = bmu1pz->at(i); 
+      // double Px = bmu1px->at(i); 
+      // double Py = bmu1py->at(i); 
+      // double Pz = bmu1pz->at(i); 
 
-      double P = sqrt(Px*Px + Py*Py + Pz*Pz);
-      double eta = 0.5*log((P + Pz) / (P - Pz));
+      // double P = sqrt(Px*Px + Py*Py + Pz*Pz);
+      // double eta = 0.5*log((P + Pz) / (P - Pz));
 
-      cout << ">>> Eta 1 = " << eta << endl; 
-      double eta2 = computeEta(Px, Py, Pz) ; 
-      cout << ">>> Eta 2 = " << eta2 << endl; 
-      
-      
+      // cout << ">>> Eta 1 = " << eta << endl; 
+      // double eta2 = computeEta(Px, Py, Pz) ; 
+      // cout << ">>> Eta 2 = " << eta2 << endl; 
+
+      deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
+      					  genmumpy->at(0), 
+      					  genmumpz->at(0), 
+      					  bmu1px->at(i),
+      					  bmu1py->at(i),
+      					  bmu1pz->at(i)); 
+
+      cout << ">>> deltaEtaPhi = " << deltaEtaPhi << endl; 
 
     }
   }
