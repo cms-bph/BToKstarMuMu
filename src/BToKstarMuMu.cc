@@ -146,6 +146,8 @@ private:
 			double* cosAlpha, double* cosAlphaErr); 
   
   void computeCtau(RefCountedKinematicTree, double &, double &);
+  double computeEta (double, double, double); 
+
   void clearVariables(); 
 
 
@@ -2140,7 +2142,13 @@ BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree,
 
 }
 
-
+double BToKstarMuMu::computeEta (double Px,
+				 double Py,
+				 double Pz)
+{
+  double P = sqrt(Px*Px + Py*Py + Pz*Pz);
+  return 0.5*log((P + Pz) / (P - Pz));
+}
 
 void 
 BToKstarMuMu::saveBuCtau(RefCountedKinematicTree vertexFitTree)
@@ -2476,6 +2484,27 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
     cout << bmass->at(i); 
+
+    // truch match with mu-
+    if ( bmu1chg->at(i) < 0 ) {
+      cout << "bmu1px = " << bmu1px->at(i)
+	   << "; bmu1py = " << bmu1py->at(i)
+	   << "; bmu1pz = " << bmu1px->at(i) << endl; 
+
+      double Px = bmu1px->at(i); 
+      double Py = bmu1py->at(i); 
+      double Pz = bmu1pz->at(i); 
+
+      double P = sqrt(Px*Px + Py*Py + Pz*Pz);
+      double eta = 0.5*log((P + Pz) / (P - Pz));
+
+      cout << ">>> Eta 1 = " << eta << endl; 
+      double eta2 = computeEta(Px, Py, Pz) ; 
+      cout << ">>> Eta 2 = " << eta2 << endl; 
+      
+      
+
+    }
   }
 
 }
