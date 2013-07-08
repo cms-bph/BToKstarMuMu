@@ -217,6 +217,7 @@ private:
   void saveDimuVariables(double, double, double, double, double, double, double, double, 
 			 double, double, reco::TransientTrack, reco::TransientTrack);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
+  void saveTruthMatch(const edm::Event& iEvent); 
 
   // ----------member data ---------------------------
 
@@ -479,7 +480,11 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // && hasKstarCharged(iEvent) 
 	 && buildBuToKstarMuMu(iEvent) )
 
-      if (SaveGenInfo_) saveGenInfo(iEvent);
+      if (SaveGenInfo_) {
+	saveGenInfo(iEvent);
+	saveTruthMatch(iEvent);
+      }
+
       tree_->Fill();
   }
   
@@ -2428,6 +2433,8 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   muppz->push_back(refitMupTT.track().momentum().z());
 }
 
+
+
 void 
 BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMuonP)
 {	
@@ -2461,6 +2468,15 @@ BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMu
   
   mumtriglastfilter->push_back(mum_matched_lastfilter_name); 
   muptriglastfilter->push_back(mup_matched_lastfilter_name); 
+
+}
+
+void
+BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
+
+  for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
+    cout << bmass->at(i); 
+  }
 
 }
 
