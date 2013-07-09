@@ -144,15 +144,19 @@ process.localV0Candidates = cms.EDProducer(
 process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
     FileName = cms.string("BToKstarMuMu.root"),
+
+    # Gen Particle 
     SaveGenInfo = cms.untracked.bool(False),
     GenParticlesLabel = cms.InputTag("genParticles"),
+    TruthMatchMuonMaxR = cms.untracked.double(0.004), # [eta-phi]
+
     TriggerResultsLabel = cms.InputTag("TriggerResults","", 'HLT'),
     TriggerNames = cms.vstring([]),
     LastFilterNames = cms.vstring([]),
     BeamSpotLabel = cms.InputTag('offlineBeamSpot'),
     VertexLabel = cms.InputTag('offlinePrimaryVertices'),
-    MuonLabel = cms.InputTag('cleanPatMuonsTriggerMatch'),
 
+    MuonLabel = cms.InputTag('cleanPatMuonsTriggerMatch'),
     MuonMinPt = cms.untracked.double(3.0), # [GeV]
     MuonMaxEta = cms.untracked.double(2.2),  
     TrkMaxDcaBs = cms.untracked.double(2.0), # [cm]
