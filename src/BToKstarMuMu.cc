@@ -341,7 +341,7 @@ private:
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
 
-  vector<bool> *istruthmum; 
+  vector<bool> *istruthmum, *istruthmup;  
   
  
 };
@@ -440,7 +440,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genpipx(0), genpipy(0), genpipz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
-  istruthmum(0) 
+  istruthmum(0), istruthmup(0) 
   
 { 
   //now do what ever initialization is needed
@@ -682,7 +682,8 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genmuppy", &genmuppy);
     tree_->Branch("genmuppz", &genmuppz);
     tree_->Branch("istruthmum", &istruthmum);
-  }
+    tree_->Branch("istruthmup", &istruthmup);
+  } 
 
 
 }
@@ -788,6 +789,7 @@ BToKstarMuMu::clearVariables(){
     genpipx->clear();   genpipy->clear();   genpipz->clear(); 
     genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
     genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
+    istruthmum->clear(); istruthmup->clear(); 
   }
 
 }
@@ -2528,42 +2530,53 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 
     // truch match with mu-
     if ( bmu1chg->at(i) < 0 ) {
-      // cout << "bmu1px = " << bmu1px->at(i)
-      // 	   << "; bmu1py = " << bmu1py->at(i)
-      // 	   << "; bmu1pz = " << bmu1px->at(i) << endl; 
-
-      // double Px = bmu1px->at(i); 
-      // double Py = bmu1py->at(i); 
-      // double Pz = bmu1pz->at(i); 
-
-      // double P = sqrt(Px*Px + Py*Py + Pz*Pz);
-      // double eta = 0.5*log((P + Pz) / (P - Pz));
-
-      // cout << ">>> Eta 1 = " << eta << endl; 
-      // double eta2 = computeEta(Px, Py, Pz) ; 
-      // cout << ">>> Eta 2 = " << eta2 << endl; 
-
       deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
       					  genmumpy->at(0), 
       					  genmumpz->at(0), 
       					  bmu1px->at(i),
       					  bmu1py->at(i),
       					  bmu1pz->at(i)); 
-      
-      // cout << ">>> deltaEtaPhi = " << deltaEtaPhi << endl; 
-      
-      if (deltaEtaPhi < TruthMatchMuonMaxR_) {
-	istruthmum->push_back(true); 
-      }
-      else {
-	istruthmum->push_back(false); 
-      }
-      
+    } else {
+      deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
+      					  genmumpy->at(0), 
+      					  genmumpz->at(0), 
+      					  bmu2px->at(i),
+      					  bmu2py->at(i),
+      					  bmu2pz->at(i)); 
     }
+    if (deltaEtaPhi < TruthMatchMuonMaxR_) {
+      istruthmum->push_back(true); 
+    }
+    else {
+      istruthmum->push_back(false); 
+    }
+
+    // truch match with mu+
+    if ( bmu1chg->at(i) > 0 ) {
+      deltaEtaPhi = computeEtaPhiDistance(genmuppx->at(0),
+      					  genmuppy->at(0), 
+      					  genmuppz->at(0), 
+      					  bmu1px->at(i),
+      					  bmu1py->at(i),
+      					  bmu1pz->at(i)); 
+    } else {
+      deltaEtaPhi = computeEtaPhiDistance(genmuppx->at(0),
+      					  genmuppy->at(0), 
+      					  genmuppz->at(0), 
+      					  bmu2px->at(i),
+      					  bmu2py->at(i),
+      					  bmu2pz->at(i)); 
+    }
+    if (deltaEtaPhi < TruthMatchMuonMaxR_) {
+      istruthmup->push_back(true); 
+    }
+    else {
+      istruthmup->push_back(false); 
+    }
+    
+    
   }
-
 }
-
 
 
 //define this as a plug-in
