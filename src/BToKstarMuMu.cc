@@ -341,7 +341,7 @@ private:
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
 
-  vector<bool> *istruthmum, *istruthmup;  
+  vector<bool> *istruthmum, *istruthmup, *istruthks;  
   
  
 };
@@ -440,7 +440,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genpipx(0), genpipy(0), genpipz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
-  istruthmum(0), istruthmup(0) 
+  istruthmum(0), istruthmup(0), istruthks(0) 
   
 { 
   //now do what ever initialization is needed
@@ -683,6 +683,8 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genmuppz", &genmuppz);
     tree_->Branch("istruthmum", &istruthmum);
     tree_->Branch("istruthmup", &istruthmup);
+    tree_->Branch("istruthks", &istruthks);
+
   } 
 
 
@@ -789,7 +791,7 @@ BToKstarMuMu::clearVariables(){
     genpipx->clear();   genpipy->clear();   genpipz->clear(); 
     genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
     genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
-    istruthmum->clear(); istruthmup->clear(); 
+    istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
   }
 
 }
@@ -2518,17 +2520,12 @@ BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMu
 
 void
 BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
-
   double deltaEtaPhi; 
-
-  // cout << "RECO B size = " << bmass->size() << endl ; 
-  // cout << "GEN Mu1 size = " << genmumpx->size() << endl ; 
-  
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
     // cout << bmass->at(i); 
 
-    // truch match with mu-
+    // truth match with mu-
     if ( bmu1chg->at(i) < 0 ) {
       deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
       					  genmumpy->at(0), 
@@ -2551,7 +2548,7 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istruthmum->push_back(false); 
     }
 
-    // truch match with mu+
+    // truth match with mu+
     if ( bmu1chg->at(i) > 0 ) {
       deltaEtaPhi = computeEtaPhiDistance(genmuppx->at(0),
       					  genmuppy->at(0), 
@@ -2573,6 +2570,16 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     else {
       istruthmup->push_back(false); 
     }
+
+    // truth match with Ks
+    deltaEtaPhi = computeEtaPhiDistance(genkspx->at(0),
+					genkspy->at(0), 
+					genkspz->at(0), 
+					bkspx->at(i),
+					bkspy->at(i),
+					bkspz->at(i)); 
+    
+    cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
     
     
   }
