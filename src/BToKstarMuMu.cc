@@ -227,6 +227,8 @@ private:
   string FileName_; 
   bool SaveGenInfo_; 
   edm::InputTag GenParticlesLabel_;
+  double TruthMatchMuonMaxR_; 
+
   edm::InputTag TriggerResultsLabel_;
   vector<string> TriggerNames_, LastFilterNames_;
   map<string, string> mapTriggerToLastFilter_;
@@ -330,7 +332,7 @@ private:
   // vector<double> *b3vtxcl, *b3vtxx, *b3vtxxerr, *b3vtxy, *b3vtxyerr, *b3vtxz, *b3vtxzerr; 
   // vector<double> *b3cosalphabs, *b3cosalphabserr, *b3lsbs, *b3lsbserr, *b3ctau, *b3ctauerr; 
 
-  // GenInfo
+  // For MC Only 
   // vector<int> *genbchg; // +1 for b+, -1 for b-
   vector<double> *genbpx, *genbpy, *genbpz;
   vector<double> *genkstpx, *genkstpy, *genkstpz;
@@ -338,6 +340,8 @@ private:
   vector<double> *genpipx, *genpipy, *genpipz;
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
+
+  vector<bool> *istruthmum; 
   
  
 };
@@ -357,6 +361,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   FileName_(iConfig.getParameter<string>("FileName")),
   SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
   GenParticlesLabel_(iConfig.getParameter<edm::InputTag>("GenParticlesLabel")),
+  TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
   TriggerResultsLabel_(iConfig.getParameter<edm::InputTag>("TriggerResultsLabel")),
   TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
   LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
@@ -434,8 +439,9 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genkspx(0), genkspy(0), genkspz(0), 
   genpipx(0), genpipy(0), genpipz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
-  genmuppx(0), genmuppy(0), genmuppz(0)
-
+  genmuppx(0), genmuppy(0), genmuppz(0), 
+  istruthmum(0) 
+  
 { 
   //now do what ever initialization is needed
   
@@ -675,6 +681,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genmuppx", &genmuppx);
     tree_->Branch("genmuppy", &genmuppy);
     tree_->Branch("genmuppz", &genmuppz);
+    tree_->Branch("istruthmum", &istruthmum);
   }
 
 
@@ -2512,8 +2519,8 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 
   double deltaEtaPhi; 
 
-  cout << "RECO B size = " << bmass->size() << endl ; 
-  cout << "GEN Mu1 size = " << genmumpx->size() << endl ; 
+  // cout << "RECO B size = " << bmass->size() << endl ; 
+  // cout << "GEN Mu1 size = " << genmumpx->size() << endl ; 
   
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
@@ -2542,9 +2549,16 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       					  bmu1px->at(i),
       					  bmu1py->at(i),
       					  bmu1pz->at(i)); 
-
-      cout << ">>> deltaEtaPhi = " << deltaEtaPhi << endl; 
-
+      
+      // cout << ">>> deltaEtaPhi = " << deltaEtaPhi << endl; 
+      
+      if (deltaEtaPhi < TruthMatchMuonMaxR_) {
+	istruthmum->push_back(true); 
+      }
+      else {
+	istruthmum->push_back(false); 
+      }
+      
     }
   }
 
