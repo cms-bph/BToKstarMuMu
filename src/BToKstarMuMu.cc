@@ -343,6 +343,7 @@ private:
   vector<double> *genpipx, *genpipy, *genpipz;
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
+  vector<double> *genkspippx, *genkspippy, *genkspippz;
 
   vector<bool> *istruthmum, *istruthmup, *istruthks;  
   
@@ -444,6 +445,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genpipx(0), genpipy(0), genpipz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
+  genkspippx(0), genkspippy(0), genkspippz(0), 
   istruthmum(0), istruthmup(0), istruthks(0) 
   
 { 
@@ -691,6 +693,9 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genmuppx", &genmuppx);
     tree_->Branch("genmuppy", &genmuppy);
     tree_->Branch("genmuppz", &genmuppz);
+    tree_->Branch("genkspippx", &genkspippx);
+    tree_->Branch("genkspippy", &genkspippy);
+    tree_->Branch("genkspippz", &genkspippz);
     tree_->Branch("istruthmum", &istruthmum);
     tree_->Branch("istruthmup", &istruthmup);
     tree_->Branch("istruthks", &istruthks);
@@ -803,6 +808,7 @@ BToKstarMuMu::clearVariables(){
     genpipx->clear();   genpipy->clear();   genpipz->clear(); 
     genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
     genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
+    genkspippx->clear();  genkspippy->clear();  genkspippz->clear(); 
     istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
   }
 
@@ -2374,6 +2380,19 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genpipy->push_back(pi.py());
     genpipz->push_back(pi.pz());
     
+
+    // save kshort pions 
+    for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
+      const reco::Candidate &dau = *(ks.daughter(j));
+      
+      if ( dau.charge() > 0 ) {
+	genkspippx->push_back(dau.px());
+	genkspippy->push_back(dau.py());
+	genkspippz->push_back(dau.pz());
+      }
+
+    }
+   
   }
 }
 
@@ -2627,6 +2646,7 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     
     cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
     
+    // truth match with Ks pi+
     
   }
 }
