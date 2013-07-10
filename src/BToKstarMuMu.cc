@@ -344,6 +344,7 @@ private:
   vector<double> *genmumpx, *genmumpy, *genmumpz;
   vector<double> *genmuppx, *genmuppy, *genmuppz;
   vector<double> *genkspippx, *genkspippy, *genkspippz;
+  vector<double> *genkspimpx, *genkspimpy, *genkspimpz;
 
   vector<bool> *istruthmum, *istruthmup, *istruthks;  
   
@@ -446,6 +447,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genkspippx(0), genkspippy(0), genkspippz(0), 
+  genkspimpx(0), genkspimpy(0), genkspimpz(0), 
   istruthmum(0), istruthmup(0), istruthks(0) 
   
 { 
@@ -696,6 +698,9 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genkspippx", &genkspippx);
     tree_->Branch("genkspippy", &genkspippy);
     tree_->Branch("genkspippz", &genkspippz);
+    tree_->Branch("genkspimpx", &genkspimpx);
+    tree_->Branch("genkspimpy", &genkspimpy);
+    tree_->Branch("genkspimpz", &genkspimpz);
     tree_->Branch("istruthmum", &istruthmum);
     tree_->Branch("istruthmup", &istruthmup);
     tree_->Branch("istruthks", &istruthks);
@@ -809,6 +814,7 @@ BToKstarMuMu::clearVariables(){
     genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
     genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
     genkspippx->clear();  genkspippy->clear();  genkspippz->clear(); 
+    genkspimpx->clear();  genkspimpy->clear();  genkspimpz->clear(); 
     istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
   }
 
@@ -2389,6 +2395,11 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 	genkspippx->push_back(dau.px());
 	genkspippy->push_back(dau.py());
 	genkspippz->push_back(dau.pz());
+      }
+      if ( dau.charge() < 0 ) {
+	genkspimpx->push_back(dau.px());
+	genkspimpy->push_back(dau.py());
+	genkspimpz->push_back(dau.pz());
       }
 
     }
