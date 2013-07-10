@@ -133,7 +133,7 @@ private:
   
 
   // bool buildBuToPiMuMu(const edm::Event &); 
-  bool buildBuToKstarMuMu(const edm::Event &); 
+  void buildBuToKstarMuMu(const edm::Event &); 
 
   void computeLS (double, double, double, double, double, double, double, double, double, 
 		  double, double, double, double, double, double, double, double, double, 
@@ -153,14 +153,16 @@ private:
 
   bool hasBeamSpot(const edm::Event&);
 
-  bool hasDimuon(const edm::Event &); 
+  bool hasGoodDimuon(const edm::Event &); 
 
   bool hasGoodClosestApproachTracks (const reco::TransientTrack,
 				     const reco::TransientTrack, double &);
 
   bool hasGoodKshortVertex(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
-  bool hasGoodDimuonKshortMass(const edm::Event&);  
+  // bool hasGoodDimuonKshortMass(const edm::Event&);  
+  bool hasGoodDimuonKshortMass(const reco::TrackRef, const reco::TrackRef, 
+			       const reco::VertexCompositeCandidate); 
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
@@ -187,7 +189,7 @@ private:
 
   bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle);
 
-  bool hasKshort(const edm::Event &); 
+  bool hasGoodKshort(const edm::Event &); 
   bool hasKstarCharged(const edm::Event &); 
 
   bool hasPrimaryVertex(const edm::Event &); 
@@ -292,9 +294,9 @@ private:
   vector<string> *triggernames;
   vector<int> *triggerprescales;
   
-  // dimu
-  vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz; 
-  vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
+  // dimuon 
+  vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz, *mummass, *mummasserr; 
+  vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz, *mupmass, *mupmasserr; 
   vector<double> *mumudca, *mumuvtxcl, *mumulsbs, *mumulsbserr, 
     *mumucosalphabs, *mumucosalphabserr; 
   vector<bool> *mumisgoodmuon, *mupisgoodmuon ; 
@@ -304,25 +306,30 @@ private:
   vector<double> *mumdxyvtx, *mupdxyvtx, *mumdzvtx, *mupdzvtx; 
   vector<string> *mumtriglastfilter, *muptriglastfilter; 
 
+  // pion track 
+  vector<int> *trkchg; // +1 for pi+, -1 for pi-
+  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr; 
+
+
   // kshort 
   vector<double> *pimpx, *pimpy, *pimpz, *pimmass, *pimd0, *pimd0err; 
   vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
-  vector<double> *kspx, *kspy, *kspz, *ksmass; 
+  vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl; 
   
-  // B to K* mu mu variables 
+  // B+ and B- 
   vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
   vector<double> *bcosalphabs, *bcosalphabserr, *blsbs, *blsbserr, *bctau, *bctauerr; 
   
-  vector<int> *bmu1chg, *bmu2chg, *bpi1chg; // +1 for mu+, -1 for mu-
-  vector<double> *bmu1px, *bmu1py, *bmu1pz, *bmu1mass, *bmu1masserr,
-    *bmu2px, *bmu2py, *bmu2pz, *bmu2mass, *bmu2masserr,
-    *bpi1px, *bpi1py, *bpi1pz, *bpi1mass, *bpi1masserr,
-    *bkspx, *bkspy, *bkspz, *bksmass, *bksmasserr, 
-    *bkspippx, *bkspippy, *bkspippz,   
-    *bkspimpx, *bkspimpy, *bkspimpz;  
+  // vector<int> *bmu1chg, *bmu2chg, *bpi1chg; // +1 for mu+, -1 for mu-
+  // vector<double> *bmu1px, *bmu1py, *bmu1pz, *bmu1mass, *bmu1masserr,
+  //   *bmu2px, *bmu2py, *bmu2pz, *bmu2mass, *bmu2masserr,
+  //   *bpi1px, *bpi1py, *bpi1pz, *bpi1mass, *bpi1masserr,
+  //   *bkspx, *bkspy, *bkspz, *bksmass, *bksmasserr, 
+  //   *bkspippx, *bkspippy, *bkspippz,   
+  //   *bkspimpx, *bkspimpy, *bkspimpz;  
 
 
   // B to pi mu mu variables 
@@ -335,20 +342,18 @@ private:
   // vector<double> *b3vtxcl, *b3vtxx, *b3vtxxerr, *b3vtxy, *b3vtxyerr, *b3vtxz, *b3vtxzerr; 
   // vector<double> *b3cosalphabs, *b3cosalphabserr, *b3lsbs, *b3lsbserr, *b3ctau, *b3ctauerr; 
 
-  // For MC Only 
-  // vector<int> *genbchg; // +1 for b+, -1 for b-
-  vector<double> *genbpx, *genbpy, *genbpz;
-  vector<double> *genkstpx, *genkstpy, *genkstpz;
-  vector<double> *genkspx, *genkspy, *genkspz;
-  vector<double> *genpipx, *genpipy, *genpipz;
-  vector<double> *genmumpx, *genmumpy, *genmumpz;
-  vector<double> *genmuppx, *genmuppy, *genmuppz;
-  vector<double> *genkspippx, *genkspippy, *genkspippz;
-  vector<double> *genkspimpx, *genkspimpy, *genkspimpz;
+  // For MC
+  int genbchg; // +1 for b+, -1 for b-
+  double genbpx, genbpy, genbpz;
+  double genkstpx, genkstpy, genkstpz;
+  double genkspx, genkspy, genkspz;
+  double genpipx, genpipy, genpipz;
+  double genmumpx, genmumpy, genmumpz;
+  double genmuppx, genmuppy, genmuppz;
+  double genkspippx, genkspippy, genkspippz;
+  double genkspimpx, genkspimpy, genkspimpz;
 
   vector<bool> *istruthmum, *istruthmup, *istruthks;  
-  
- 
 };
 
 //
@@ -408,8 +413,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
-  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0),
-  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0),  muppz(0),
+  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), mummass(0), mummasserr(0), 
+  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0),  muppz(0), mupmass(0), mupmasserr(0), 
   mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
   mumucosalphabs(0),  mumucosalphabserr(0), 
   mumisgoodmuon(0), mupisgoodmuon(0), 
@@ -418,19 +423,22 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   mumnormchi2(0), mupnormchi2(0), mumdxyvtx(0), mupdxyvtx(0), mumdzvtx(0), mupdzvtx(0), 
   mumtriglastfilter(0), muptriglastfilter(0), 
 
+  trkchg(0), 
+  trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), 
+
   pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
-  kspx(0), kspy(0), kspz(0), ksmass(0),
+  kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), 
   bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0), bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
 
-  bmu1chg(0), bmu2chg(0), bpi1chg(0), bmu1px(0),  bmu1py(0), bmu1pz(0), bmu1mass(0), bmu1masserr(0), 
-  bmu2px(0),  bmu2py(0),  bmu2pz(0), bmu2mass(0), bmu2masserr(0),
-  bpi1px(0),  bpi1py(0),  bpi1pz(0), bpi1mass(0), bpi1masserr(0), 
-  bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0),
-  bkspippx(0), bkspippy(0), bkspippz(0), bkspimpx(0), bkspimpy(0), bkspimpz(0), 
+  // bmu1chg(0), bmu2chg(0), bpi1chg(0), bmu1px(0),  bmu1py(0), bmu1pz(0), bmu1mass(0), bmu1masserr(0), 
+  // bmu2px(0),  bmu2py(0),  bmu2pz(0), bmu2mass(0), bmu2masserr(0),
+  // bpi1px(0),  bpi1py(0),  bpi1pz(0), bpi1mass(0), bpi1masserr(0), 
+  // bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0),
+  // bkspippx(0), bkspippy(0), bkspippz(0), bkspimpx(0), bkspimpy(0), bkspimpz(0), 
 
   // b3mu1chg(0), b3mu2chg(0), b3pi1chg(0),
   // b3mu1px(0),  b3mu1py(0),  b3mu1pz(0), 
@@ -440,6 +448,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   // b3vtxcl(0), b3vtxx(0), b3vtxxerr(0), b3vtxy(0), b3vtxyerr(0), b3vtxz(0), b3vtxzerr(0), 
   // b3cosalphabs(0), b3cosalphabserr(0), b3lsbs(0), b3lsbserr(0), b3ctau(0), b3ctauerr(0), 
 
+  genbchg(0), 
   genbpx(0), genbpy(0), genbpz(0), 
   genkstpx(0), genkstpy(0), genkstpz(0), 
   genkspx(0), genkspy(0), genkspz(0), 
@@ -488,20 +497,22 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if ( hasBeamSpot(iEvent) ) {
     iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle_);      
     
-    if ( bFieldHandle_.isValid() 
-	 && hasPrimaryVertex(iEvent) 
-	 && hasGoodDimuonKshortMass(iEvent) 
-	 && hasDimuon(iEvent)
-	 && hasKshort(iEvent) 
+    if ( bFieldHandle_.isValid() && hasPrimaryVertex(iEvent) ) { 
+	 // && hasGoodDimuonKshortMass(iEvent) 
+	 // && hasGoodDimuon(iEvent)
+	 // && hasGoodKshort(iEvent) 
 	 // && hasKstarCharged(iEvent) 
-	 && buildBuToKstarMuMu(iEvent) )
+      
+      buildBuToKstarMuMu(iEvent) ;  
 
       if (SaveGenInfo_) {
 	saveGenInfo(iEvent);
 	saveTruthMatch(iEvent);
       }
-
+      
       tree_->Fill();
+    }
+
   }
   
   clearVariables(); 
@@ -536,11 +547,15 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumpx", &mumpx);
   tree_->Branch("mumpy", &mumpy);
   tree_->Branch("mumpz", &mumpz);
+  tree_->Branch("mummass", &mummass); 
+  tree_->Branch("mummasserr", &mummasserr); 
   tree_->Branch("mupdcabs", &mupdcabs);
   tree_->Branch("mupdcabserr", &mupdcabserr);
   tree_->Branch("muppx", &muppx);
   tree_->Branch("muppy", &muppy);
   tree_->Branch("muppz", &muppz);
+  tree_->Branch("mupmass", &mupmass); 
+  tree_->Branch("mupmasserr", &mupmasserr); 
   tree_->Branch("mumudca", &mumudca);
   tree_->Branch("mumuvtxcl", &mumuvtxcl);
   tree_->Branch("mumulsbs", &mumulsbs);
@@ -566,6 +581,13 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumtriglastfilter", &mumtriglastfilter);
   tree_->Branch("muptriglastfilter", &muptriglastfilter);
 
+  tree_->Branch("trkchg", &trkchg);
+  tree_->Branch("trkpx", &trkpx);
+  tree_->Branch("trkpy", &trkpy);
+  tree_->Branch("trkpz", &trkpz);
+  tree_->Branch("trkmass", &trkmass);
+  tree_->Branch("trkmasserr", &trkmasserr);
+
   tree_->Branch("pimpx", &pimpx);
   tree_->Branch("pimpy", &pimpy);
   tree_->Branch("pimpz", &pimpz);
@@ -582,6 +604,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("kspy", &kspy);
   tree_->Branch("kspz", &kspz);
   tree_->Branch("ksmass", &ksmass);
+  tree_->Branch("ksmasserr", &ksmasserr);
   tree_->Branch("ksvtxx", &ksvtxx);
   tree_->Branch("ksvtxy", &ksvtxy);
   tree_->Branch("ksvtxz", &ksvtxz);
@@ -610,35 +633,35 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bctau", &bctau);
   tree_->Branch("bctauerr", &bctauerr);
 
-  tree_->Branch("bmu1chg", &bmu1chg);
-  tree_->Branch("bmu2chg", &bmu2chg);
-  tree_->Branch("bpi1chg", &bpi1chg);
-  tree_->Branch("bmu1px", &bmu1px);
-  tree_->Branch("bmu1py", &bmu1py);
-  tree_->Branch("bmu1pz", &bmu1pz);
-  tree_->Branch("bmu1mass", &bmu1mass);
-  tree_->Branch("bmu1masserr", &bmu1masserr);
-  tree_->Branch("bmu2px", &bmu2px);
-  tree_->Branch("bmu2py", &bmu2py);
-  tree_->Branch("bmu2pz", &bmu2pz);
-  tree_->Branch("bmu2mass", &bmu2mass);
-  tree_->Branch("bmu2masserr", &bmu2masserr);
-  tree_->Branch("bpi1px", &bpi1px);
-  tree_->Branch("bpi1py", &bpi1py);
-  tree_->Branch("bpi1pz", &bpi1pz);
-  tree_->Branch("bpi1mass", &bpi1mass);
-  tree_->Branch("bpi1masserr", &bpi1masserr);
-  tree_->Branch("bkspx", &bkspx);
-  tree_->Branch("bkspy", &bkspy);
-  tree_->Branch("bkspz", &bkspz);
-  tree_->Branch("bksmass", &bksmass);
-  tree_->Branch("bksmasserr", &bksmasserr);
-  tree_->Branch("bkspippx", &bkspippx);
-  tree_->Branch("bkspippy", &bkspippy);
-  tree_->Branch("bkspippz", &bkspippz);
-  tree_->Branch("bkspimpx", &bkspimpx);
-  tree_->Branch("bkspimpy", &bkspimpy);
-  tree_->Branch("bkspimpz", &bkspimpz);
+  // tree_->Branch("bmu1chg", &bmu1chg);
+  // tree_->Branch("bmu2chg", &bmu2chg);
+  // tree_->Branch("bpi1chg", &bpi1chg);
+  // tree_->Branch("bmu1px", &bmu1px);
+  // tree_->Branch("bmu1py", &bmu1py);
+  // tree_->Branch("bmu1pz", &bmu1pz);
+  // tree_->Branch("bmu1mass", &bmu1mass);
+  // tree_->Branch("bmu1masserr", &bmu1masserr);
+  // tree_->Branch("bmu2px", &bmu2px);
+  // tree_->Branch("bmu2py", &bmu2py);
+  // tree_->Branch("bmu2pz", &bmu2pz);
+  // tree_->Branch("bmu2mass", &bmu2mass);
+  // tree_->Branch("bmu2masserr", &bmu2masserr);
+  // tree_->Branch("bpi1px", &bpi1px);
+  // tree_->Branch("bpi1py", &bpi1py);
+  // tree_->Branch("bpi1pz", &bpi1pz);
+  // tree_->Branch("bpi1mass", &bpi1mass);
+  // tree_->Branch("bpi1masserr", &bpi1masserr);
+  // tree_->Branch("bkspx", &bkspx);
+  // tree_->Branch("bkspy", &bkspy);
+  // tree_->Branch("bkspz", &bkspz);
+  // tree_->Branch("bksmass", &bksmass);
+  // tree_->Branch("bksmasserr", &bksmasserr);
+  // tree_->Branch("bkspippx", &bkspippx);
+  // tree_->Branch("bkspippy", &bkspippy);
+  // tree_->Branch("bkspippz", &bkspippz);
+  // tree_->Branch("bkspimpx", &bkspimpx);
+  // tree_->Branch("bkspimpy", &bkspimpy);
+  // tree_->Branch("bkspimpz", &bkspimpz);
 
   // B to pi mu mu 
   // tree_->Branch("b3mu1chg", &b3mu1chg);
@@ -677,33 +700,34 @@ BToKstarMuMu::beginJob()
   // tree_->Branch("b3ctauerr", &b3ctauerr);
 
   if (SaveGenInfo_) {
-    tree_->Branch("genbpx", &genbpx);
-    tree_->Branch("genbpy", &genbpy);
-    tree_->Branch("genbpz", &genbpz);
-    tree_->Branch("genkstpx", &genkstpx);
-    tree_->Branch("genkstpy", &genkstpy);
-    tree_->Branch("genkstpz", &genkstpz);
-    tree_->Branch("genkspx", &genkspx);
-    tree_->Branch("genkspy", &genkspy);
-    tree_->Branch("genkspz", &genkspz);
-    tree_->Branch("genpipx", &genpipx);
-    tree_->Branch("genpipy", &genpipy);
-    tree_->Branch("genpipz", &genpipz);
-    tree_->Branch("genmumpx", &genmumpx);
-    tree_->Branch("genmumpy", &genmumpy);
-    tree_->Branch("genmumpz", &genmumpz);
-    tree_->Branch("genmuppx", &genmuppx);
-    tree_->Branch("genmuppy", &genmuppy);
-    tree_->Branch("genmuppz", &genmuppz);
-    tree_->Branch("genkspippx", &genkspippx);
-    tree_->Branch("genkspippy", &genkspippy);
-    tree_->Branch("genkspippz", &genkspippz);
-    tree_->Branch("genkspimpx", &genkspimpx);
-    tree_->Branch("genkspimpy", &genkspimpy);
-    tree_->Branch("genkspimpz", &genkspimpz);
-    tree_->Branch("istruthmum", &istruthmum);
-    tree_->Branch("istruthmup", &istruthmup);
-    tree_->Branch("istruthks", &istruthks);
+    tree_->Branch("genbchg",     &genbchg    , "genbchg/I"   );
+    tree_->Branch("genbpx",      &genbpx     , "genbpx/D"    );
+    tree_->Branch("genbpy",      &genbpy     , "genbpy/D"    );
+    tree_->Branch("genbpz",      &genbpz     , "genbpz/D"    );
+    tree_->Branch("genkstpx",    &genkstpx   , "genkstpx/D"  );
+    tree_->Branch("genkstpy",    &genkstpy   , "genkstpy/D"  );
+    tree_->Branch("genkstpz",    &genkstpz   , "genkstpz/D"  );
+    tree_->Branch("genkspx",     &genkspx    , "genkspx/D"   );
+    tree_->Branch("genkspy",     &genkspy    , "genkspy/D"   );
+    tree_->Branch("genkspz",     &genkspz    , "genkspz/D"   );
+    tree_->Branch("genpipx",     &genpipx    , "genpipx/D"   );
+    tree_->Branch("genpipy",     &genpipy    , "genpipy/D"   );
+    tree_->Branch("genpipz",     &genpipz    , "genpipz/D"   );
+    tree_->Branch("genmumpx",    &genmumpx   , "genmumpx/D"  );
+    tree_->Branch("genmumpy",    &genmumpy   , "genmumpy/D"  );
+    tree_->Branch("genmumpz",    &genmumpz   , "genmumpz/D"  );
+    tree_->Branch("genmuppx",    &genmuppx   , "genmuppx/D"  );
+    tree_->Branch("genmuppy",    &genmuppy   , "genmuppy/D"  );
+    tree_->Branch("genmuppz",    &genmuppz   , "genmuppz/D"  );
+    tree_->Branch("genkspippx",  &genkspippx , "genkspippx/D");
+    tree_->Branch("genkspippy",  &genkspippy , "genkspippy/D");
+    tree_->Branch("genkspippz",  &genkspippz , "genkspippz/D");
+    tree_->Branch("genkspimpx",  &genkspimpx , "genkspimpx/D");
+    tree_->Branch("genkspimpy",  &genkspimpy , "genkspimpy/D");
+    tree_->Branch("genkspimpz",  &genkspimpz , "genkspimpz/D");
+    tree_->Branch("istruthmum",  &istruthmum );
+    tree_->Branch("istruthmup",  &istruthmup );
+    tree_->Branch("istruthks",   &istruthks  );
 
   } 
 
@@ -769,7 +793,9 @@ BToKstarMuMu::clearVariables(){
   triggernames->clear();
   triggerprescales->clear();
   mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();   mumpz->clear(); 
+  mummass->clear(); mummasserr->clear(); 
   mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear();   muppz->clear(); 
+  mupmass->clear(); mupmasserr->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
   mumucosalphabs->clear();  mumucosalphabserr->clear();  
   mumisgoodmuon->clear();  mupisgoodmuon->clear(); 
@@ -777,9 +803,13 @@ BToKstarMuMu::clearVariables(){
   mumntrkhits->clear();  mupntrkhits->clear();  mumntrklayers->clear();  mupntrklayers->clear(); 
   mumnormchi2->clear(); mupnormchi2->clear(); mumdxyvtx->clear(); mupdxyvtx->clear(); 
   mumdzvtx->clear(); mupdzvtx->clear();  mumtriglastfilter->clear(); muptriglastfilter->clear(); 
+
+  trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
+  trkmass->clear(); trkmasserr->clear(); 
+
   pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); pimd0->clear(); pimd0err->clear();
   pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
-  kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear();
+  kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
   DimuonCandidates_.clear();  KshortCandidates_.clear(); 
   KstarChargedCandidates_.clear(); BuCandidates_.clear();
@@ -790,13 +820,13 @@ BToKstarMuMu::clearVariables(){
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
 
-  bmu1chg->clear(); bmu2chg->clear(); bpi1chg->clear(); 
-  bmu1px->clear();   bmu1py->clear();   bmu1pz->clear(); bmu1mass->clear();  bmu1masserr->clear();
-  bmu2px->clear();   bmu2py->clear();   bmu2pz->clear(); bmu2mass->clear();  bmu2masserr->clear();
-  bpi1px->clear();   bpi1py->clear();   bpi1pz->clear(); bpi1mass->clear();  bpi1masserr->clear();
-  bkspx->clear();   bkspy->clear();   bkspz->clear(); bksmass->clear();  bksmasserr->clear();
-  bkspippx->clear(); bkspippy->clear(); bkspippy->clear(); 
-  bkspimpx->clear(); bkspimpy->clear(); bkspimpy->clear(); 
+  // bmu1chg->clear(); bmu2chg->clear(); bpi1chg->clear(); 
+  // bmu1px->clear();   bmu1py->clear();   bmu1pz->clear(); bmu1mass->clear();  bmu1masserr->clear();
+  // bmu2px->clear();   bmu2py->clear();   bmu2pz->clear(); bmu2mass->clear();  bmu2masserr->clear();
+  // bpi1px->clear();   bpi1py->clear();   bpi1pz->clear(); bpi1mass->clear();  bpi1masserr->clear();
+  // bkspx->clear();   bkspy->clear();   bkspz->clear(); bksmass->clear();  bksmasserr->clear();
+  // bkspippx->clear(); bkspippy->clear(); bkspippy->clear(); 
+  // bkspimpx->clear(); bkspimpy->clear(); bkspimpy->clear(); 
 
   // b3mu1chg->clear(); b3mu2chg->clear(); b3pi1chg->clear(); 
   // b3mu1px->clear();   b3mu1py->clear();   b3mu1pz->clear(); 
@@ -807,14 +837,15 @@ BToKstarMuMu::clearVariables(){
   // b3chg->clear(); b3mass->clear(); b3masserr->clear();  b3cosalphabs->clear(); b3cosalphabserr->clear(); 
   // b3lsbs->clear(); b3lsbserr->clear();  b3ctau->clear(); b3ctauerr->clear(); 
   if (SaveGenInfo_) {
-    genbpx->clear();    genbpy->clear();    genbpz->clear(); 
-    genkstpx->clear();  genkstpy->clear();  genkstpz->clear(); 
-    genkspx->clear();   genkspy->clear();   genkspz->clear(); 
-    genpipx->clear();   genpipy->clear();   genpipz->clear(); 
-    genmumpx->clear();  genmumpy->clear();  genmumpz->clear(); 
-    genmuppx->clear();  genmuppy->clear();  genmuppz->clear(); 
-    genkspippx->clear();  genkspippy->clear();  genkspippz->clear(); 
-    genkspimpx->clear();  genkspimpy->clear();  genkspimpz->clear(); 
+    genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
+    genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
+    genkspx = 0;   genkspy = 0;   genkspz = 0; 
+    genpipx = 0;   genpipy = 0;   genpipz = 0; 
+    genmumpx = 0;  genmumpy = 0;  genmumpz = 0; 
+    genmuppx = 0;  genmuppy = 0;  genmuppz = 0; 
+    genkspippx = 0;  genkspippy = 0;  genkspippz = 0; 
+    genkspimpx = 0;  genkspimpy = 0;  genkspimpz = 0; 
+
     istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
   }
 
@@ -898,7 +929,7 @@ BToKstarMuMu::hasPrimaryVertex(const edm::Event& iEvent)
 
 
 bool
-BToKstarMuMu::hasDimuon(const edm::Event& iEvent)
+BToKstarMuMu::hasGoodDimuon(const edm::Event& iEvent)
 {
   DimuonCandidates_.clear();
   pat::CompositeCandidate DimuonCandidate;
@@ -954,13 +985,13 @@ BToKstarMuMu::hasDimuon(const edm::Event& iEvent)
 	  DimuonCandidates_.push_back(DimuonCandidate); 
 
 	  // edm::LogInfo("myDimuon") << "Found good dimuon candidate. " ; 
-	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
+	  // saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 	  
-	  saveMuonTriggerMatches(*iMuonM, *iMuonP); 
+	  // saveMuonTriggerMatches(*iMuonM, *iMuonP); 
 
-	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, DCAmumu, mu_mu_vtx_cl, 
-			    MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr,
-			    refitMupTT, refitMumTT); 
+	  // saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, DCAmumu, mu_mu_vtx_cl, 
+	  // 		    MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr,
+	  // 		    refitMupTT, refitMumTT); 
 
 	  
 	} // end the mu+ loop 
@@ -977,7 +1008,7 @@ BToKstarMuMu::hasDimuon(const edm::Event& iEvent)
 
 
 bool 
-BToKstarMuMu::hasKshort(const edm::Event& iEvent)
+BToKstarMuMu::hasGoodKshort(const edm::Event& iEvent)
 {
   KshortCandidates_.clear(); 
 
@@ -1007,7 +1038,7 @@ BToKstarMuMu::hasKshort(const edm::Event& iEvent)
     // if ( !hasGoodKshortVertex(theDaughterTracks, ksPipKP, ksPimKP) ) continue; 
  
     KshortCandidates_.push_back(*iKshort); 
-    saveKshortVariables(*iKshort); 
+    // saveKshortVariables(*iKshort); 
   }
   
   if ( KshortCandidates_.size() > 0 ) {
@@ -1118,14 +1149,53 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, const pat::GenericParti
 
 
 
-bool 
+void 
 BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 {
-  BuCandidates_.clear();
+  edm::Handle< vector<pat::Muon> > patMuonHandle;
+  iEvent.getByLabel(MuonLabel_, patMuonHandle);
+  if( patMuonHandle->size() < 2 ) return;
+
+  edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
+  iEvent.getByLabel(KshortLabel_, theKshorts);
+  if ( theKshorts->size() <= 0) return;
+
+
+  // loop 1: mu-
+  for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
+       iMuonM != patMuonHandle->end(); iMuonM++){
+    
+    reco::TrackRef muTrackm = iMuonM->innerTrack(); 
+    if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
+
+    // loop 2: mu+ 
+    for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
+	 iMuonP != patMuonHandle->end(); iMuonP++){
+
+      reco::TrackRef muTrackp = iMuonP->innerTrack(); 
+      if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
+      
+      // loop 3: kshort 
+      for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
+	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
+	
+	// cut 1: dimuon kshort mass 
+	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort ) ) continue; 
+
+	
+      }
+    }
+  }
+	
+  
+  
+  // BuCandidates_.clear();
   int nBu = 0; 
   pat::CompositeCandidate BuCandidate;
   RefCountedKinematicTree vertexFitTree; 
   RefCountedKinematicTree ksVertexFitTree;
+
+  
 
   for ( pat::CompositeCandidateCollection::const_iterator iDimuon 
 	  = DimuonCandidates_.begin(); iDimuon != DimuonCandidates_.end(); ++iDimuon) {
@@ -1175,11 +1245,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   
   if ( nBu > 0) {
     edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
-    return true;
   }
-  
-  else
-    return false; 
 }
 
 
@@ -1886,56 +1952,60 @@ BToKstarMuMu::hasGoodBuVertex3(const pat::CompositeCandidate Dimuon,
 }
 
 bool
-BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
+// BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
+BToKstarMuMu::hasGoodDimuonKshortMass(const reco::TrackRef muTrackm, 
+				      const reco::TrackRef muTrackp, 
+				      const reco::VertexCompositeCandidate iKshort
+				      )
 {
-  edm::Handle< vector<pat::Muon> > patMuonHandle;
-  iEvent.getByLabel(MuonLabel_, patMuonHandle);
+  // edm::Handle< vector<pat::Muon> > patMuonHandle;
+  // iEvent.getByLabel(MuonLabel_, patMuonHandle);
   
-  if( patMuonHandle->size() < 2 ) return false;
+  // if( patMuonHandle->size() < 2 ) return false;
   
-  // loop over mu-
-  for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
-       iMuonM != patMuonHandle->end(); iMuonM++){
+  // // loop over mu-
+  // for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
+  //      iMuonM != patMuonHandle->end(); iMuonM++){
     
-    reco::TrackRef muTrackm = iMuonM->innerTrack(); 
-    if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
+  //   reco::TrackRef muTrackm = iMuonM->innerTrack(); 
+  //   if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
 
-    // loop over mu+ 
-    for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
-	 iMuonP != patMuonHandle->end(); iMuonP++){
+  //   // loop over mu+ 
+  //   for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
+  // 	 iMuonP != patMuonHandle->end(); iMuonP++){
 
-      reco::TrackRef muTrackp = iMuonP->innerTrack(); 
-      if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
+  //     reco::TrackRef muTrackp = iMuonP->innerTrack(); 
+  //     if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
       
-      // book the mumu mass histogram 
-      TLorentzVector mu1, mu2, dimu; 
-      mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
-      mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
-      dimu = mu1 + mu2; 
-      BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
-
-      // loop over kshort 
-      edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
-      iEvent.getByLabel(KshortLabel_, theKshorts);
-      if ( theKshorts->size() <= 0) continue;
-      
-      for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
-	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
+  // book the mumu mass histogram 
+  TLorentzVector mu1, mu2, dimu; 
+  mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
+  mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
+  dimu = mu1 + mu2; 
+  BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
+  
+  // // loop over kshort 
+  // edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
+  // iEvent.getByLabel(KshortLabel_, theKshorts);
+  // if ( theKshorts->size() <= 0) continue;
+  
+  // for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
+  // 	  = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
-	BToKstarMuMuFigures[h_kshortmass]->Fill(iKshort->mass()); 
-	
-	TLorentzVector kshort, dimukshort; 
-	kshort.SetXYZM(iKshort->px(), iKshort->py(), iKshort->pz(), KshortMass_); 
-	dimukshort = dimu + kshort; 
+  BToKstarMuMuFigures[h_kshortmass]->Fill(iKshort.mass()); 
+  
+  TLorentzVector kshort, dimukshort; 
+  kshort.SetXYZM(iKshort.px(), iKshort.py(), iKshort.pz(), KshortMass_); 
+  dimukshort = dimu + kshort; 
 
-	// cout << iKshort->px() << iKshort->mass(); 
-	if ( dimukshort.M() > DimukshortMinMass_  && dimukshort.M() < DimukshortMaxMass_ ) 
-	  return true; 
-	
-      }
-    }
-  }
-
+  // cout << iKshort->px() << iKshort->mass(); 
+  if ( dimukshort.M() > DimukshortMinMass_  && dimukshort.M() < DimukshortMaxMass_ ) 
+    return true; 
+  
+  // }
+  // }
+  // }
+  
   return false; 
 }
 
@@ -1958,38 +2028,46 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree,
 
   vertexFitTree->movePointerToTheFirstChild(); // mu1 
   RefCountedKinematicParticle mu1_KP = vertexFitTree->currentParticle();
-  bmu1chg->push_back(mu1_KP->currentState().particleCharge()); 
-  bmu1px->push_back(mu1_KP->currentState().globalMomentum().x());
-  bmu1py->push_back(mu1_KP->currentState().globalMomentum().y());
-  bmu1pz->push_back(mu1_KP->currentState().globalMomentum().z());
-  bmu1mass->push_back(mu1_KP->currentState().mass());
-  bmu1masserr->push_back(mu1_KP->currentState().kinematicParametersError().matrix()(6,6));
-
   vertexFitTree->movePointerToTheNextChild();  // mu2 
   RefCountedKinematicParticle mu2_KP = vertexFitTree->currentParticle();
-  bmu2chg->push_back(mu2_KP->currentState().particleCharge()); 
-  bmu2px->push_back(mu2_KP->currentState().globalMomentum().x());
-  bmu2py->push_back(mu2_KP->currentState().globalMomentum().y());
-  bmu2pz->push_back(mu2_KP->currentState().globalMomentum().z());
-  bmu2mass->push_back(mu2_KP->currentState().mass());
-  bmu2masserr->push_back(mu2_KP->currentState().kinematicParametersError().matrix()(6,6));
 
-  vertexFitTree->movePointerToTheNextChild();  // pi1 
+  RefCountedKinematicParticle mup_KP, mum_KP ;
+
+  if ( mu1_KP->currentState().particleCharge() > 0 ) mup_KP = mu1_KP;
+  if ( mu1_KP->currentState().particleCharge() < 0 ) mum_KP = mu1_KP;
+  if ( mu2_KP->currentState().particleCharge() > 0 ) mup_KP = mu2_KP;
+  if ( mu2_KP->currentState().particleCharge() < 0 ) mum_KP = mu2_KP;
+
+  
+  muppx->push_back(mup_KP->currentState().globalMomentum().x());
+  muppy->push_back(mup_KP->currentState().globalMomentum().y());
+  muppz->push_back(mup_KP->currentState().globalMomentum().z());
+  mupmass->push_back(mup_KP->currentState().mass());
+  mupmasserr->push_back(mup_KP->currentState().kinematicParametersError().matrix()(6,6));
+  
+  mumpx->push_back(mum_KP->currentState().globalMomentum().x());
+  mumpy->push_back(mum_KP->currentState().globalMomentum().y());
+  mumpz->push_back(mum_KP->currentState().globalMomentum().z());
+  mummass->push_back(mum_KP->currentState().mass());
+  mummasserr->push_back(mum_KP->currentState().kinematicParametersError().matrix()(6,6));
+
+
+  vertexFitTree->movePointerToTheNextChild();  // pion track 
   RefCountedKinematicParticle pi1_KP = vertexFitTree->currentParticle();
-  bpi1chg->push_back(pi1_KP->currentState().particleCharge()); 
-  bpi1px->push_back(pi1_KP->currentState().globalMomentum().x());
-  bpi1py->push_back(pi1_KP->currentState().globalMomentum().y());
-  bpi1pz->push_back(pi1_KP->currentState().globalMomentum().z());
-  bpi1mass->push_back(pi1_KP->currentState().mass());
-  bpi1masserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
+  trkchg->push_back(pi1_KP->currentState().particleCharge()); 
+  trkpx->push_back(pi1_KP->currentState().globalMomentum().x());
+  trkpy->push_back(pi1_KP->currentState().globalMomentum().y());
+  trkpz->push_back(pi1_KP->currentState().globalMomentum().z());
+  trkmass->push_back(pi1_KP->currentState().mass());
+  trkmasserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
 
   vertexFitTree->movePointerToTheNextChild();  // ks 
   RefCountedKinematicParticle ks_KP = vertexFitTree->currentParticle();
-  bkspx->push_back(ks_KP->currentState().globalMomentum().x());
-  bkspy->push_back(ks_KP->currentState().globalMomentum().y());
-  bkspz->push_back(ks_KP->currentState().globalMomentum().z());
-  bksmass->push_back(ks_KP->currentState().mass());
-  bksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
+  kspx->push_back(ks_KP->currentState().globalMomentum().x());
+  kspy->push_back(ks_KP->currentState().globalMomentum().y());
+  kspz->push_back(ks_KP->currentState().globalMomentum().z());
+  ksmass->push_back(ks_KP->currentState().mass());
+  ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
 
   ksVertexFitTree->movePointerToTheFirstChild(); // Kshort pion1
   RefCountedKinematicParticle ksPi1 = ksVertexFitTree->currentParticle();
@@ -2010,13 +2088,13 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree,
   if ( ksPi2->currentState().particleCharge() > 0 ) ksPipKP = ksPi2KP;
   if ( ksPi2->currentState().particleCharge() < 0 ) ksPimKP = ksPi2KP;
 
-  bkspippx->push_back(ksPipKP.momentum().x());
-  bkspippy->push_back(ksPipKP.momentum().y());
-  bkspippz->push_back(ksPipKP.momentum().z());
+  pippx->push_back(ksPipKP.momentum().x());
+  pippy->push_back(ksPipKP.momentum().y());
+  pippz->push_back(ksPipKP.momentum().z());
 
-  bkspimpx->push_back(ksPimKP.momentum().x());
-  bkspimpy->push_back(ksPimKP.momentum().y());
-  bkspimpz->push_back(ksPimKP.momentum().z());
+  pimpx->push_back(ksPimKP.momentum().x());
+  pimpy->push_back(ksPimKP.momentum().y());
+  pimpz->push_back(ksPimKP.momentum().z());
 
   
 }
@@ -2362,29 +2440,30 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     const reco::Candidate & mum = *(b.daughter(imum));
     const reco::Candidate & mup = *(b.daughter(imup));
 
-    genbpx->push_back(b.px());
-    genbpy->push_back(b.py());
-    genbpz->push_back(b.pz());
+    genbchg = b.charge(); 
+    genbpx = b.px();
+    genbpy = b.py();
+    genbpz = b.pz();
  
-    genmumpx->push_back(mum.px());
-    genmumpy->push_back(mum.py());
-    genmumpz->push_back(mum.pz());
+    genmumpx = mum.px();
+    genmumpy = mum.py();
+    genmumpz = mum.pz();
 
-    genmuppx->push_back(mup.px());
-    genmuppy->push_back(mup.py());
-    genmuppz->push_back(mup.pz());
+    genmuppx = mup.px();
+    genmuppy = mup.py();
+    genmuppz = mup.pz();
 
-    genkstpx->push_back(kst.px());
-    genkstpy->push_back(kst.py());
-    genkstpz->push_back(kst.pz());
+    genkstpx = kst.px();
+    genkstpy = kst.py();
+    genkstpz = kst.pz();
     
-    genkspx->push_back(ks.px());
-    genkspy->push_back(ks.py());
-    genkspz->push_back(ks.pz());
+    genkspx = ks.px();
+    genkspy = ks.py();
+    genkspz = ks.pz();
 
-    genpipx->push_back(pi.px());
-    genpipy->push_back(pi.py());
-    genpipz->push_back(pi.pz());
+    genpipx = pi.px();
+    genpipy = pi.py();
+    genpipz = pi.pz();
     
 
     // save kshort pions 
@@ -2392,14 +2471,14 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       const reco::Candidate &dau = *(ks.daughter(j));
       
       if ( dau.charge() > 0 ) {
-	genkspippx->push_back(dau.px());
-	genkspippy->push_back(dau.py());
-	genkspippz->push_back(dau.pz());
+	genkspippx = dau.px();
+	genkspippy = dau.py();
+	genkspippz = dau.pz();
       }
       if ( dau.charge() < 0 ) {
-	genkspimpx->push_back(dau.px());
-	genkspimpy->push_back(dau.py());
-	genkspimpz->push_back(dau.pz());
+	genkspimpx = dau.px();
+	genkspimpy = dau.py();
+	genkspimpz = dau.pz();
       }
 
     }
@@ -2602,44 +2681,18 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     // cout << bmass->at(i); 
 
     // truth match with mu-
-    if ( bmu1chg->at(i) < 0 ) {
-      deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
-      					  genmumpy->at(0), 
-      					  genmumpz->at(0), 
-      					  bmu1px->at(i),
-      					  bmu1py->at(i),
-      					  bmu1pz->at(i)); 
-    } else {
-      deltaEtaPhi = computeEtaPhiDistance(genmumpx->at(0),
-      					  genmumpy->at(0), 
-      					  genmumpz->at(0), 
-      					  bmu2px->at(i),
-      					  bmu2py->at(i),
-      					  bmu2pz->at(i)); 
-    }
+    deltaEtaPhi = computeEtaPhiDistance(genmumpx, genmumpy, genmumpz, 
+					mumpx->at(i), mumpy->at(i), mumpz->at(i)); 
     if (deltaEtaPhi < TruthMatchMuonMaxR_) {
       istruthmum->push_back(true); 
-    }
-    else {
+    } else {
       istruthmum->push_back(false); 
     }
-
+    
     // truth match with mu+
-    if ( bmu1chg->at(i) > 0 ) {
-      deltaEtaPhi = computeEtaPhiDistance(genmuppx->at(0),
-      					  genmuppy->at(0), 
-      					  genmuppz->at(0), 
-      					  bmu1px->at(i),
-      					  bmu1py->at(i),
-      					  bmu1pz->at(i)); 
-    } else {
-      deltaEtaPhi = computeEtaPhiDistance(genmuppx->at(0),
-      					  genmuppy->at(0), 
-      					  genmuppz->at(0), 
-      					  bmu2px->at(i),
-      					  bmu2py->at(i),
-      					  bmu2pz->at(i)); 
-    }
+    deltaEtaPhi = computeEtaPhiDistance(genmuppx, genmuppy, genmuppz, 
+					muppx->at(i), muppy->at(i), muppz->at(i)); 
+  
     if (deltaEtaPhi < TruthMatchMuonMaxR_) {
       istruthmup->push_back(true); 
     }
@@ -2648,12 +2701,8 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     }
 
     // truth match with Ks
-    deltaEtaPhi = computeEtaPhiDistance(genkspx->at(0),
-					genkspy->at(0), 
-					genkspz->at(0), 
-					bkspx->at(i),
-					bkspy->at(i),
-					bkspz->at(i)); 
+    deltaEtaPhi = computeEtaPhiDistance(genkspx, genkspy, genkspz, 
+					kspx->at(i), kspy->at(i), kspz->at(i)); 
     
     cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
     
