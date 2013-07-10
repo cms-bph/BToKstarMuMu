@@ -171,13 +171,13 @@ private:
 
   bool hasGoodBuMass(RefCountedKinematicTree); 
   bool hasGoodBu3Mass(RefCountedKinematicTree); 
-  bool hasGoodBuVertex(reco::TrackRef, reco::TrackRef, 
+  bool hasGoodBuVertex0(reco::TrackRef, reco::TrackRef, 
 		       reco::TrackRef, RefCountedKinematicTree&); 
-  bool hasGoodBuVertex(const pat::CompositeCandidate, const pat::CompositeCandidate,
+  bool hasGoodBuVertex1(const pat::CompositeCandidate, const pat::CompositeCandidate,
 		       RefCountedKinematicTree&, RefCountedKinematicTree &); 
-  bool hasGoodBuVertex(const pat::CompositeCandidate, const pat::CompositeCandidate,
+  bool hasGoodBuVertex2(const pat::CompositeCandidate, const pat::CompositeCandidate,
 		       RefCountedKinematicTree&); 
-  bool hasGoodBuVertex(const pat::CompositeCandidate,  const pat::CompositeCandidate,
+  bool hasGoodBuVertex3(const pat::CompositeCandidate,  const pat::CompositeCandidate,
 		       const pat::GenericParticle, RefCountedKinematicTree&); 
 
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
@@ -1121,7 +1121,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
 	if ( ! hasGoodPionTrack(iEvent, *iTrack)) continue; 
 
-	if ( ! hasGoodBuVertex(*iDimuon, *iKshort, *iTrack, vertexFitTree)) continue; 
+	if ( ! hasGoodBuVertex3(*iDimuon, *iKshort, *iTrack, vertexFitTree)) continue; 
 	
 	if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
 	
@@ -1676,9 +1676,9 @@ BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree)
 
 
 bool
-BToKstarMuMu::hasGoodBuVertex(reco::TrackRef mu1Track,reco::TrackRef mu2Track, 
-			      reco::TrackRef pionTrack, 
-			      RefCountedKinematicTree &vertexFitTree)
+BToKstarMuMu::hasGoodBuVertex0(reco::TrackRef mu1Track,reco::TrackRef mu2Track, 
+			       reco::TrackRef pionTrack, 
+			       RefCountedKinematicTree &vertexFitTree)
 {
   reco::TransientTrack mu1TT(mu1Track, &(*bFieldHandle_) );
   reco::TransientTrack mu2TT(mu2Track, &(*bFieldHandle_) );
@@ -1707,10 +1707,10 @@ BToKstarMuMu::hasGoodBuVertex(reco::TrackRef mu1Track,reco::TrackRef mu2Track,
 
 
 bool 
-BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon, 
-			      const pat::CompositeCandidate KstarCharged, 
-			      RefCountedKinematicTree &vertexFitTree, 
-			      RefCountedKinematicTree &kstarVertexFitTree)
+BToKstarMuMu::hasGoodBuVertex1(const pat::CompositeCandidate Dimuon, 
+			       const pat::CompositeCandidate KstarCharged, 
+			       RefCountedKinematicTree &vertexFitTree, 
+			       RefCountedKinematicTree &kstarVertexFitTree)
 {
   // get the kstar kinematic particle from fitting the vertex
   vector<reco::TrackRef> kshortDaughterTracks;
@@ -1758,9 +1758,9 @@ BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon,
 
 
 bool 
-BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon, 
-			      const pat::CompositeCandidate KstarCharged, 
-			      RefCountedKinematicTree &vertexFitTree)
+BToKstarMuMu::hasGoodBuVertex2(const pat::CompositeCandidate Dimuon, 
+			       const pat::CompositeCandidate KstarCharged, 
+			       RefCountedKinematicTree &vertexFitTree)
 {
   vector<reco::TrackRef> kshortDaughterTracks;
   kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
@@ -1808,10 +1808,10 @@ BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon,
 
 
 bool 
-BToKstarMuMu::hasGoodBuVertex(const pat::CompositeCandidate Dimuon, 
-			      const pat::CompositeCandidate Kshort, 
-			      const pat::GenericParticle Pion, 
-			      RefCountedKinematicTree &vertexFitTree)
+BToKstarMuMu::hasGoodBuVertex3(const pat::CompositeCandidate Dimuon, 
+			       const pat::CompositeCandidate Kshort, 
+			       const pat::GenericParticle Pion, 
+			       RefCountedKinematicTree &vertexFitTree)
 {
   vector<reco::TrackRef> kshortDaughterTracks;
   kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
@@ -1961,6 +1961,8 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   bkspz->push_back(ks_KP->currentState().globalMomentum().z());
   bksmass->push_back(ks_KP->currentState().mass());
   bksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
+
+  
 }
 
 
