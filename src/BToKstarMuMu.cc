@@ -178,7 +178,8 @@ private:
   bool hasGoodBuVertex2(const pat::CompositeCandidate, const pat::CompositeCandidate,
 		       RefCountedKinematicTree&); 
   bool hasGoodBuVertex3(const pat::CompositeCandidate,  const pat::CompositeCandidate,
-		       const pat::GenericParticle, RefCountedKinematicTree&); 
+			const pat::GenericParticle, RefCountedKinematicTree&, 
+			RefCountedKinematicTree &); 
 
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
@@ -1101,6 +1102,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   int nBu = 0; 
   pat::CompositeCandidate BuCandidate;
   RefCountedKinematicTree vertexFitTree; 
+  RefCountedKinematicTree ksVertexFitTree;
 
   for ( pat::CompositeCandidateCollection::const_iterator iDimuon 
 	  = DimuonCandidates_.begin(); iDimuon != DimuonCandidates_.end(); ++iDimuon) {
@@ -1121,7 +1123,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
 	if ( ! hasGoodPionTrack(iEvent, *iTrack)) continue; 
 
-	if ( ! hasGoodBuVertex3(*iDimuon, *iKshort, *iTrack, vertexFitTree)) continue; 
+	if ( ! hasGoodBuVertex3(*iDimuon, *iKshort, *iTrack,
+				vertexFitTree, ksVertexFitTree)) continue; 
 	
 	if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
 	
@@ -1811,7 +1814,8 @@ bool
 BToKstarMuMu::hasGoodBuVertex3(const pat::CompositeCandidate Dimuon, 
 			       const pat::CompositeCandidate Kshort, 
 			       const pat::GenericParticle Pion, 
-			       RefCountedKinematicTree &vertexFitTree)
+			       RefCountedKinematicTree &vertexFitTree, 
+			       RefCountedKinematicTree &ksVertexFitTree)
 {
   vector<reco::TrackRef> kshortDaughterTracks;
   kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
@@ -1822,7 +1826,7 @@ BToKstarMuMu::hasGoodBuVertex3(const pat::CompositeCandidate Dimuon,
   // reco::TrackRef pionTrack = KstarCharged.daughter(1)->get<reco::TrackRef>();  
   reco::TrackRef pionTrack = Pion.track(); 
 
-  RefCountedKinematicTree ksVertexFitTree;
+  // RefCountedKinematicTree ksVertexFitTree;
   if ( ! hasGoodKshortVertexMKC(kshortDaughterTracks, ksVertexFitTree) ) return false; 
 
   ksVertexFitTree->movePointerToTheTop();
