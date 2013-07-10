@@ -203,7 +203,7 @@ private:
   bool matchKshortTrack (const edm::Event&, const reco::TrackRef);
   bool matchPrimaryVertexTracks (); 
 
-  void saveBuToKstarMuMu(RefCountedKinematicTree); 
+  void saveBuToKstarMuMu(RefCountedKinematicTree, RefCountedKinematicTree); 
   void saveBuVertex(RefCountedKinematicTree); 
   void saveBuCosAlpha(RefCountedKinematicTree); 
   void saveBuLsig(RefCountedKinematicTree);
@@ -311,7 +311,7 @@ private:
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl; 
   
   // B to K* mu mu variables 
-  vector<int> *bchg; // +1 for b+, -1 for b-
+  vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
   vector<double> *bcosalphabs, *bcosalphabserr, *blsbs, *blsbserr, *bctau, *bctauerr; 
@@ -320,7 +320,9 @@ private:
   vector<double> *bmu1px, *bmu1py, *bmu1pz, *bmu1mass, *bmu1masserr,
     *bmu2px, *bmu2py, *bmu2pz, *bmu2mass, *bmu2masserr,
     *bpi1px, *bpi1py, *bpi1pz, *bpi1mass, *bpi1masserr,
-    *bkspx, *bkspy, *bkspz, *bksmass, *bksmasserr; 
+    *bkspx, *bkspy, *bkspz, *bksmass, *bksmasserr, 
+    *bkspippx, *bkspippy, *bkspippz,   
+    *bkspimpx, *bkspimpy, *bkspimpz;  
 
 
   // B to pi mu mu variables 
@@ -425,7 +427,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   bmu1chg(0), bmu2chg(0), bpi1chg(0), bmu1px(0),  bmu1py(0), bmu1pz(0), bmu1mass(0), bmu1masserr(0), 
   bmu2px(0),  bmu2py(0),  bmu2pz(0), bmu2mass(0), bmu2masserr(0),
   bpi1px(0),  bpi1py(0),  bpi1pz(0), bpi1mass(0), bpi1masserr(0), 
-  bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0), 
+  bkspx(0),  bkspy(0),  bkspz(0), bksmass(0), bksmasserr(0),
+  bkspippx(0), bkspippy(0), bkspippz(0), bkspimpx(0), bkspimpy(0), bkspimpz(0), 
 
   // b3mu1chg(0), b3mu2chg(0), b3pi1chg(0),
   // b3mu1px(0),  b3mu1py(0),  b3mu1pz(0), 
@@ -626,6 +629,12 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bkspz", &bkspz);
   tree_->Branch("bksmass", &bksmass);
   tree_->Branch("bksmasserr", &bksmasserr);
+  tree_->Branch("bkspippx", &bkspippx);
+  tree_->Branch("bkspippy", &bkspippy);
+  tree_->Branch("bkspippz", &bkspippz);
+  tree_->Branch("bkspimpx", &bkspimpx);
+  tree_->Branch("bkspimpy", &bkspimpy);
+  tree_->Branch("bkspimpz", &bkspimpz);
 
   // B to pi mu mu 
   // tree_->Branch("b3mu1chg", &b3mu1chg);
@@ -776,6 +785,8 @@ BToKstarMuMu::clearVariables(){
   bmu2px->clear();   bmu2py->clear();   bmu2pz->clear(); bmu2mass->clear();  bmu2masserr->clear();
   bpi1px->clear();   bpi1py->clear();   bpi1pz->clear(); bpi1mass->clear();  bpi1masserr->clear();
   bkspx->clear();   bkspy->clear();   bkspz->clear(); bksmass->clear();  bksmasserr->clear();
+  bkspippx->clear(); bkspippy->clear(); bkspippy->clear(); 
+  bkspimpx->clear(); bkspimpy->clear(); bkspimpy->clear(); 
 
   // b3mu1chg->clear(); b3mu2chg->clear(); b3pi1chg->clear(); 
   // b3mu1px->clear();   b3mu1py->clear();   b3mu1pz->clear(); 
@@ -1136,7 +1147,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	// BuCandidates_.push_back(BuCandidate);      
 	
 	bchg->push_back(iTrack->charge()); 
-	saveBuToKstarMuMu(vertexFitTree); 
+	saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
 	saveBuVertex(vertexFitTree); 
 	saveBuCosAlpha(vertexFitTree); 
 	saveBuLsig(vertexFitTree); 
@@ -1918,7 +1929,9 @@ BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
 
 
 void 
-BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
+BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree, 
+				RefCountedKinematicTree ksVertexFitTree){
+
   vertexFitTree->movePointerToTheTop(); // B+ or B- 
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
 
@@ -1965,6 +1978,33 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   bkspz->push_back(ks_KP->currentState().globalMomentum().z());
   bksmass->push_back(ks_KP->currentState().mass());
   bksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
+
+  ksVertexFitTree->movePointerToTheFirstChild(); // Kshort pion1
+  RefCountedKinematicParticle ksPi1 = ksVertexFitTree->currentParticle();
+
+  ksVertexFitTree->movePointerToTheNextChild(); // Kshort pion2 
+  RefCountedKinematicParticle ksPi2 = ksVertexFitTree->currentParticle();
+  ksVertexFitTree->movePointerToTheTop();
+
+  KinematicParameters ksPi1KP = ksPi1->currentState().kinematicParameters();
+  KinematicParameters ksPi2KP = ksPi2->currentState().kinematicParameters();
+  KinematicParameters ksPipKP;
+  KinematicParameters ksPimKP;
+
+  //this ksPi1KP momentum is defined at the ks fit vertex.
+
+  if ( ksPi1->currentState().particleCharge() > 0 ) ksPipKP = ksPi1KP;
+  if ( ksPi1->currentState().particleCharge() < 0 ) ksPimKP = ksPi1KP;
+  if ( ksPi2->currentState().particleCharge() > 0 ) ksPipKP = ksPi2KP;
+  if ( ksPi2->currentState().particleCharge() < 0 ) ksPimKP = ksPi2KP;
+
+  bkspippx->push_back(ksPipKP.momentum().x());
+  bkspippy->push_back(ksPipKP.momentum().y());
+  bkspippz->push_back(ksPipKP.momentum().z());
+
+  bkspimpx->push_back(ksPimKP.momentum().x());
+  bkspimpy->push_back(ksPimKP.momentum().y());
+  bkspimpz->push_back(ksPimKP.momentum().z());
 
   
 }
