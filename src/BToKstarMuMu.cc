@@ -1168,6 +1168,9 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
 
+  reco::RecoChargedCandidateCollection v0daughters;
+  vector<reco::TrackRef> theDaughterTracks;
+
   // ---------------------------------
   // loop 1: mu-
   // ---------------------------------
@@ -1214,12 +1217,21 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
 	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
-	// cut 1: dimuon kshort mass 
+	// check dimuon + kshort mass 
 	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort ) ) continue; 
 	
-	// 
+	// check the daughter pions from Kshort is overlap with muons
+	v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
+				 (iKshort->daughter(0))) );
+	v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
+				 (iKshort->daughter(1))) );
 	
-	
+	for(unsigned int j = 0; j < v0daughters.size(); ++j) {
+	  theDaughterTracks.push_back(v0daughters[j].track());
+	}
+
+	if ( matchMuonTracks(iEvent, theDaughterTracks) ) continue; 
+
 	// ---------------------------------
 	// loop 4: track 
 	// ---------------------------------
