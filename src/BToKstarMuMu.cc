@@ -907,6 +907,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
 			    DCAmumu,  mu_mu_vtx_cl,  MuMuLSBS, MuMuLSBSErr, 
 			    MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
+	  
+	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
 	  bchg->push_back(iTrack->charge()); 
 	  saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
