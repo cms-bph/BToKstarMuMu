@@ -2024,30 +2024,15 @@ bool
 BToKstarMuMu::hasGoodBuVertex4(const reco::TrackRef mu1Track,
 			       const reco::TrackRef mu2Track,
 			       const vector<reco::TrackRef> kshortDaughterTracks, 
-			       // const pat::CompositeCandidate Kshort, 
-			       // const pat::GenericParticle Pion, 
 			       const reco::TrackRef pionTrack, 
 			       RefCountedKinematicTree &vertexFitTree, 
 			       RefCountedKinematicTree &ksVertexFitTree)
 {
-  // vector<reco::TrackRef> kshortDaughterTracks;
-  // kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-  // 				  (Kshort.daughter(0)))->track()); 
-  // kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-  // 				  (Kshort.daughter(1)))->track()); 
-
-  // reco::TrackRef pionTrack = KstarCharged.daughter(1)->get<reco::TrackRef>();  
-  // reco::TrackRef pionTrack = Pion.track(); 
-
-  // RefCountedKinematicTree ksVertexFitTree;
   if ( ! hasGoodKshortVertexMKC(kshortDaughterTracks, ksVertexFitTree) ) return false; 
 
   ksVertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle ks_KP = ksVertexFitTree->currentParticle();
 
-  // reco::TrackRef mu1Track = Dimuon.daughter(0)->get<reco::TrackRef>();  
-  // reco::TrackRef mu2Track = Dimuon.daughter(1)->get<reco::TrackRef>();  
-  
   // do vertex fit for Bu
   KinematicParticleFactoryFromTransientTrack pFactory;
   reco::TransientTrack mu1TT(mu1Track, &(*bFieldHandle_) );
@@ -2070,7 +2055,8 @@ BToKstarMuMu::hasGoodBuVertex4(const reco::TrackRef mu1Track,
   RefCountedKinematicVertex bDecayVertexMC = vertexFitTree->currentDecayVertex();
   if ( !bDecayVertexMC->vertexIsValid()) return false; 
  
-  if ( bDecayVertexMC->chiSquared()<0 || bDecayVertexMC->chiSquared()>1000 ) return false; 
+  if ( bDecayVertexMC->chiSquared()<0
+       || bDecayVertexMC->chiSquared()>1000 ) return false; 
 
   return true; 
 }
