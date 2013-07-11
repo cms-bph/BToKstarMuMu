@@ -1152,6 +1152,7 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, const pat::GenericParti
 void 
 BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 {
+  // init variables 
   edm::Handle< vector<pat::Muon> > patMuonHandle;
   iEvent.getByLabel(MuonLabel_, patMuonHandle);
   if( patMuonHandle->size() < 2 ) return;
@@ -1160,29 +1161,74 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   iEvent.getByLabel(KshortLabel_, theKshorts);
   if ( theKshorts->size() <= 0) return;
 
+  edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
+  iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
 
+  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, DCAmumu; 
+  reco::TransientTrack refitMupTT, refitMumTT; 
+  double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
+
+  // ---------------------------------
   // loop 1: mu-
+  // ---------------------------------
   for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
        iMuonM != patMuonHandle->end(); iMuonM++){
     
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
-    if ( muTrackm.isNull() || (muTrackm->charge() != -1) ) continue;
+    if ( muTrackm.isNull() || 
+	 (muTrackm->charge() != -1) ||
+	 (muTrackm->pt() < MuonMinPt_) ||
+	 (fabs(muTrackm->eta()) > MuonMaxEta_)) continue;
+    
+    // check mu- DCA to beam spot 
+    const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
+    if ( ! hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr)) continue; 
 
+    // ---------------------------------
     // loop 2: mu+ 
+    // ---------------------------------
     for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
 	 iMuonP != patMuonHandle->end(); iMuonP++){
 
       reco::TrackRef muTrackp = iMuonP->innerTrack(); 
-      if ( muTrackp.isNull() || (muTrackp->charge() != 1) ) continue;
+      if ( muTrackp.isNull() || 
+	   (muTrackp->charge() != 1) ||
+	   (muTrackp->pt() < MuonMinPt_) ||
+	   (fabs(muTrackp->eta()) > MuonMaxEta_)) continue;
       
+      // check mu+ DCA to beam spot 
+      const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_));   
+      if ( ! hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr)) continue; 
+      
+      // check goodness of muons closest approach and the 3D-DCA
+      if ( !hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT, DCAmumu) ) continue; 
+      
+      // check dimuon vertex 
+      if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
+			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
+			      MuMuCosAlphaBS, MuMuCosAlphaBSErr) ) continue; 
+      
+      // ---------------------------------
       // loop 3: kshort 
+      // ---------------------------------
       for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
 	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
 	// cut 1: dimuon kshort mass 
 	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort ) ) continue; 
-
 	
+	// 
+	
+	
+	// ---------------------------------
+	// loop 4: track 
+	// ---------------------------------
+	for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
+	    iTrack != thePATTrackHandle->end(); ++iTrack ) {
+	  
+
+
+	}
       }
     }
   }
