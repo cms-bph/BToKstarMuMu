@@ -1245,77 +1245,27 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if ( ! hasGoodBuVertex4(muTrackm, muTrackp, kshortDaughterTracks, pionTrack,
 				  vertexFitTree, ksVertexFitTree)) continue; 
 	  
-	  // if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
+	  if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
 	  
-	  // if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
+	  if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
+
+	  nBu++; 
 	  
+	  bchg->push_back(iTrack->charge()); 
+	  saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
+	  saveBuVertex(vertexFitTree); 
+	  saveBuCosAlpha(vertexFitTree); 
+	  saveBuLsig(vertexFitTree); 
+	  saveBuCtau(vertexFitTree); 
 
-	}
-      }
-    }
-  }
-	
-  
-  
-  // BuCandidates_.clear();
-  //   int nBu = 0; 
-  pat::CompositeCandidate BuCandidate;
-  // RefCountedKinematicTree vertexFitTree; 
-  // RefCountedKinematicTree ksVertexFitTree;
+	} // close track loop
+      } // close kshort loop
+    } // close mu+ loop
+  } // close mu- loop 
 
-  
-
-  for ( pat::CompositeCandidateCollection::const_iterator iDimuon 
-	  = DimuonCandidates_.begin(); iDimuon != DimuonCandidates_.end(); ++iDimuon) {
-  
-    // for ( pat::CompositeCandidateCollection::const_iterator iKstarCharged 
-    // 	    = KstarChargedCandidates_.begin(); iKstarCharged != KstarChargedCandidates_.end();
-    // 	  ++iKstarCharged) {
-    //   if ( ! hasGoodBuVertex(*iDimuon, *iKstarCharged, vertexFitTree)) continue; 
-
-    for ( pat::CompositeCandidateCollection::const_iterator iKshort 
-    	    = KshortCandidates_.begin(); iKshort != KshortCandidates_.end();
-    	  ++iKshort) {
-
-      edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
-      iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
-      for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
-	    iTrack != thePATTrackHandle->end(); ++iTrack ) {
-
-	if ( ! hasGoodPionTrack(iEvent, *iTrack)) continue; 
-
-	if ( ! hasGoodBuVertex3(*iDimuon, *iKshort, *iTrack,
-				vertexFitTree, ksVertexFitTree)) continue; 
-	
-	if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
-	
-	if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
-	
-	nBu++; 
-	// BuCandidate.setCharge(iKstarCharged->charge()); 
-	// BuCandidate.setCharge(iTrack->charge()); 
-	// BuCandidates_.push_back(BuCandidate);      
-	
-	bchg->push_back(iTrack->charge()); 
-	saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
-	saveBuVertex(vertexFitTree); 
-	saveBuCosAlpha(vertexFitTree); 
-	saveBuLsig(vertexFitTree); 
-	saveBuCtau(vertexFitTree); 
-      }
-    }
-  }
+  if ( nBu > 0) edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
     
-  // if ( BuCandidates_.size() > 0) {
-  //   edm::LogInfo("myBu") << "Found " << BuCandidates_.size()  << " Bu -> K* mu mu."; 
-  //   return true;
-  // }
-  
-  if ( nBu > 0) {
-    edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
-  }
 }
-
 
 // bool 
 // BToKstarMuMu::buildBuToPiMuMu(const edm::Event& iEvent)
