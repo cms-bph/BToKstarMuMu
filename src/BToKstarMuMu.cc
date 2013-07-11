@@ -189,14 +189,15 @@ private:
   bool matchKshortTrack (const edm::Event&, const reco::TrackRef);
   bool matchPrimaryVertexTracks (); 
 
-  void saveBuToKstarMuMu(RefCountedKinematicTree, RefCountedKinematicTree); 
+  // void saveBuToKstarMuMu(RefCountedKinematicTree, RefCountedKinematicTree); 
+  void saveBuToKstarMuMu(RefCountedKinematicTree); 
   void saveBuVertex(RefCountedKinematicTree); 
   void saveBuCosAlpha(RefCountedKinematicTree); 
   void saveBuLsig(RefCountedKinematicTree);
   void saveBuCtau(RefCountedKinematicTree); 
 
   void saveGenInfo(const edm::Event&); 
-  void saveKshortVariables(reco::VertexCompositeCandidate); 
+  void saveKshortVariables(RefCountedKinematicTree); 
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
   void saveDimuVariables(double, double, double, double, double, double, double,
@@ -910,8 +911,10 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
+	  saveKshortVariables(ksVertexFitTree); 
+
 	  bchg->push_back(iTrack->charge()); 
-	  saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
+	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
 	  saveBuCosAlpha(vertexFitTree); 
 	  saveBuLsig(vertexFitTree); 
@@ -1386,8 +1389,7 @@ BToKstarMuMu::hasGoodDimuonKshortMass(const reco::TrackRef muTrackm,
 
 
 void 
-BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree, 
-				RefCountedKinematicTree ksVertexFitTree){
+BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
 
   vertexFitTree->movePointerToTheTop(); // B+ or B- 
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
@@ -1444,34 +1446,6 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree,
   ksmass->push_back(ks_KP->currentState().mass());
   ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
 
-  ksVertexFitTree->movePointerToTheFirstChild(); // Kshort pion1
-  RefCountedKinematicParticle ksPi1 = ksVertexFitTree->currentParticle();
-
-  ksVertexFitTree->movePointerToTheNextChild(); // Kshort pion2 
-  RefCountedKinematicParticle ksPi2 = ksVertexFitTree->currentParticle();
-  ksVertexFitTree->movePointerToTheTop();
-
-  KinematicParameters ksPi1KP = ksPi1->currentState().kinematicParameters();
-  KinematicParameters ksPi2KP = ksPi2->currentState().kinematicParameters();
-  KinematicParameters ksPipKP;
-  KinematicParameters ksPimKP;
-
-  //this ksPi1KP momentum is defined at the ks fit vertex.
-
-  if ( ksPi1->currentState().particleCharge() > 0 ) ksPipKP = ksPi1KP;
-  if ( ksPi1->currentState().particleCharge() < 0 ) ksPimKP = ksPi1KP;
-  if ( ksPi2->currentState().particleCharge() > 0 ) ksPipKP = ksPi2KP;
-  if ( ksPi2->currentState().particleCharge() < 0 ) ksPimKP = ksPi2KP;
-
-  pippx->push_back(ksPipKP.momentum().x());
-  pippy->push_back(ksPipKP.momentum().y());
-  pippz->push_back(ksPipKP.momentum().z());
-
-  pimpx->push_back(ksPimKP.momentum().x());
-  pimpy->push_back(ksPimKP.momentum().y());
-  pimpz->push_back(ksPimKP.momentum().z());
-
-  
 }
 
 
@@ -1770,58 +1744,88 @@ BToKstarMuMu::isGenMuonP(const reco::Candidate *p){
 
 
 void 
-BToKstarMuMu::saveKshortVariables(reco::VertexCompositeCandidate iKshort)
+// BToKstarMuMu::saveKshortVariables(reco::VertexCompositeCandidate iKshort)
+BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
 {
-  kspx->push_back(iKshort.momentum().x()); 
-  kspy->push_back(iKshort.momentum().y()); 
-  kspz->push_back(iKshort.momentum().z());
-  ksmass->push_back(iKshort.mass()); 
+  ksVertexFitTree->movePointerToTheFirstChild(); // Kshort pion1
+  RefCountedKinematicParticle ksPi1 = ksVertexFitTree->currentParticle();
 
-  ksvtxx->push_back(iKshort.vx());
-  ksvtxy->push_back(iKshort.vy());
-  ksvtxz->push_back(iKshort.vz());
+  ksVertexFitTree->movePointerToTheNextChild(); // Kshort pion2 
+  RefCountedKinematicParticle ksPi2 = ksVertexFitTree->currentParticle();
+  ksVertexFitTree->movePointerToTheTop();
+
+  KinematicParameters ksPi1KP = ksPi1->currentState().kinematicParameters();
+  KinematicParameters ksPi2KP = ksPi2->currentState().kinematicParameters();
+  KinematicParameters ksPipKP;
+  KinematicParameters ksPimKP;
+
+  //this ksPi1KP momentum is defined at the ks fit vertex.
+
+  if ( ksPi1->currentState().particleCharge() > 0 ) ksPipKP = ksPi1KP;
+  if ( ksPi1->currentState().particleCharge() < 0 ) ksPimKP = ksPi1KP;
+  if ( ksPi2->currentState().particleCharge() > 0 ) ksPipKP = ksPi2KP;
+  if ( ksPi2->currentState().particleCharge() < 0 ) ksPimKP = ksPi2KP;
+
+  pippx->push_back(ksPipKP.momentum().x());
+  pippy->push_back(ksPipKP.momentum().y());
+  pippz->push_back(ksPipKP.momentum().z());
+
+  pimpx->push_back(ksPimKP.momentum().x());
+  pimpy->push_back(ksPimKP.momentum().y());
+  pimpz->push_back(ksPimKP.momentum().z());
+
+ 
+
+  // kspx->push_back(iKshort.momentum().x()); 
+  // kspy->push_back(iKshort.momentum().y()); 
+  // kspz->push_back(iKshort.momentum().z());
+  // ksmass->push_back(iKshort.mass()); 
+
+  // ksvtxx->push_back(iKshort.vx());
+  // ksvtxy->push_back(iKshort.vy());
+  // ksvtxz->push_back(iKshort.vz());
   
-  ksvtxcl->push_back(ChiSquaredProbability(iKshort.vertexChi2(), iKshort.vertexNdof()));  
+  // ksvtxcl->push_back(ChiSquaredProbability(iKshort.vertexChi2(), iKshort.vertexNdof()));  
 
-  if ( iKshort.daughter(0)->charge() < 0) {
-    pimpx->push_back(iKshort.daughter(0)->momentum().x()); 
-    pimpy->push_back(iKshort.daughter(0)->momentum().y()); 
-    pimpz->push_back(iKshort.daughter(0)->momentum().z());
-    pimmass->push_back(iKshort.daughter(0)->mass()); 
-    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(0)))->track()->d0()); 
-    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(0)))->track()->d0Error()); 
+  // if ( iKshort.daughter(0)->charge() < 0) {
+  //   pimpx->push_back(iKshort.daughter(0)->momentum().x()); 
+  //   pimpy->push_back(iKshort.daughter(0)->momentum().y()); 
+  //   pimpz->push_back(iKshort.daughter(0)->momentum().z());
+  //   pimmass->push_back(iKshort.daughter(0)->mass()); 
+  //   pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(0)))->track()->d0()); 
+  //   pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(0)))->track()->d0Error()); 
     
-    pippx->push_back(iKshort.daughter(1)->momentum().x()); 
-    pippy->push_back(iKshort.daughter(1)->momentum().y()); 
-    pippz->push_back(iKshort.daughter(1)->momentum().z());
-    pipmass->push_back(iKshort.daughter(1)->mass()); 
-    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(1)))->track()->d0()); 
-    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(1)))->track()->d0Error()); 
+  //   pippx->push_back(iKshort.daughter(1)->momentum().x()); 
+  //   pippy->push_back(iKshort.daughter(1)->momentum().y()); 
+  //   pippz->push_back(iKshort.daughter(1)->momentum().z());
+  //   pipmass->push_back(iKshort.daughter(1)->mass()); 
+  //   pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(1)))->track()->d0()); 
+  //   pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(1)))->track()->d0Error()); 
     
-  } else {
-    pimpx->push_back(iKshort.daughter(1)->momentum().x()); 
-    pimpy->push_back(iKshort.daughter(1)->momentum().y()); 
-    pimpz->push_back(iKshort.daughter(1)->momentum().z());
-    pimmass->push_back(iKshort.daughter(1)->mass()); 
-    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(1)))->track()->d0()); 
-    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(1)))->track()->d0Error()); 
+  // } else {
+  //   pimpx->push_back(iKshort.daughter(1)->momentum().x()); 
+  //   pimpy->push_back(iKshort.daughter(1)->momentum().y()); 
+  //   pimpz->push_back(iKshort.daughter(1)->momentum().z());
+  //   pimmass->push_back(iKshort.daughter(1)->mass()); 
+  //   pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(1)))->track()->d0()); 
+  //   pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(1)))->track()->d0Error()); 
     
-    pippx->push_back(iKshort.daughter(0)->momentum().x()); 
-    pippy->push_back(iKshort.daughter(0)->momentum().y()); 
-    pippz->push_back(iKshort.daughter(0)->momentum().z());
-    pipmass->push_back(iKshort.daughter(0)->mass()); 
-    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(0)))->track()->d0()); 
-    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
-			(iKshort.daughter(0)))->track()->d0Error()); 
+  //   pippx->push_back(iKshort.daughter(0)->momentum().x()); 
+  //   pippy->push_back(iKshort.daughter(0)->momentum().y()); 
+  //   pippz->push_back(iKshort.daughter(0)->momentum().z());
+  //   pipmass->push_back(iKshort.daughter(0)->mass()); 
+  //   pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(0)))->track()->d0()); 
+  //   pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+  // 			(iKshort.daughter(0)))->track()->d0Error()); 
 
-  }
+  // }
 }
 
 void 
