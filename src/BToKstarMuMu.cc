@@ -1168,8 +1168,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
 
-  reco::RecoChargedCandidateCollection v0daughters;
-  vector<reco::TrackRef> theDaughterTracks;
+  vector<reco::TrackRef> kshortDaughterTracks;
 
   // ---------------------------------
   // loop 1: mu-
@@ -1221,24 +1220,27 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort ) ) continue; 
 	
 	// check the daughter pions from Kshort is overlap with muons
-	v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
-				 (iKshort->daughter(0))) );
-	v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
-				 (iKshort->daughter(1))) );
-	
-	for(unsigned int j = 0; j < v0daughters.size(); ++j) {
-	  theDaughterTracks.push_back(v0daughters[j].track());
-	}
-
-	if ( matchMuonTracks(iEvent, theDaughterTracks) ) continue; 
+	kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+					(iKshort->daughter(0)))->track()); 
+	kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+					(iKshort->daughter(1)))->track()); 
+	if ( matchMuonTracks(iEvent, kshortDaughterTracks) ) continue; 
 
 	// ---------------------------------
 	// loop 4: track 
 	// ---------------------------------
 	for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
 	    iTrack != thePATTrackHandle->end(); ++iTrack ) {
-	  
 
+	  if ( ! hasGoodPionTrack(iEvent, *iTrack)) continue; 
+	  
+	  // if ( ! hasGoodBuVertex4(*iDimuon, *iKshort, *iTrack,
+	  // 			  vertexFitTree, ksVertexFitTree)) continue; 
+	  
+	  // if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
+	  
+	  // if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
+	  
 
 	}
       }
@@ -2008,6 +2010,59 @@ BToKstarMuMu::hasGoodBuVertex3(const pat::CompositeCandidate Dimuon,
 
   return true; 
 }
+
+
+// bool 
+// BToKstarMuMu::hasGoodBuVertex4(const pat::CompositeCandidate Dimuon, 
+// 			       const pat::CompositeCandidate Kshort, 
+// 			       const pat::GenericParticle Pion, 
+// 			       RefCountedKinematicTree &vertexFitTree, 
+// 			       RefCountedKinematicTree &ksVertexFitTree)
+// {
+//   vector<reco::TrackRef> kshortDaughterTracks;
+//   kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+// 				  (Kshort.daughter(0)))->track()); 
+//   kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+// 				  (Kshort.daughter(1)))->track()); 
+
+//   // reco::TrackRef pionTrack = KstarCharged.daughter(1)->get<reco::TrackRef>();  
+//   reco::TrackRef pionTrack = Pion.track(); 
+
+//   // RefCountedKinematicTree ksVertexFitTree;
+//   if ( ! hasGoodKshortVertexMKC(kshortDaughterTracks, ksVertexFitTree) ) return false; 
+
+//   ksVertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicParticle ks_KP = ksVertexFitTree->currentParticle();
+
+//   reco::TrackRef mu1Track = Dimuon.daughter(0)->get<reco::TrackRef>();  
+//   reco::TrackRef mu2Track = Dimuon.daughter(1)->get<reco::TrackRef>();  
+  
+//   // do vertex fit for Bu
+//   KinematicParticleFactoryFromTransientTrack pFactory;
+//   reco::TransientTrack mu1TT(mu1Track, &(*bFieldHandle_) );
+//   reco::TransientTrack mu2TT(mu2Track, &(*bFieldHandle_) );
+//   reco::TransientTrack pionTT(pionTrack, &(*bFieldHandle_) );
+
+//   float chi = 0.;
+//   float ndf = 0.;
+//   vector<RefCountedKinematicParticle> vFitMCParticles;
+//   vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,chi,ndf,MuonMassErr_));
+//   vFitMCParticles.push_back(pFactory.particle(mu2TT,MuonMass_,chi,ndf,MuonMassErr_));
+//   vFitMCParticles.push_back(pFactory.particle(pionTT, PionMass_, chi, ndf, PionMassErr_));
+//   vFitMCParticles.push_back(ks_KP);
+
+//   KinematicParticleVertexFitter fitter;   
+//   vertexFitTree = fitter.fit(vFitMCParticles);
+//   if (!vertexFitTree->isValid()) return false; 
+
+//   vertexFitTree->movePointerToTheTop();
+//   RefCountedKinematicVertex bDecayVertexMC = vertexFitTree->currentDecayVertex();
+//   if ( !bDecayVertexMC->vertexIsValid()) return false; 
+ 
+//   if ( bDecayVertexMC->chiSquared()<0 || bDecayVertexMC->chiSquared()>1000 ) return false; 
+
+//   return true; 
+// }
 
 bool
 // BToKstarMuMu::hasGoodDimuonKshortMass(const edm::Event& iEvent)
