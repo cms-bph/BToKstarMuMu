@@ -18,7 +18,6 @@
 //
 
 
-
 // system include files
 #include <memory>
 
@@ -131,7 +130,6 @@ private:
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   
-
   void buildBuToKstarMuMu(const edm::Event &); 
 
   void computeLS (double, double, double, double, double, double, double, double, double, 
@@ -164,8 +162,6 @@ private:
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
 
-  bool hasGoodKstarChargedVertex(vector<reco::TrackRef>, const reco::TrackRef, 
-				 RefCountedKinematicTree&); 
   bool hasGoodKstarChargedMass(RefCountedKinematicTree); 
 
   bool hasGoodBuMass(RefCountedKinematicTree); 
@@ -179,8 +175,6 @@ private:
 			  double &, double &, double &, double &, double &);
 
   bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle);
-
-  bool hasGoodKshort(const edm::Event &); 
 
   bool hasPrimaryVertex(const edm::Event &); 
 
@@ -694,29 +688,13 @@ BToKstarMuMu::clearVariables(){
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
   DimuonCandidates_.clear();  KshortCandidates_.clear(); 
   KstarChargedCandidates_.clear(); BuCandidates_.clear();
-  // BuToPiMuMuCandidates_.clear();
+
   bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear(); bpz->clear(); bpzerr->clear(); 
   bchg->clear(); bmass->clear(); bmasserr->clear(); 
   bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear(); bvtxyerr->clear();
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
 
-  // bmu1chg->clear(); bmu2chg->clear(); bpi1chg->clear(); 
-  // bmu1px->clear();   bmu1py->clear();   bmu1pz->clear(); bmu1mass->clear();  bmu1masserr->clear();
-  // bmu2px->clear();   bmu2py->clear();   bmu2pz->clear(); bmu2mass->clear();  bmu2masserr->clear();
-  // bpi1px->clear();   bpi1py->clear();   bpi1pz->clear(); bpi1mass->clear();  bpi1masserr->clear();
-  // bkspx->clear();   bkspy->clear();   bkspz->clear(); bksmass->clear();  bksmasserr->clear();
-  // bkspippx->clear(); bkspippy->clear(); bkspippy->clear(); 
-  // bkspimpx->clear(); bkspimpy->clear(); bkspimpy->clear(); 
-
-  // b3mu1chg->clear(); b3mu2chg->clear(); b3pi1chg->clear(); 
-  // b3mu1px->clear();   b3mu1py->clear();   b3mu1pz->clear(); 
-  // b3mu2px->clear();   b3mu2py->clear();   b3mu2pz->clear(); 
-  // b3pi1px->clear();   b3pi1py->clear();   b3pi1pz->clear();
-  // b3chg->clear();  
-  // b3px->clear(); b3pxerr->clear(); b3py->clear();  b3pyerr->clear(); b3pz->clear(); b3pzerr->clear(); 
-  // b3chg->clear(); b3mass->clear(); b3masserr->clear();  b3cosalphabs->clear(); b3cosalphabserr->clear(); 
-  // b3lsbs->clear(); b3lsbserr->clear();  b3ctau->clear(); b3ctauerr->clear(); 
   if (SaveGenInfo_) {
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
@@ -752,9 +730,6 @@ BToKstarMuMu::hltReport(const edm::Event& iEvent)
 
 	string triggername = triggerNames_.triggerName(itrig);	
 	int triggerprescale = hltConfig_.prescaleValue(itrig, triggername);
-
-	// edm::LogInfo("myHLT") << __LINE__ << " : Trigger name in the event: "  << 
-	//   triggername << "\twith prescale: " << triggerprescale;
 
 	// Loop over our interested HLT trigger names to find if this event contains. 
 	for (unsigned int it=0; it<TriggerNames_.size(); it++){
@@ -798,59 +773,11 @@ BToKstarMuMu::hasPrimaryVertex(const edm::Event& iEvent)
     if (primaryVertex_.isValid()) break; 
   }
 
-  if (!primaryVertex_.isValid()) {
-    // edm::LogError("myVertex") << "No valid vertex found!." ;
-    return false; 
-  }
+  if (!primaryVertex_.isValid()) return false; 
  
-  // edm::LogInfo("myVertex") << "Found number of vertex: " << recVtxs->size(); 
-  
   return true; 
 }
 
-
-
-bool 
-BToKstarMuMu::hasGoodKshort(const edm::Event& iEvent)
-{
-  KshortCandidates_.clear(); 
-
-  edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
-  iEvent.getByLabel(KshortLabel_, theKshorts);
-  if ( theKshorts->size() <= 0) return false;
-
-  for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
-	  = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
-    
-    reco::RecoChargedCandidateCollection v0daughters;
-    vector<reco::TrackRef> theDaughterTracks;
-    v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
-			     (iKshort->daughter(0))) );
-    v0daughters.push_back( *(dynamic_cast<const reco::RecoChargedCandidate *>
-			     (iKshort->daughter(1))) );
-
-    for(unsigned int j = 0; j < v0daughters.size(); ++j) {
-      theDaughterTracks.push_back(v0daughters[j].track());
-    }
-
-    if ( matchMuonTracks(iEvent, theDaughterTracks) ) continue; 
-
-    // edm::LogInfo("myKshort") << "Kshort has no track matched to muon" ;
-    // No need to refit, already done in the V0 fitter. 
-    // KinematicParameters ksPipKP, ksPimKP;
-    // if ( !hasGoodKshortVertex(theDaughterTracks, ksPipKP, ksPimKP) ) continue; 
- 
-    KshortCandidates_.push_back(*iKshort); 
-    // saveKshortVariables(*iKshort); 
-  }
-  
-  if ( KshortCandidates_.size() > 0 ) {
-    edm::LogInfo("myKshort") << "Found " << KshortCandidates_.size() << " good Kshort." ; 
-    return true;
-  }
-  else 
-    return false; 
-}
 
 
 bool 
@@ -1342,51 +1269,6 @@ BToKstarMuMu::matchKshortTrack (const edm::Event& iEvent,
 }
 
 
-bool 
-BToKstarMuMu::hasGoodKstarChargedVertex(vector<reco::TrackRef> theDaughterTracks, 
-					const reco::TrackRef pionTrack, 
-					RefCountedKinematicTree &vertexFitTree)
-{
-  RefCountedKinematicTree ksVertexFitTree;
-  if ( !hasGoodKshortVertex(theDaughterTracks, ksVertexFitTree) ) return false; 
-
-  // do mass-constrained fit for Ks 
-  KinematicParticleFitter csFitterKs; 
-
-  /* making kinematic fit of the particle inside the 
- * KinematicTree. The daughter states of the tree get 
- * automathically refitted according to the changes 
- * done to mother state. 
- 
- Only this one can accept the Mass constraint. 
-   */
-  
-  KinematicConstraint * ks_c = new MassKinematicConstraint(KshortMass_, KshortMassErr_);
-  ksVertexFitTree = csFitterKs.fit(ks_c,ksVertexFitTree);
-  
-  delete ks_c; 
-  if (!ksVertexFitTree->isValid()) return false; 
-
-  // do vertex fit for Kstar
-  ksVertexFitTree->movePointerToTheTop();
-  RefCountedKinematicParticle ks_vFit_withMC = ksVertexFitTree->currentParticle();
-
-  reco::TransientTrack pionTT(pionTrack, &(*bFieldHandle_) );
-  KinematicParticleFactoryFromTransientTrack pFactory;
-
-  float chi = 0.;
-  float ndf = 0.;
-  vector<RefCountedKinematicParticle> vFitMCParticles;
-  vFitMCParticles.push_back(pFactory.particle(pionTT,PionMass_,chi,ndf,PionMassErr_));
-  vFitMCParticles.push_back(ks_vFit_withMC);
-
-  KinematicParticleVertexFitter fitter;   
-  vertexFitTree = fitter.fit(vFitMCParticles);
-  if (!vertexFitTree->isValid()) return false; 
-
-  return true; 
-
-}
 
 bool 
 BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree)
@@ -1414,10 +1296,9 @@ BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree)
 	       ks_KP->currentState().mass()); 
  
   mykstar = myks + mypi; 
-  if ( mykstar.M() < KstarMinMass_  ||  mykstar.M() > KstarMaxMass_ ) 
-    return false; 
+  if ( mykstar.M() < KstarMinMass_  
+       ||  mykstar.M() > KstarMaxMass_ )  return false; 
 
-  // edm::LogInfo("myBu") << "kstar mass = " << mykstar.M(); 
   return true; 
 }
 
@@ -1428,7 +1309,6 @@ BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree)
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
   if ( b_KP->currentState().mass() > BMaxMass_ ) return false;  
-  // edm::LogInfo("myBu") << "3 track mass" << b_KP->currentState().mass();  
   return true; 
 }
 
