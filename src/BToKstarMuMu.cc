@@ -199,8 +199,8 @@ private:
   void saveKshortVariables(reco::VertexCompositeCandidate); 
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
-  void saveDimuVariables(double, double, double, double, double, double, double, double, 
-			 double, double, reco::TransientTrack, reco::TransientTrack);
+  void saveDimuVariables(double, double, double, double, double, double, double,
+			 double, double, double);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
   void saveTruthMatch(const edm::Event& iEvent); 
 
@@ -903,7 +903,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
 
 	  nBu++; 
-	  
+	  // save the tree variables 
+	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
+			    DCAmumu,  mu_mu_vtx_cl,  MuMuLSBS, MuMuLSBSErr, 
+			    MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
+
 	  bchg->push_back(iTrack->charge()); 
 	  saveBuToKstarMuMu(vertexFitTree, ksVertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
@@ -1850,9 +1854,7 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
 				double DCAmupBS, double DCAmupBSErr,
 				double DCAmumu,  double mu_mu_vtx_cl, 
 				double MuMuLSBS, double MuMuLSBSErr, 
-				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr,
-				reco::TransientTrack refitMupTT, 
-				reco::TransientTrack refitMumTT)
+				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr)
 {
   mumdcabs->push_back(DCAmumBS);
   mumdcabserr->push_back(DCAmumBSErr);
@@ -1866,16 +1868,7 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   mumulsbserr->push_back(MuMuLSBSErr);
   mumucosalphabs->push_back(MuMuCosAlphaBS);
   mumucosalphabserr->push_back(MuMuCosAlphaBSErr); 
-
-  mumpx->push_back(refitMumTT.track().momentum().x());
-  mumpy->push_back(refitMumTT.track().momentum().y());
-  mumpz->push_back(refitMumTT.track().momentum().z());
-
-  muppx->push_back(refitMupTT.track().momentum().x());
-  muppy->push_back(refitMupTT.track().momentum().y());
-  muppz->push_back(refitMupTT.track().momentum().z());
 }
-
 
 
 void 
