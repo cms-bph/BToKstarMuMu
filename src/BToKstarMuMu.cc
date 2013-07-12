@@ -212,6 +212,7 @@ private:
   bool SaveGenInfo_; 
   edm::InputTag GenParticlesLabel_;
   double TruthMatchMuonMaxR_; 
+  double TruthMatchPionMaxR_; 
 
   edm::InputTag TriggerResultsLabel_;
   vector<string> TriggerNames_, LastFilterNames_;
@@ -318,7 +319,7 @@ private:
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
 
-  vector<bool> *istruthmum, *istruthmup, *istruthks;  
+  vector<bool> *istruthmum, *istruthmup, *istruthks, *istruthpip;  
 };
 
 //
@@ -337,6 +338,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
   GenParticlesLabel_(iConfig.getParameter<edm::InputTag>("GenParticlesLabel")),
   TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
+  TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
   TriggerResultsLabel_(iConfig.getParameter<edm::InputTag>("TriggerResultsLabel")),
   TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
   LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
@@ -406,7 +408,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
-  istruthmum(0), istruthmup(0), istruthks(0) 
+  istruthmum(0), istruthmup(0), istruthks(0), istruthpip(0)  
   
 { 
   //now do what ever initialization is needed
@@ -612,6 +614,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("istruthmum",  &istruthmum );
     tree_->Branch("istruthmup",  &istruthmup );
     tree_->Branch("istruthks",   &istruthks  );
+    tree_->Branch("istruthpip",   &istruthpip  );
 
   } 
 
@@ -715,7 +718,7 @@ BToKstarMuMu::clearVariables(){
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
-    istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
+    istruthmum->clear(); istruthmup->clear(); istruthks->clear(); istruthpip->clear(); 
   }
 
 }
@@ -1907,13 +1910,23 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istruthmup->push_back(false); 
     }
 
-    // truth match with Ks
-    deltaEtaPhi = computeEtaPhiDistance(genkspx, genkspy, genkspz, 
-					kspx->at(i), kspy->at(i), kspz->at(i)); 
+    // // truth match with Ks
+    // deltaEtaPhi = computeEtaPhiDistance(genkspx, genkspy, genkspz, 
+    // 					kspx->at(i), kspy->at(i), kspz->at(i)); 
     
-    cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
+    // cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
     
     // truth match with Ks pi+
+    deltaEtaPhi = computeEtaPhiDistance(genpippx, genpippy, genpippz, 
+					pippx->at(i), pippy->at(i), pippz->at(i)); 
+    
+    if (deltaEtaPhi < TruthMatchPionMaxR_) {
+      istruthpip->push_back(true); 
+    }  else {
+      istruthpip->push_back(false); 
+    }
+    
+    
     
   }
 }
