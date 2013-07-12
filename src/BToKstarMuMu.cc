@@ -309,12 +309,14 @@ private:
   double genbpx, genbpy, genbpz;
   double genkstpx, genkstpy, genkstpz;
   double genkspx, genkspy, genkspz;
+  double genksvtxx, genksvtxy, genksvtxz; 
+
   int gentrkchg; 
   double gentrkpx, gentrkpy, gentrkpz;
   double genmumpx, genmumpy, genmumpz;
   double genmuppx, genmuppy, genmuppz;
-  double genkspippx, genkspippy, genkspippz;
-  double genkspimpx, genkspimpy, genkspimpz;
+  double genpippx, genpippy, genpippz;
+  double genpimpx, genpimpy, genpimpz;
 
   vector<bool> *istruthmum, *istruthmup, *istruthks;  
 };
@@ -398,11 +400,12 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genbpx(0), genbpy(0), genbpz(0), 
   genkstpx(0), genkstpy(0), genkstpz(0), 
   genkspx(0), genkspy(0), genkspz(0), 
+  genksvtxx(0), genksvtxy(0), genksvtxz(0), 
   gentrkchg(0), gentrkpx(0), gentrkpy(0), gentrkpz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
-  genkspippx(0), genkspippy(0), genkspippz(0), 
-  genkspimpx(0), genkspimpy(0), genkspimpz(0), 
+  genpippx(0), genpippy(0), genpippz(0), 
+  genpimpx(0), genpimpy(0), genpimpz(0), 
   istruthmum(0), istruthmup(0), istruthks(0) 
   
 { 
@@ -587,6 +590,9 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genkspx",     &genkspx    , "genkspx/D"   );
     tree_->Branch("genkspy",     &genkspy    , "genkspy/D"   );
     tree_->Branch("genkspz",     &genkspz    , "genkspz/D"   );
+    tree_->Branch("genksvtxx",     &genksvtxx    , "genksvtxx/D"   );
+    tree_->Branch("genksvtxy",     &genksvtxy    , "genksvtxy/D"   );
+    tree_->Branch("genksvtxz",     &genksvtxz    , "genksvtxz/D"   );
     tree_->Branch("gentrkchg",     &gentrkchg    , "gentrkchg/I"  );
     tree_->Branch("gentrkpx",     &gentrkpx    , "gentrkpx/D"   );
     tree_->Branch("gentrkpy",     &gentrkpy    , "gentrkpy/D"   );
@@ -597,12 +603,12 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genmuppx",    &genmuppx   , "genmuppx/D"  );
     tree_->Branch("genmuppy",    &genmuppy   , "genmuppy/D"  );
     tree_->Branch("genmuppz",    &genmuppz   , "genmuppz/D"  );
-    tree_->Branch("genkspippx",  &genkspippx , "genkspippx/D");
-    tree_->Branch("genkspippy",  &genkspippy , "genkspippy/D");
-    tree_->Branch("genkspippz",  &genkspippz , "genkspippz/D");
-    tree_->Branch("genkspimpx",  &genkspimpx , "genkspimpx/D");
-    tree_->Branch("genkspimpy",  &genkspimpy , "genkspimpy/D");
-    tree_->Branch("genkspimpz",  &genkspimpz , "genkspimpz/D");
+    tree_->Branch("genpippx",  &genpippx , "genpippx/D");
+    tree_->Branch("genpippy",  &genpippy , "genpippy/D");
+    tree_->Branch("genpippz",  &genpippz , "genpippz/D");
+    tree_->Branch("genpimpx",  &genpimpx , "genpimpx/D");
+    tree_->Branch("genpimpy",  &genpimpy , "genpimpy/D");
+    tree_->Branch("genpimpz",  &genpimpz , "genpimpz/D");
     tree_->Branch("istruthmum",  &istruthmum );
     tree_->Branch("istruthmup",  &istruthmup );
     tree_->Branch("istruthks",   &istruthks  );
@@ -702,11 +708,12 @@ BToKstarMuMu::clearVariables(){
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
     genkspx = 0;   genkspy = 0;   genkspz = 0; 
+    genksvtxx = 0;   genksvtxy = 0;   genksvtxz = 0; 
     gentrkchg = 0; gentrkpx = 0;   gentrkpy = 0;   gentrkpz = 0; 
     genmumpx = 0;  genmumpy = 0;  genmumpz = 0; 
     genmuppx = 0;  genmuppy = 0;  genmuppz = 0; 
-    genkspippx = 0;  genkspippy = 0;  genkspippz = 0; 
-    genkspimpx = 0;  genkspimpy = 0;  genkspimpz = 0; 
+    genpippx = 0;  genpippy = 0;  genpippz = 0; 
+    genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
     istruthmum->clear(); istruthmup->clear(); istruthks->clear(); 
   }
@@ -1633,7 +1640,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     // only select B+ or B- candidate 
     if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
-    int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1); 
+    int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1), ipip(-1), ipim(-1); 
 
     // loop over all B+/- daughters 
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
@@ -1654,8 +1661,18 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     }
 
     if (iks == -1 || ipi == -1) continue; 
-
+   
     const reco::Candidate & ks = *(kst.daughter(iks));
+    for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
+      const reco::Candidate  &dau = *(ks.daughter(j));
+      if ( dau.pdgId() == PIONPLUS_PDG_ID) ipip = j; 
+      if ( dau.pdgId() == -PIONPLUS_PDG_ID) ipim = j; 
+    }
+   
+    if (ipip == -1 || ipim == -1) continue; 
+   
+    const reco::Candidate & pip = *(ks.daughter(ipip));
+    const reco::Candidate & pim = *(ks.daughter(ipim));
     const reco::Candidate & pi = *(kst.daughter(ipi));
     const reco::Candidate & mum = *(b.daughter(imum));
     const reco::Candidate & mup = *(b.daughter(imup));
@@ -1681,6 +1698,10 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genkspy = ks.py();
     genkspz = ks.pz();
 
+    genksvtxx = ks.vx();
+    genksvtxy = ks.vy();
+    genksvtxz = ks.vz();
+
     gentrkchg = pi.charge(); 
     gentrkpx = pi.px();
     gentrkpy = pi.py();
@@ -1688,22 +1709,13 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     
 
     // save kshort pions 
-    for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
-      const reco::Candidate &dau = *(ks.daughter(j));
-      
-      if ( dau.charge() > 0 ) {
-	genkspippx = dau.px();
-	genkspippy = dau.py();
-	genkspippz = dau.pz();
-      }
-      if ( dau.charge() < 0 ) {
-	genkspimpx = dau.px();
-	genkspimpy = dau.py();
-	genkspimpz = dau.pz();
-      }
-
-    }
-   
+    genpippx = pip.px();
+    genpippy = pip.py();
+    genpippz = pip.pz();
+    genpimpx = pim.px();
+    genpimpy = pim.py();
+    genpimpz = pim.pz();
+    
   }
 }
 
