@@ -309,7 +309,8 @@ private:
   double genbpx, genbpy, genbpz;
   double genkstpx, genkstpy, genkstpz;
   double genkspx, genkspy, genkspz;
-  double genpipx, genpipy, genpipz;
+  int gentrkchg; 
+  double gentrkpx, gentrkpy, gentrkpz;
   double genmumpx, genmumpy, genmumpz;
   double genmuppx, genmuppy, genmuppz;
   double genkspippx, genkspippy, genkspippz;
@@ -397,7 +398,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genbpx(0), genbpy(0), genbpz(0), 
   genkstpx(0), genkstpy(0), genkstpz(0), 
   genkspx(0), genkspy(0), genkspz(0), 
-  genpipx(0), genpipy(0), genpipz(0), 
+  gentrkchg(0), gentrkpx(0), gentrkpy(0), gentrkpz(0), 
   genmumpx(0), genmumpy(0), genmumpz(0),
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genkspippx(0), genkspippy(0), genkspippz(0), 
@@ -586,9 +587,10 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genkspx",     &genkspx    , "genkspx/D"   );
     tree_->Branch("genkspy",     &genkspy    , "genkspy/D"   );
     tree_->Branch("genkspz",     &genkspz    , "genkspz/D"   );
-    tree_->Branch("genpipx",     &genpipx    , "genpipx/D"   );
-    tree_->Branch("genpipy",     &genpipy    , "genpipy/D"   );
-    tree_->Branch("genpipz",     &genpipz    , "genpipz/D"   );
+    tree_->Branch("gentrkchg",     &gentrkchg    , "gentrkchg/I"  );
+    tree_->Branch("gentrkpx",     &gentrkpx    , "gentrkpx/D"   );
+    tree_->Branch("gentrkpy",     &gentrkpy    , "gentrkpy/D"   );
+    tree_->Branch("gentrkpz",     &gentrkpz    , "gentrkpz/D"   );
     tree_->Branch("genmumpx",    &genmumpx   , "genmumpx/D"  );
     tree_->Branch("genmumpy",    &genmumpy   , "genmumpy/D"  );
     tree_->Branch("genmumpz",    &genmumpz   , "genmumpz/D"  );
@@ -700,7 +702,7 @@ BToKstarMuMu::clearVariables(){
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
     genkspx = 0;   genkspy = 0;   genkspz = 0; 
-    genpipx = 0;   genpipy = 0;   genpipz = 0; 
+    gentrkchg = 0; gentrkpx = 0;   gentrkpy = 0;   gentrkpz = 0; 
     genmumpx = 0;  genmumpy = 0;  genmumpz = 0; 
     genmuppx = 0;  genmuppy = 0;  genmuppz = 0; 
     genkspippx = 0;  genkspippy = 0;  genkspippz = 0; 
@@ -1679,9 +1681,10 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genkspy = ks.py();
     genkspz = ks.pz();
 
-    genpipx = pi.px();
-    genpipy = pi.py();
-    genpipz = pi.pz();
+    gentrkchg = pi.charge(); 
+    gentrkpx = pi.px();
+    gentrkpy = pi.py();
+    gentrkpz = pi.pz();
     
 
     // save kshort pions 
