@@ -319,7 +319,7 @@ private:
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
 
-  vector<bool> *istruthmum, *istruthmup, *istruthks, *istruthpip, *istruthpim;  
+  vector<bool> *istruemum, *istruemup, *istrueks;  
 };
 
 //
@@ -408,7 +408,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
-  istruthmum(0), istruthmup(0), istruthks(0), istruthpip(0), istruthpim(0)
+  istruemum(0), istruemup(0), istrueks(0)
   
 { 
   //now do what ever initialization is needed
@@ -611,11 +611,9 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genpimpx",  &genpimpx , "genpimpx/D");
     tree_->Branch("genpimpy",  &genpimpy , "genpimpy/D");
     tree_->Branch("genpimpz",  &genpimpz , "genpimpz/D");
-    tree_->Branch("istruthmum",  &istruthmum );
-    tree_->Branch("istruthmup",  &istruthmup );
-    tree_->Branch("istruthks",   &istruthks  );
-    tree_->Branch("istruthpip",   &istruthpip  );
-    tree_->Branch("istruthpim",   &istruthpim  );
+    tree_->Branch("istruemum",  &istruemum );
+    tree_->Branch("istruemup",  &istruemup );
+    tree_->Branch("istrueks",   &istrueks  );
 
   } 
 
@@ -719,8 +717,7 @@ BToKstarMuMu::clearVariables(){
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
-    istruthmum->clear(); istruthmup->clear(); istruthks->clear();
-    istruthpip->clear(); istruthpim->clear(); 
+    istruemum->clear(); istruemup->clear(); istrueks->clear();
   }
 
 }
@@ -1896,9 +1893,9 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     deltaEtaPhi = computeEtaPhiDistance(genmumpx, genmumpy, genmumpz, 
 					mumpx->at(i), mumpy->at(i), mumpz->at(i)); 
     if (deltaEtaPhi < TruthMatchMuonMaxR_) {
-      istruthmum->push_back(true); 
+      istruemum->push_back(true); 
     } else {
-      istruthmum->push_back(false); 
+      istruemum->push_back(false); 
     }
     
     // truth match with mu+
@@ -1906,10 +1903,10 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 					muppx->at(i), muppy->at(i), muppz->at(i)); 
   
     if (deltaEtaPhi < TruthMatchMuonMaxR_) {
-      istruthmup->push_back(true); 
+      istruemup->push_back(true); 
     }
     else {
-      istruthmup->push_back(false); 
+      istruemup->push_back(false); 
     }
 
     // // truth match with Ks
@@ -1919,26 +1916,32 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     // cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
     
     // truth match with Ks pi+
+    bool istruepip = false; 
+    
     deltaEtaPhi = computeEtaPhiDistance(genpippx, genpippy, genpippz, 
 					pippx->at(i), pippy->at(i), pippz->at(i)); 
     
-    if (deltaEtaPhi < TruthMatchPionMaxR_) {
-      istruthpip->push_back(true); 
-    }  else {
-      istruthpip->push_back(false); 
-    }
+    if (deltaEtaPhi < TruthMatchPionMaxR_) istruepip = true; 
     
     // truth match with Ks pi-
+
+    bool istruepim = false; 
     deltaEtaPhi = computeEtaPhiDistance(genpimpx, genpimpy, genpimpz, 
 					pimpx->at(i), pimpy->at(i), pimpz->at(i)); 
     
-    if (deltaEtaPhi < TruthMatchPionMaxR_) {
-      istruthpim->push_back(true); 
-    }  else {
-      istruthpim->push_back(false); 
-    }
+    if (deltaEtaPhi < TruthMatchPionMaxR_) istruepim = true; 
     
+    // truth match Ks vertex 
+    float deltaRksvtx = sqrt( (genksvtxx - ksvtxx->at(i))*
+			      (genksvtxx - ksvtxx->at(i)) +
+			      (genksvtxy - ksvtxy->at(i))*
+			      (genksvtxy - ksvtxy->at(i)) +
+			      (genksvtxz - ksvtxz->at(i))*
+			      (genksvtxz - ksvtxz->at(i)) );	     
+
+    cout << "deltaRksvtx = " << deltaRksvtx << endl ;
     
+    // if ( istruepip & istruepim && (deltaRksvtx<RcutVtx) ) istrueKs = true;
     
   }
 }
