@@ -319,7 +319,7 @@ private:
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
 
-  vector<bool> *istruthmum, *istruthmup, *istruthks, *istruthpip;  
+  vector<bool> *istruthmum, *istruthmup, *istruthks, *istruthpip, *istruthpim;  
 };
 
 //
@@ -408,7 +408,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
-  istruthmum(0), istruthmup(0), istruthks(0), istruthpip(0)  
+  istruthmum(0), istruthmup(0), istruthks(0), istruthpip(0), istruthpim(0)
   
 { 
   //now do what ever initialization is needed
@@ -615,6 +615,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("istruthmup",  &istruthmup );
     tree_->Branch("istruthks",   &istruthks  );
     tree_->Branch("istruthpip",   &istruthpip  );
+    tree_->Branch("istruthpim",   &istruthpim  );
 
   } 
 
@@ -718,7 +719,8 @@ BToKstarMuMu::clearVariables(){
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
-    istruthmum->clear(); istruthmup->clear(); istruthks->clear(); istruthpip->clear(); 
+    istruthmum->clear(); istruthmup->clear(); istruthks->clear();
+    istruthpip->clear(); istruthpim->clear(); 
   }
 
 }
@@ -1924,6 +1926,16 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istruthpip->push_back(true); 
     }  else {
       istruthpip->push_back(false); 
+    }
+    
+    // truth match with Ks pi-
+    deltaEtaPhi = computeEtaPhiDistance(genpimpx, genpimpy, genpimpz, 
+					pimpx->at(i), pimpy->at(i), pimpz->at(i)); 
+    
+    if (deltaEtaPhi < TruthMatchPionMaxR_) {
+      istruthpim->push_back(true); 
+    }  else {
+      istruthpim->push_back(false); 
     }
     
     
