@@ -213,6 +213,7 @@ private:
   edm::InputTag GenParticlesLabel_;
   double TruthMatchMuonMaxR_; 
   double TruthMatchPionMaxR_; 
+  double TruthMatchKsMaxVtx_; 
 
   edm::InputTag TriggerResultsLabel_;
   vector<string> TriggerNames_, LastFilterNames_;
@@ -339,6 +340,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   GenParticlesLabel_(iConfig.getParameter<edm::InputTag>("GenParticlesLabel")),
   TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
   TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
+  TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
   TriggerResultsLabel_(iConfig.getParameter<edm::InputTag>("TriggerResultsLabel")),
   TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
   LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
@@ -1939,9 +1941,11 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
 			      (genksvtxz - ksvtxz->at(i))*
 			      (genksvtxz - ksvtxz->at(i)) );	     
 
-    cout << "deltaRksvtx = " << deltaRksvtx << endl ;
-    
-    // if ( istruepip & istruepim && (deltaRksvtx<RcutVtx) ) istrueKs = true;
+    if ( istruepip & istruepim && (deltaRksvtx<TruthMatchKsMaxVtx_) ){
+      istrueks->push_back(true);
+    } else {
+      istrueks->push_back(false); 
+    }
     
   }
 }
