@@ -150,6 +150,7 @@ process.ntuple = cms.EDAnalyzer(
     GenParticlesLabel = cms.InputTag("genParticles"),
     TruthMatchMuonMaxR = cms.untracked.double(0.004), # [eta-phi]
     TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
+    TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
 
     TriggerResultsLabel = cms.InputTag("TriggerResults","", 'HLT'),
     TriggerNames = cms.vstring([]),
