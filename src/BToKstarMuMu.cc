@@ -297,7 +297,7 @@ private:
   vector<double> *pimpx, *pimpy, *pimpz, *pimmass, *pimd0, *pimd0err; 
   vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
   vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
-  vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl; 
+  vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl, *kslsbs, *kslsbserr; 
   
   // B+ and B- 
   vector<int>    *bchg; // +1 for b+, -1 for b-
@@ -394,7 +394,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
   kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
-  ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), 
+  ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
   bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0), bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
@@ -558,7 +558,9 @@ BToKstarMuMu::beginJob()
   tree_->Branch("ksvtxy", &ksvtxy);
   tree_->Branch("ksvtxz", &ksvtxz);
   tree_->Branch("ksvtxcl", &ksvtxcl);
- 
+  tree_->Branch("kslsbs", &kslsbs);
+  tree_->Branch("kslsbserr", &kslsbserr);
+    
   tree_->Branch("bchg", &bchg);
   tree_->Branch("bpx", &bpx);
   tree_->Branch("bpxerr", &bpxerr);
@@ -699,6 +701,7 @@ BToKstarMuMu::clearVariables(){
   pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
   kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
+  kslsbs->clear(); kslsbserr->clear(); 
   DimuonCandidates_.clear();  KshortCandidates_.clear(); 
   KstarChargedCandidates_.clear(); BuCandidates_.clear();
 
@@ -1772,6 +1775,22 @@ BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
   ksvtxy->push_back(ks_vertex->position().y());
   ksvtxz->push_back(ks_vertex->position().z());
   
+  // Kshort vertex distance to the beam spot 
+
+  double KshortLSBS, KshortLSBSErr; 
+
+  computeLS (ks_vertex->position().x(),ks_vertex->position().y(),0.0,
+	     beamSpot_.position().x(),beamSpot_.position().y(),0.0,
+	     ks_vertex->error().cxx(),ks_vertex->error().cyy(),0.0,
+	     ks_vertex->error().matrix()(0,1),0.0,0.0,
+	     beamSpot_.covariance()(0,0),beamSpot_.covariance()(1,1),0.0,
+	     beamSpot_.covariance()(0,1),0.0,0.0,
+	     &KshortLSBS,&KshortLSBSErr);
+  
+  kslsbs->push_back(KshortLSBS); 
+  kslsbserr->push_back(KshortLSBSErr); 
+
+
   ksVertexFitTree->movePointerToTheFirstChild(); // Kshort pion1
   RefCountedKinematicParticle ksPi1 = ksVertexFitTree->currentParticle();
 
@@ -1796,6 +1815,8 @@ BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
   pimpx->push_back(ksPimKP.momentum().x());
   pimpy->push_back(ksPimKP.momentum().y());
   pimpz->push_back(ksPimKP.momentum().z());
+
+
 }
 
 
