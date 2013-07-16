@@ -189,7 +189,6 @@ private:
   bool matchKshortTrack (const edm::Event&, const reco::TrackRef);
   bool matchPrimaryVertexTracks (); 
 
-  // void saveBuToKstarMuMu(RefCountedKinematicTree, RefCountedKinematicTree); 
   void saveBuToKstarMuMu(RefCountedKinematicTree); 
   void saveBuVertex(RefCountedKinematicTree); 
   void saveBuCosAlpha(RefCountedKinematicTree); 
@@ -320,7 +319,7 @@ private:
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
 
-  vector<bool> *istruemum, *istruemup, *istrueks, *istruebu;  
+  vector<bool> *istruemum, *istruemup, *istrueks, *istruetrk, *istruebu;  
 };
 
 //
@@ -410,7 +409,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
-  istruemum(0), istruemup(0), istrueks(0), istruebu(0) 
+  istruemum(0), istruemup(0), istrueks(0), istruetrk(0), istruebu(0) 
   
 { 
   //now do what ever initialization is needed
@@ -618,6 +617,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
     tree_->Branch("istrueks",   &istrueks  );
+    tree_->Branch("istruetrk",   &istruetrk  );
     tree_->Branch("istruebu",   &istruebu  );
 
   } 
@@ -723,7 +723,8 @@ BToKstarMuMu::clearVariables(){
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
-    istruemum->clear(); istruemup->clear(); istrueks->clear(); istruebu->clear(); 
+    istruemum->clear(); istruemup->clear(); istrueks->clear();
+    istruetrk->clear(); istruebu->clear(); 
   }
 
 }
@@ -1969,9 +1970,18 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istrueks->push_back(false); 
     }
     
+    // truth match with pion track
+    deltaEtaPhi = computeEtaPhiDistance(gentrkpx, gentrkpy, gentrkpz, 
+					trkpx->at(i), trkpy->at(i), trkpz->at(i)); 
+    if (deltaEtaPhi < TruthMatchPionMaxR_){
+      istruetrk->push_back(true);
+    } else {
+      istruetrk->push_back(false); 
+    }
+ 
     // truth match with B+/B-
-    
-    if ( istruemum->back() && istruemup->back() && istrueks->back()) {
+    if ( istruemum->back() && istruemup->back() 
+	 && istrueks->back() && istruetrk->back()) {
       istruebu->push_back(true); 
     } else {
       istruebu->push_back(false); 
