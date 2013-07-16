@@ -1131,12 +1131,9 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   if ((mydimu.Perp() < MuMuMinPt_) || 
       (mydimu.M() < MuMuMinInvMass_) ||
       (mydimu.M() > MuMuMaxInvMass_)) {
-    // edm::LogInfo("myDimuon") << "No good muon pair, pT: " << mydimu.Perp()
-    // 			     << ", invMass: " << mydimu.M(); 
     return false;
   }
   // compute the distance between mumu vtx and beam spot 
-
   computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
 	     beamSpot_.position().x(),beamSpot_.position().y(),0.0,
 	     mumu_KV->error().cxx(),mumu_KV->error().cyy(),0.0,
@@ -1145,11 +1142,7 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 	     beamSpot_.covariance()(0,1),0.0,0.0,
 	     &MuMuLSBS,&MuMuLSBSErr);
   
-  if (MuMuLSBS/MuMuLSBSErr < MuMuMinLxySigmaBs_)  {
-    // edm::LogInfo("myDimuon") << "bad mumu L/sigma with respect to BeamSpot: "
-    // 			     << MuMuLSBS << "+/-" << MuMuLSBSErr;
-    return false;
-  }
+  if (MuMuLSBS/MuMuLSBSErr < MuMuMinLxySigmaBs_)  return false;
 
   computeCosAlpha(mumu_KP->currentState().globalMomentum().x(),
 		  mumu_KP->currentState().globalMomentum().y(), 
@@ -1171,11 +1164,7 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 		  0.0,
 		  &MuMuCosAlphaBS,&MuMuCosAlphaBSErr);	  
   
-  if (MuMuCosAlphaBS < MuMuMinCosAlphaBs_) {
-    // edm::LogInfo("myDimuon") << "Bad mumu cos(alpha) with respect to BeamSpot: " 
-    // 			     << MuMuCosAlphaBS << "+/-" << MuMuCosAlphaBSErr ;
-    return false;
-  }
+  if (MuMuCosAlphaBS < MuMuMinCosAlphaBs_)  return false;
   
   return true; 
 }
@@ -1186,17 +1175,11 @@ bool
 BToKstarMuMu::matchMuonTrack (const edm::Event& iEvent, 
 			      const reco::TrackRef theTrackRef)
 {
-  if ( theTrackRef.isNull() ) {
-    // edm::LogInfo("myMuonMatch") << "Null track ref!"; 
-    return false;
-  }
+  if ( theTrackRef.isNull() ) return false;
 
   edm::Handle< vector<pat::Muon> > thePATMuonHandle; 
   iEvent.getByLabel(MuonLabel_, thePATMuonHandle);
   
-  // if (thePATMuonHandle->size() > 0) 
-  //   edm::LogInfo("myMuonMatch") << "Event has " << thePATMuonHandle->size() << " muons."; 
-
   reco::TrackRef muTrackRef; 
   for (vector<pat::Muon>::const_iterator iMuon = thePATMuonHandle->begin();
        iMuon != thePATMuonHandle->end(); iMuon++){
@@ -1527,8 +1510,6 @@ BToKstarMuMu::matchPrimaryVertexTracks ()
        iTrack != primaryVertex_.tracks_end(); iTrack++){
     reco::TrackRef trackRef = iTrack->castTo<reco::TrackRef>();
   }
-  
-  // edm::LogInfo("myBu") << "Number of vertex tracks: " << vertexTracks.size() ; 
   return false; 
 }
 
@@ -1715,7 +1696,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     gentrkpx = pi.px();
     gentrkpy = pi.py();
     gentrkpz = pi.pz();
-    
 
     // save kshort pions 
     genpippx = pip.px();
@@ -1724,7 +1704,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genpimpx = pim.px();
     genpimpy = pim.py();
     genpimpz = pim.pz();
-    
   }
 }
 
@@ -1737,20 +1716,15 @@ BToKstarMuMu::isGenKstarCharged(const reco::Candidate *p){
   for ( size_t j = 0; j < p->numberOfDaughters(); ++j){
     const reco::Candidate * dau = p->daughter(j);
     
-    if ( isGenKshort(dau) )
-      nGenKshort ++;  
-        
+    if ( isGenKshort(dau) )  nGenKshort ++;  
   }
-
   return true; 
 }
 
 
 bool
 BToKstarMuMu::isGenKshort(const reco::Candidate *p){
-  if ( abs(p->pdgId()) != KSHORTZERO_PDG_ID )
-    return false; 
-  
+  if ( abs(p->pdgId()) != KSHORTZERO_PDG_ID )  return false; 
   return true; 
 }
 
@@ -1817,8 +1791,6 @@ BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
   pimpx->push_back(ksPimKP.momentum().x());
   pimpy->push_back(ksPimKP.momentum().y());
   pimpz->push_back(ksPimKP.momentum().z());
-
-
 }
 
 
@@ -1846,7 +1818,6 @@ BToKstarMuMu::saveSoftMuonVariables(pat::Muon iMuonM, pat::Muon iMuonP,
 	  
   mumdzvtx->push_back(muTrackm->dz(primaryVertex_.position())); 
   mupdzvtx->push_back(muTrackp->dz(primaryVertex_.position())); 
-
 }
 
 void 
@@ -1880,9 +1851,6 @@ BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMu
   for(vector<string>::iterator it = triggernames->begin(); 
       it != triggernames->end(); ++it) {
   
-    // edm::LogInfo("myDimuon") << "trigger name : " << *it 
-    // 			     << ", lastfilter name: " << mapTriggerToLastFilter_[*it] ; 
-  
     string hltLastFilterName = mapTriggerToLastFilter_[*it] ; 
 
     const pat::TriggerObjectStandAloneCollection mumHLTMatches 
@@ -1895,16 +1863,10 @@ BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMu
     
     if ( mupHLTMatches.size() > 0 ) 
       mup_matched_lastfilter_name.append(hltLastFilterName+" ") ; 
-
-     // const pat::TriggerObjectStandAloneCollection mu1HLTMatchesPath
-     // = iMuonM.triggerObjectMatchesByPath( *it );
-     // const pat::TriggerObjectStandAloneCollection mu2HLTMatchesPath
-     // = iMuonP.triggerObjectMatchesByPath( *it ); 
   }
   
   mumtriglastfilter->push_back(mum_matched_lastfilter_name); 
   muptriglastfilter->push_back(mup_matched_lastfilter_name); 
-
 }
 
 void
@@ -1912,8 +1874,6 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
   double deltaEtaPhi; 
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-    // cout << bmass->at(i); 
-
     // truth match with mu-
     deltaEtaPhi = computeEtaPhiDistance(genmumpx, genmumpy, genmumpz, 
 					mumpx->at(i), mumpy->at(i), mumpz->at(i)); 
@@ -1934,12 +1894,6 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istruemup->push_back(false); 
     }
 
-    // // truth match with Ks
-    // deltaEtaPhi = computeEtaPhiDistance(genkspx, genkspy, genkspz, 
-    // 					kspx->at(i), kspy->at(i), kspz->at(i)); 
-    
-    // cout << ">>> deltaEtaPhi Ks = " << deltaEtaPhi << endl; 
-    
     // truth match with Ks pi+
     bool istruepip = false; 
     
@@ -1986,10 +1940,8 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
     } else {
       istruebu->push_back(false); 
     }
-
   }
 }
-
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(BToKstarMuMu);
