@@ -175,8 +175,8 @@ process.ntuple = cms.EDAnalyzer(
     MuonMass = cms.untracked.double(0.10565837), 
     MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
 
-    #KshortLabel = cms.InputTag('generalV0Candidates:Kshort'),
-    KshortLabel = cms.InputTag('localV0Candidates:Kshort'),
+    KshortLabel = cms.InputTag('generalV0Candidates:Kshort'),
+    #KshortLabel = cms.InputTag('localV0Candidates:Kshort'),
     TrackLabel = cms.InputTag('cleanPatTrackCands'), 
     PionMass = cms.untracked.double(0.13957018), 
     PionMassErr = cms.untracked.double(0.13957018*1e-6),
