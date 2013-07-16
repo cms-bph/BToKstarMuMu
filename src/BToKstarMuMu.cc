@@ -320,7 +320,7 @@ private:
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
 
-  vector<bool> *istruemum, *istruemup, *istrueks;  
+  vector<bool> *istruemum, *istruemup, *istrueks, *istruebu;  
 };
 
 //
@@ -410,7 +410,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
-  istruemum(0), istruemup(0), istrueks(0)
+  istruemum(0), istruemup(0), istrueks(0), istruebu(0) 
   
 { 
   //now do what ever initialization is needed
@@ -618,6 +618,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
     tree_->Branch("istrueks",   &istrueks  );
+    tree_->Branch("istruebu",   &istruebu  );
 
   } 
 
@@ -722,7 +723,7 @@ BToKstarMuMu::clearVariables(){
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
 
-    istruemum->clear(); istruemup->clear(); istrueks->clear();
+    istruemum->clear(); istruemup->clear(); istrueks->clear(); istruebu->clear(); 
   }
 
 }
@@ -1968,6 +1969,14 @@ BToKstarMuMu::saveTruthMatch(const edm::Event& iEvent){
       istrueks->push_back(false); 
     }
     
+    // truth match with B+/B-
+    
+    if ( istruemum->back() && istruemup->back() && istrueks->back()) {
+      istruebu->push_back(true); 
+    } else {
+      istruebu->push_back(false); 
+    }
+
   }
 }
 
