@@ -119,7 +119,7 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
     SaveB(i);     
     SaveMuMu(i);
-    SaveKstar(i); 
+    // SaveKstar(i); 
     
     tree_->Fill();	   
   }
@@ -178,7 +178,8 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
     if ( label == "Run2011v10.1" ) 
       if (bctau->at(i) < 0.03) continue; 
 
-    Kstarmass = GetKstarMass(i);
+    // Kstarmass = GetKstarMass(i);
+    Kstarmass = ksmass->at(i);
     float kstar_mass_delta; 
     if ( label == "Run2011v11.1" ) 
       kstar_mass_delta = 0.06; 
@@ -220,21 +221,21 @@ bool SingleBuToKstarMuMuSelector::HasGoodDimuon(){
 
 
 void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
-  TLorentzVector mu1, mu2, dimu; 
-  mu1.SetXYZM(bmu1px->at(i), bmu1py->at(i), bmu1pz->at(i), MUON_MASS); 
-  mu2.SetXYZM(bmu2px->at(i), bmu2py->at(i), bmu2pz->at(i), MUON_MASS); 
-  dimu = mu1 + mu2; 
+  TLorentzVector mup, mum, dimu; 
+  mup.SetXYZM(muppx->at(i), muppy->at(i), muppz->at(i), MUON_MASS); 
+  mum.SetXYZM(mumpx->at(i), mumpy->at(i), mumpz->at(i), MUON_MASS); 
+  dimu = mup + mum; 
   Mumumass = dimu.M(); 
 }
 
 
-void SingleBuToKstarMuMuSelector::SaveKstar(int i){
-  // TLorentzVector ks, pi, kstar; 
-  // ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-  // pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-  // kstar = ks + pi; 
-  Kstarmass = GetKstarMass(i);
-}
+// void SingleBuToKstarMuMuSelector::SaveKstar(int i){
+//   // TLorentzVector ks, pi, kstar; 
+//   // ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
+//   // pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
+//   // kstar = ks + pi; 
+//   Kstarmass = GetKstarMass(i);
+// }
 
 
 void SingleBuToKstarMuMuSelector::SaveB(int i){
@@ -251,13 +252,13 @@ void SingleBuToKstarMuMuSelector::SaveB(int i){
 
 }
 
-double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
-  TLorentzVector ks, pi, kstar; 
-  ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-  pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-  kstar = ks + pi; 
-  return kstar.M();
-}
+// double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
+//   TLorentzVector ks, pi, kstar; 
+//   ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
+//   pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
+//   kstar = ks + pi; 
+//   return kstar.M();
+// }
 
 
 #ifndef __CINT__ 
