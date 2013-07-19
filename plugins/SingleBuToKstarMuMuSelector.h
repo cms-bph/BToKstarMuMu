@@ -302,7 +302,7 @@ public :
 
    // ClassDef(SingleBuToKstarMuMuSelector,0);
    int SelectB(string); 
-   bool HasGoodDimuon(); 
+   bool HasGoodDimuon(int); 
    void SaveMuMu(int); 
    // void SaveKstar(int); 
    void SaveB(int); 
