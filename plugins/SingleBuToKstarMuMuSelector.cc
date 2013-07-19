@@ -161,15 +161,18 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 
 
 int SingleBuToKstarMuMuSelector::SelectB(string label){
-  if ( label != "Run2011v11.1" ) return -1;  
+  // if ( label != "Run2011v11.1" ) return -1;  
 
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
 
-  if ( ! HasGoodDimuon() ) return -1; 
+  // if ( ! HasGoodDimuon() ) return -1; 
 
   for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
+    if ( ! HasGoodDimuon(i) ) continue;  
     
+    cout << "passed dimuon cut" << endl; 
+
     if (bvtxcl->at(i) < 0.09) continue; 
     double blxysig = blsbs->at(i)/blsbserr->at(i); 
     if (blxysig < 12 ) continue; 
@@ -181,8 +184,8 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
     // Kstarmass = GetKstarMass(i);
     Kstarmass = ksmass->at(i);
     float kstar_mass_delta; 
-    if ( label == "Run2011v11.1" ) 
-      kstar_mass_delta = 0.06; 
+    // if ( label == "Run2011v11.1" ) 
+    kstar_mass_delta = 0.06; 
       
     if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
@@ -197,25 +200,25 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
   return best_idx;
 }
 
-bool SingleBuToKstarMuMuSelector::HasGoodDimuon(){
-  for (vector<int>::size_type i = 0; i < mumpx->size(); i++) {
-    if  ( 
-	 // soft muon 
-	 mumisgoodmuon->at(i)
-	 && mupisgoodmuon->at(i) 
-	 && mumntrkhits->at(i) > 10 
-	 && mupntrkhits->at(i) > 10 
-	 && mumnpixlayers->at(i) > 1
-	 && mupnpixlayers->at(i) > 1
-	 && mumnormchi2->at(i) < 1.8 
-	 && mupnormchi2->at(i) < 1.8 
-	 && mumdxyvtx->at(i) < 3
-	 && mupdxyvtx->at(i) < 3
-	 && mumdzvtx->at(i) < 30 
-	 && mupdzvtx->at(i) < 30 
-	  
-	  ) return true; 
-  }
+bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
+  //  for (vector<int>::size_type i = 0; i < mumpx->size(); i++) {
+  if  ( 
+       // soft muon 
+       mumisgoodmuon->at(i)
+       && mupisgoodmuon->at(i) 
+       && mumntrkhits->at(i) > 10 
+       && mupntrkhits->at(i) > 10 
+       && mumnpixlayers->at(i) > 1
+       && mupnpixlayers->at(i) > 1
+       && mumnormchi2->at(i) < 1.8 
+       && mupnormchi2->at(i) < 1.8 
+       && mumdxyvtx->at(i) < 3
+       && mupdxyvtx->at(i) < 3
+       && mumdzvtx->at(i) < 30 
+       && mupdzvtx->at(i) < 30 
+       
+	) return true; 
+  // }
   return false; 
 }
 
