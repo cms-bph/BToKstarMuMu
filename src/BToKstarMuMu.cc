@@ -236,7 +236,7 @@ private:
   double MuMuMinCosAlphaBs_; 
   ParticleMass MuonMass_; 
   float MuonMassErr_; 
-  pat::CompositeCandidateCollection DimuonCandidates_; 
+  // pat::CompositeCandidateCollection DimuonCandidates_; 
 
   // Kshort 
   edm::InputTag KshortLabel_;
@@ -245,17 +245,17 @@ private:
   float PionMassErr_; 
   ParticleMass KshortMass_; 
   float KshortMassErr_; 
-  pat::CompositeCandidateCollection KshortCandidates_; 
+  // pat::CompositeCandidateCollection KshortCandidates_; 
 
   double DimukshortMinMass_, DimukshortMaxMass_; 
   
   // Kstar
   double KstarChargedTrackMinPt_; 
   double KstarMinMass_, KstarMaxMass_; 
-  pat::CompositeCandidateCollection KstarChargedCandidates_; 
+  // pat::CompositeCandidateCollection KstarChargedCandidates_; 
 
   // B meson
-  pat::CompositeCandidateCollection BuCandidates_;  
+  // pat::CompositeCandidateCollection BuCandidates_;  
   //   BuToPiMuMuCandidates_; 
   double BMaxMass_; 
   double BuMass_; 
@@ -703,8 +703,8 @@ BToKstarMuMu::clearVariables(){
   kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
   kslsbs->clear(); kslsbserr->clear(); 
-  DimuonCandidates_.clear();  KshortCandidates_.clear(); 
-  KstarChargedCandidates_.clear(); BuCandidates_.clear();
+  // DimuonCandidates_.clear();  KshortCandidates_.clear(); 
+  // KstarChargedCandidates_.clear(); BuCandidates_.clear();
 
   bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear(); bpz->clear(); bpzerr->clear(); 
   bchg->clear(); bmass->clear(); bmasserr->clear(); 
