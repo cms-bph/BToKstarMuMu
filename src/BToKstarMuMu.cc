@@ -174,7 +174,7 @@ private:
 			  reco::TransientTrack &, reco::TransientTrack &, 
 			  double &, double &, double &, double &, double &);
 
-  bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle);
+  bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle, double &);
 
   bool hasPrimaryVertex(const edm::Event &); 
 
@@ -294,7 +294,7 @@ private:
   
   // pion track 
   vector<int> *trkchg; // +1 for pi+, -1 for pi-
-  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr; 
+  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr, *trkpt; 
 
 
   // kshort 
@@ -395,7 +395,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   mumpt(0), muppt(0), mumeta(0), mupeta(0), 
 
   trkchg(0), 
-  trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), 
+  trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), trkpt(0),  
 
   pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
@@ -547,6 +547,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("trkpz", &trkpz);
   tree_->Branch("trkmass", &trkmass);
   tree_->Branch("trkmasserr", &trkmasserr);
+  tree_->Branch("trkpt", &trkpt);
 
   tree_->Branch("pimpx", &pimpx);
   tree_->Branch("pimpy", &pimpy);
@@ -711,7 +712,7 @@ BToKstarMuMu::clearVariables(){
   mumeta->clear(); mupeta->clear(); 
 
   trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
-  trkmass->clear(); trkmasserr->clear(); 
+  trkmass->clear(); trkmasserr->clear(); trkpt->clear(); 
 
   pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); pimd0->clear(); pimd0err->clear();
   pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
@@ -815,7 +816,9 @@ BToKstarMuMu::hasPrimaryVertex(const edm::Event& iEvent)
 
 
 bool 
-BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, const pat::GenericParticle iTrack)
+BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, 
+			       const pat::GenericParticle iTrack, 
+			       double & pion_trk_pt)
 {
    reco::TrackRef theTrackRef = iTrack.track(); 
    if ( theTrackRef.isNull() ) return false; 
@@ -827,6 +830,8 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, const pat::GenericParti
    if ( matchKshortTrack(iEvent, theTrackRef) ) return false; 
    
    // check the track kinematics
+   pion_trk_pt = theTrackRef->pt(); 
+
    if ( theTrackRef->pt() < KstarChargedTrackMinPt_ ) return false; 
 
    // compute track DCA to beam spot 
@@ -858,7 +863,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
 
-  double dimu_ks_mass; 
+  double dimu_ks_mass, pion_trk_pt; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
@@ -925,10 +930,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	// ---------------------------------
 	// loop 4: track 
 	// ---------------------------------
-	for ( vector<pat::GenericParticle>::const_iterator iTrack = thePATTrackHandle->begin();
-	    iTrack != thePATTrackHandle->end(); ++iTrack ) {
+	for ( vector<pat::GenericParticle>::const_iterator iTrack
+		= thePATTrackHandle->begin();
+	      iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
-	  if ( ! hasGoodPionTrack(iEvent, *iTrack)) continue; 
+	  if ( ! hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt)) continue; 
 	  
 	  reco::TrackRef pionTrack = iTrack->track(); 
 	  
@@ -949,6 +955,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
 	  saveKshortVariables(ksVertexFitTree); 
 
+	  trkpt->push_back(pion_trk_pt); 
 	  bchg->push_back(iTrack->charge()); 
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
