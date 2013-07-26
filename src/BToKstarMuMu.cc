@@ -924,9 +924,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  continue; 
 	
 	// check the daughter pions from Kshort is overlap with muons
-	kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+	kshortDaughterTracks.push_back((dynamic_cast<const
+					reco::RecoChargedCandidate *>
 					(iKshort->daughter(0)))->track()); 
-	kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+	kshortDaughterTracks.push_back((dynamic_cast<const
+					reco::RecoChargedCandidate *>
 					(iKshort->daughter(1)))->track()); 
 	if ( matchMuonTracks(iEvent, kshortDaughterTracks) ) continue; 
 
