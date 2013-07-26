@@ -280,13 +280,16 @@ private:
   vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz, *mupmass, *mupmasserr; 
   vector<double> *mumudca, *mumuvtxcl, *mumulsbs, *mumulsbserr, 
     *mumucosalphabs, *mumucosalphabserr; 
+
+  // soft muon variables 
   vector<bool> *mumisgoodmuon, *mupisgoodmuon ; 
   vector<int> *mumnpixhits, *mupnpixhits, *mumnpixlayers, *mupnpixlayers; 
   vector<int> *mumntrkhits, *mupntrkhits, *mumntrklayers, *mupntrklayers; 
   vector<double> *mumnormchi2, *mupnormchi2; 
   vector<double> *mumdxyvtx, *mupdxyvtx, *mumdzvtx, *mupdzvtx; 
   vector<string> *mumtriglastfilter, *muptriglastfilter; 
-
+  vector<double> *mumpt, *muppt, *mumeta, *mupeta; 
+  
   // pion track 
   vector<int> *trkchg; // +1 for pi+, -1 for pi-
   vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr; 
@@ -386,6 +389,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   mumntrkhits(0), mupntrkhits(0), mumntrklayers(0), mupntrklayers(0), 
   mumnormchi2(0), mupnormchi2(0), mumdxyvtx(0), mupdxyvtx(0), mumdzvtx(0), mupdzvtx(0), 
   mumtriglastfilter(0), muptriglastfilter(0), 
+  mumpt(0), muppt(0), mumeta(0), mupeta(0), 
 
   trkchg(0), 
   trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), 
@@ -528,6 +532,10 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mupdzvtx", &mupdzvtx);
   tree_->Branch("mumtriglastfilter", &mumtriglastfilter);
   tree_->Branch("muptriglastfilter", &muptriglastfilter);
+  tree_->Branch("mumpt", &mumpt);
+  tree_->Branch("muppt", &muppt);
+  tree_->Branch("mumeta", &mumeta);
+  tree_->Branch("mupeta", &mupeta);
 
   tree_->Branch("trkchg", &trkchg);
   tree_->Branch("trkpx", &trkpx);
@@ -694,6 +702,8 @@ BToKstarMuMu::clearVariables(){
   mumntrkhits->clear();  mupntrkhits->clear();  mumntrklayers->clear();  mupntrklayers->clear(); 
   mumnormchi2->clear(); mupnormchi2->clear(); mumdxyvtx->clear(); mupdxyvtx->clear(); 
   mumdzvtx->clear(); mupdzvtx->clear();  mumtriglastfilter->clear(); muptriglastfilter->clear(); 
+  mumpt->clear(); muppt->clear(); 
+  mumeta->clear(); mupeta->clear(); 
 
   trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
   trkmass->clear(); trkmasserr->clear(); 
@@ -1818,6 +1828,13 @@ BToKstarMuMu::saveSoftMuonVariables(pat::Muon iMuonM, pat::Muon iMuonP,
 	  
   mumdzvtx->push_back(muTrackm->dz(primaryVertex_.position())); 
   mupdzvtx->push_back(muTrackp->dz(primaryVertex_.position())); 
+
+  mumpt->push_back(muTrackm->pt()); 
+  muppt->push_back(muTrackp->pt()); 
+  
+  mumeta->push_back(muTrackm->eta()); 
+  mupeta->push_back(muTrackp->eta()); 
+  
 }
 
 void 
