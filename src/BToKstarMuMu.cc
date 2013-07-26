@@ -162,7 +162,7 @@ private:
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
 
-  bool hasGoodKstarChargedMass(RefCountedKinematicTree); 
+  bool hasGoodKstarChargedMass(RefCountedKinematicTree, double &); 
 
   bool hasGoodBuMass(RefCountedKinematicTree); 
 
@@ -302,7 +302,7 @@ private:
   vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
   vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl, *kslsbs, *kslsbserr; 
-  vector<double> *dimuksmass; 
+  vector<double> *dimuksmass, *kstarmass; 
 
   // B+ and B- 
   vector<int>    *bchg; // +1 for b+, -1 for b-
@@ -401,7 +401,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
   kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
-  dimuksmass(0), 
+  dimuksmass(0), kstarmass(0),  
   bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0), bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
@@ -573,6 +573,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("kslsbs", &kslsbs);
   tree_->Branch("kslsbserr", &kslsbserr);
   tree_->Branch("dimuksmass", &dimuksmass);
+  tree_->Branch("kstarmass", &kstarmass);
     
   tree_->Branch("bchg", &bchg);
   tree_->Branch("bpx", &bpx);
@@ -718,7 +719,8 @@ BToKstarMuMu::clearVariables(){
   pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
   kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
-  kslsbs->clear(); kslsbserr->clear(); dimuksmass->clear();  
+  kslsbs->clear(); kslsbserr->clear(); dimuksmass->clear(); 
+  kstarmass->clear();  
   // DimuonCandidates_.clear();  KshortCandidates_.clear(); 
   // KstarChargedCandidates_.clear(); BuCandidates_.clear();
 
@@ -863,7 +865,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
 
-  double dimu_ks_mass, pion_trk_pt; 
+  double dimu_ks_mass, pion_trk_pt, kstar_mass; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
@@ -941,7 +943,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if ( ! hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, pionTrack,
 				 vertexFitTree, ksVertexFitTree)) continue; 
 	  
-	  if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
+	  if ( ! hasGoodKstarChargedMass(vertexFitTree, kstar_mass) ) continue; 
 	  
 	  if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
 
@@ -956,6 +958,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  saveKshortVariables(ksVertexFitTree); 
 
 	  trkpt->push_back(pion_trk_pt); 
+	  kstarmass->push_back(kstar_mass); 
 	  bchg->push_back(iTrack->charge()); 
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
@@ -1303,7 +1306,8 @@ BToKstarMuMu::matchKshortTrack (const edm::Event& iEvent,
 
 
 bool 
-BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree)
+BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree, 
+				      double & kstar_mass)
 {
   vertexFitTree->movePointerToTheTop();
   TLorentzVector myks, mypi, mykstar; 
@@ -1328,6 +1332,7 @@ BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree)
 	       ks_KP->currentState().mass()); 
  
   mykstar = myks + mypi; 
+  kstar_mass = mykstar.M(); 
   if ( mykstar.M() < KstarMinMass_  
        ||  mykstar.M() > KstarMaxMass_ )  return false; 
 
