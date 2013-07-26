@@ -157,7 +157,7 @@ private:
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
 
   bool hasGoodDimuonKshortMass(const reco::TrackRef, const reco::TrackRef, 
-			       const reco::VertexCompositeCandidate); 
+			       const reco::VertexCompositeCandidate, double &); 
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
@@ -200,7 +200,7 @@ private:
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
   void saveDimuVariables(double, double, double, double, double, double, double,
-			 double, double, double);
+			 double, double, double, double);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
   void saveTruthMatch(const edm::Event& iEvent); 
 
@@ -276,10 +276,12 @@ private:
   vector<int> *triggerprescales;
   
   // dimuon 
-  vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz, *mummass, *mummasserr; 
-  vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz, *mupmass, *mupmasserr; 
-  vector<double> *mumudca, *mumuvtxcl, *mumulsbs, *mumulsbserr, 
-    *mumucosalphabs, *mumucosalphabserr; 
+  vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz; 
+  vector<double> *mummass, *mummasserr; 
+  vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
+  vector<double> *mupmass, *mupmasserr; 
+  vector<double> *mumudca, *mumuvtxcl, *mumulsbs, *mumulsbserr;  
+  vector<double> *mumucosalphabs, *mumucosalphabserr; 
 
   // soft muon variables 
   vector<bool> *mumisgoodmuon, *mupisgoodmuon ; 
@@ -300,7 +302,8 @@ private:
   vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
   vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl, *kslsbs, *kslsbserr; 
-  
+  vector<double> *dimuksmass; 
+
   // B+ and B- 
   vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
@@ -398,6 +401,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
   kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
+  dimuksmass(0), 
   bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0), bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
@@ -567,6 +571,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("ksvtxcl", &ksvtxcl);
   tree_->Branch("kslsbs", &kslsbs);
   tree_->Branch("kslsbserr", &kslsbserr);
+  tree_->Branch("dimuksmass", &dimuksmass);
     
   tree_->Branch("bchg", &bchg);
   tree_->Branch("bpx", &bpx);
@@ -712,7 +717,7 @@ BToKstarMuMu::clearVariables(){
   pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
   kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
-  kslsbs->clear(); kslsbserr->clear(); 
+  kslsbs->clear(); kslsbserr->clear(); dimuksmass->clear();  
   // DimuonCandidates_.clear();  KshortCandidates_.clear(); 
   // KstarChargedCandidates_.clear(); BuCandidates_.clear();
 
@@ -853,6 +858,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
 
+  double dimu_ks_mass; 
+
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
   RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
@@ -905,7 +912,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
 	// check dimuon + kshort mass 
-	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort ) ) continue; 
+	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort, dimu_ks_mass ) )
+	  continue; 
 	
 	// check the daughter pions from Kshort is overlap with muons
 	kshortDaughterTracks.push_back((dynamic_cast<const reco::RecoChargedCandidate *>
@@ -935,7 +943,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  // save the tree variables 
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
 			    DCAmumu,  mu_mu_vtx_cl,  MuMuLSBS, MuMuLSBSErr, 
-			    MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
+			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, dimu_ks_mass); 
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
@@ -1374,8 +1382,8 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
 bool
 BToKstarMuMu::hasGoodDimuonKshortMass(const reco::TrackRef muTrackm, 
 				      const reco::TrackRef muTrackp, 
-				      const reco::VertexCompositeCandidate iKshort
-				      )
+				      const reco::VertexCompositeCandidate iKshort, 
+				      double &dimu_ks_mass)
 {
   // book the mumu mass histogram 
   TLorentzVector mu1, mu2, dimu; 
@@ -1389,6 +1397,8 @@ BToKstarMuMu::hasGoodDimuonKshortMass(const reco::TrackRef muTrackm,
   TLorentzVector kshort, dimukshort; 
   kshort.SetXYZM(iKshort.px(), iKshort.py(), iKshort.pz(), KshortMass_); 
   dimukshort = dimu + kshort; 
+
+  dimu_ks_mass = dimukshort.M(); 
 
   if ( dimukshort.M() > DimukshortMinMass_ 
        && dimukshort.M() < DimukshortMaxMass_ ) return true; 
@@ -1842,7 +1852,8 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
 				double DCAmupBS, double DCAmupBSErr,
 				double DCAmumu,  double mu_mu_vtx_cl, 
 				double MuMuLSBS, double MuMuLSBSErr, 
-				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr)
+				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr, 
+				double dimu_ks_mass)
 {
   mumdcabs->push_back(DCAmumBS);
   mumdcabserr->push_back(DCAmumBSErr);
@@ -1856,6 +1867,8 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   mumulsbserr->push_back(MuMuLSBSErr);
   mumucosalphabs->push_back(MuMuCosAlphaBS);
   mumucosalphabserr->push_back(MuMuCosAlphaBSErr); 
+
+  dimuksmass->push_back(dimu_ks_mass); 
 }
 
 
