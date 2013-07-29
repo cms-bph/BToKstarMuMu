@@ -95,6 +95,7 @@ enum HistName{
   h_nevents, 
   h_mupt, 
   h_mueta, 
+  h_mumdcabs, 
   h_mumumass,
   h_kshortmass,
   kHistNameSize
@@ -107,6 +108,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_nevents", "Total number of processed events", 100, 0, 1000000},
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
+  {"h_mumdcabs", "#mu^{-} DCA beam spot; [cm]", 100, 0, 10},
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 10},
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -908,7 +910,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     
     // check mu- DCA to beam spot 
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
-    if ( ! hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr)) continue; 
+    bool passed = hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
+    BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
+    
+    // if ( ! hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr)) continue; 
+    if ( ! passed ) continue; 
 
     // ---------------------------------
     // loop 2: mu+ 
