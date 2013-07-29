@@ -113,6 +113,7 @@ enum HistName{
   h_bvtxchisq, 
   h_kshortmass,
   h_kstarmass, 
+  h_bmass, 
 
   kHistNameSize
 };
@@ -143,7 +144,9 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
-  {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 10},
+  {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 20},
+  {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
+
 };
 
 // Define histograms 
@@ -211,7 +214,7 @@ private:
 
   bool hasGoodKstarChargedMass(RefCountedKinematicTree, double &); 
 
-  bool hasGoodBuMass(RefCountedKinematicTree); 
+  bool hasGoodBuMass(RefCountedKinematicTree, double &); 
 
   bool hasGoodBuVertex(const reco::TrackRef, const reco::TrackRef, 
 		       const vector<reco::TrackRef>, const reco::TrackRef, 
@@ -921,7 +924,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, MuMuLSBS, MuMuLSBSErr; 
   double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-  double dimu_ks_mass, pion_trk_pt, kstar_mass, b_vtx_chisq; 
+  double dimu_ks_mass, pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
@@ -1042,15 +1045,16 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 				   pionTrack, b_vtx_chisq, 
 				   vertexFitTree, ksVertexFitTree); 
 	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
-	  
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodKstarChargedMass(vertexFitTree, kstar_mass); 
 	  BToKstarMuMuFigures[h_kstarmass]->Fill(kstar_mass); 
 	  if (!passed) continue; 
-	  // if ( ! hasGoodKstarChargedMass(vertexFitTree, kstar_mass) ) continue; 
 	  
-	  if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
+	  passed = hasGoodBuMass(vertexFitTree, b_mass); 
+	  BToKstarMuMuFigures[h_bmass]->Fill(b_mass); 
+	  
+	  if (!passed) continue; 
 
 	  nBu++; 
 	  // save the tree variables 
@@ -1455,10 +1459,12 @@ BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree,
 
 
 bool 
-BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree)
+BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree, 
+			    double & b_mass)
 {
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+  b_mass = b_KP->currentState().mass(); 
   if ( b_KP->currentState().mass() > BMaxMass_ ) return false;  
   return true; 
 }
