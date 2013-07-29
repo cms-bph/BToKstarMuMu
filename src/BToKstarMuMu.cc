@@ -101,6 +101,7 @@ enum HistName{
   h_mumutrkr, 
   h_mumutrkz, 
   h_mumudca, 
+  h_mumuvtxcl, 
   h_kshortmass,
   kHistNameSize
 };
@@ -117,7 +118,9 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 200},
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 500},
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
-  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 10},
+  {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
+  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
+   100, 2, 10},
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
 
@@ -955,9 +958,15 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       if ( !passed ) continue; 
 
       // check dimuon vertex 
-      if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
-			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
-			      MuMuCosAlphaBS, MuMuCosAlphaBSErr) ) continue; 
+      passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
+				 mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
+				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
+      
+      BToKstarMuMuFigures[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
+      if ( !passed) continue; 
+      // if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
+      // 			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
+      // 			      MuMuCosAlphaBS, MuMuCosAlphaBSErr) ) continue; 
       
       // ---------------------------------
       // loop 3: kshort 
