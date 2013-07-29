@@ -94,6 +94,7 @@ struct HistArgs{
 enum HistName{
   h_nevents, 
   h_mupt, 
+  h_mueta, 
   h_mumumass,
   h_kshortmass,
   kHistNameSize
@@ -105,7 +106,8 @@ HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
   {"h_nevents", "Total number of processed events", 100, 0, 1000000},
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
-  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 4},
+  {"h_mueta", "Muon eta", 100, 0, 10},
+  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 10},
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
 
@@ -898,6 +900,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     if ( muTrackm.isNull() ) continue; 
 
     BToKstarMuMuFigures[h_mupt]->Fill(muTrackm->pt()); 
+    BToKstarMuMuFigures[h_mueta]->Fill(muTrackm->eta()); 
 
     if ( (muTrackm->charge() != -1) ||
 	 (muTrackm->pt() < MuonMinPt_) ||
