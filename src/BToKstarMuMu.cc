@@ -97,11 +97,13 @@ enum HistName{
   h_mueta, 
   h_mumdcabs, 
   h_mupdcabs, 
-  h_mumumass,
+
   h_mumutrkr, 
   h_mumutrkz, 
   h_mumudca, 
   h_mumuvtxcl, 
+  h_mumumass,
+
   h_kshortmass,
   kHistNameSize
 };
@@ -113,14 +115,16 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_nevents", "Total number of processed events", 100, 0, 1000000},
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
-  {"h_mumdcabs", "#mu^{-} DCA beam spot; [cm]", 100, 0, 10},
-  {"h_mupdcabs", "#mu^{+} DCA beam spot; [cm]", 100, 0, 10},
-  {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 200},
-  {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 500},
+  {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
+  {"h_mupdcabs", "#mu^{+} DCA beam spot; DCA [cm]", 100, 0, 10},
+
+  {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 50},
+  {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
   {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
    100, 2, 10},
+
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
 
@@ -952,7 +956,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
 					    mumutrk_R, mumutrk_Z, DCAmumu); 
       BToKstarMuMuFigures[h_mumutrkr]->Fill(mumutrk_R); 
+      // cout << ">>> mumutrk_R = " << mumutrk_R << endl; 
+
       BToKstarMuMuFigures[h_mumutrkz]->Fill(mumutrk_Z); 
+
+      cout << ">>> mumutrk_Z = " << mumutrk_Z << endl; 
+
       BToKstarMuMuFigures[h_mumudca]->Fill(DCAmumu); 
 
       if ( !passed ) continue; 
