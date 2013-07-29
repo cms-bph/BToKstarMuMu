@@ -98,6 +98,7 @@ enum HistName{
   h_mumdcabs, 
   h_mupdcabs, 
   h_mumumass,
+  h_mumutrkr, 
   h_kshortmass,
   kHistNameSize
 };
@@ -111,6 +112,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mueta", "Muon eta", 100, 0, 10},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; [cm]", 100, 0, 10},
   {"h_mupdcabs", "#mu^{+} DCA beam spot; [cm]", 100, 0, 10},
+  {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 300},
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 10},
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -940,9 +942,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
-      if ( !hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
-					 mumutrk_R, mumutrk_Z, DCAmumu) ) continue; 
-      
+      passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
+					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      BToKstarMuMuFigures[h_mumutrkr]->Fill(mumutrk_R); 
+
+      if ( !passed ) continue; 
+
       // check dimuon vertex 
       if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
 			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
