@@ -107,7 +107,9 @@ enum HistName{
   h_mumumass,
   h_mumulxybs, 
   h_mumucosalphabs, 
+  h_dimuksmass, 
   h_kshortmass,
+
   kHistNameSize
 };
 
@@ -131,6 +133,7 @@ HistArgs hist_args[kHistNameSize] = {
    100, 2, 20},
   {"h_mumulxybs", "#mu^{+}#mu^{-} Lxy #sigma beam spot", 100, 0, 100},
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
+  {"h_dimuksmass", "Dimu Kshort mass; M(Dimu Kshort) [GeV]", 100, 0, 20},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -999,8 +1002,13 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
 	// check dimuon + kshort mass 
-	if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort, dimu_ks_mass ) )
-	  continue; 
+	passed = hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort, dimu_ks_mass); 
+	BToKstarMuMuFigures[h_dimuksmass]->Fill(dimu_ks_mass); 
+	  
+	if (!passed) continue; 
+
+	// if ( ! hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort, dimu_ks_mass ) )
+	//   continue; 
 	
 	// check the daughter pions from Kshort is overlap with muons
 	kshortDaughterTracks.push_back((dynamic_cast<const
