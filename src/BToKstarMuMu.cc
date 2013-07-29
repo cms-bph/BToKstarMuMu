@@ -129,16 +129,19 @@ private:
   
   virtual void beginRun(edm::Run const&, edm::EventSetup const&);
   virtual void endRun(edm::Run const&, edm::EventSetup const&);
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&,
+				    edm::EventSetup const&);
+  virtual void endLuminosityBlock(edm::LuminosityBlock const&,
+				  edm::EventSetup const&);
   
   void buildBuToKstarMuMu(const edm::Event &); 
 
-  void computeLS (double, double, double, double, double, double, double, double, double, 
-		  double, double, double, double, double, double, double, double, double, 
-		  double* deltaD, double* deltaDErr); 
+  void computeLS (double, double, double, double, double, double, double, 
+		  double, double,  double, double, double, double, double, 
+		  double, double, double, double, double* deltaD, double* deltaDErr); 
 
-  void computeCosAlpha (double Vx, double Vy, double Vz, double Wx, double Wy, double Wz,
+  void computeCosAlpha (double Vx, double Vy, double Vz, double Wx, double Wy,
+			double Wz,
 			double VxErr2, double VyErr2, double VzErr2, double VxyCov,
 			double VxzCov, double VyzCov, double WxErr2, double WyErr2,
 			double WzErr2, double WxyCov, double WxzCov, double WyzCov,
@@ -153,10 +156,13 @@ private:
   bool hasBeamSpot(const edm::Event&);
 
   bool hasGoodClosestApproachTracks (const reco::TransientTrack,
-				     const reco::TransientTrack, double &);
+				     const reco::TransientTrack, 
+				     double&, double &, double &);
 
-  bool hasGoodKshortVertex(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
-  bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>, RefCountedKinematicTree &); 
+  bool hasGoodKshortVertex(const vector<reco::TrackRef>, 
+			   RefCountedKinematicTree &); 
+  bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>,
+			      RefCountedKinematicTree &); 
 
   bool hasGoodDimuonKshortMass(const reco::TrackRef, const reco::TrackRef, 
 			       const reco::VertexCompositeCandidate, double &); 
@@ -202,7 +208,7 @@ private:
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
   void saveDimuVariables(double, double, double, double, double, double, double,
-			 double, double, double, double);
+			 double, double, double, double, double, double);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
   void saveTruthMatch(const edm::Event& iEvent); 
 
@@ -278,7 +284,8 @@ private:
   vector<double> *mummass, *mummasserr; 
   vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
   vector<double> *mupmass, *mupmasserr; 
-  vector<double> *mumudca, *mumuvtxcl, *mumulsbs, *mumulsbserr;  
+  vector<double> *mumutrkr, *mumutrkz , *mumudca; 
+  vector<double> *mumuvtxcl, *mumulsbs, *mumulsbserr;  
   vector<double> *mumucosalphabs, *mumucosalphabserr; 
 
   // soft muon variables 
@@ -381,8 +388,10 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
-  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), mummass(0), mummasserr(0), 
-  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0),  muppz(0), mupmass(0), mupmasserr(0), 
+  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), mummass(0), 
+  mummasserr(0), 
+  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0),  muppz(0), mupmass(0),
+  mupmasserr(0), mumutrkr(0), mumutrkz(0), 
   mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
   mumucosalphabs(0),  mumucosalphabserr(0), 
   mumisgoodmuon(0), mupisgoodmuon(0), 
@@ -515,6 +524,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("muppz", &muppz);
   tree_->Branch("mupmass", &mupmass); 
   tree_->Branch("mupmasserr", &mupmasserr); 
+  tree_->Branch("mumutrkr", &mumutrkr);
+  tree_->Branch("mumutrkz", &mumutrkz);
   tree_->Branch("mumudca", &mumudca);
   tree_->Branch("mumuvtxcl", &mumuvtxcl);
   tree_->Branch("mumulsbs", &mumulsbs);
@@ -701,10 +712,12 @@ BToKstarMuMu::clearVariables(){
   nprivtx = 0; 
   triggernames->clear();
   triggerprescales->clear();
-  mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();   mumpz->clear(); 
+  mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();  
+  mumpz->clear(); 
   mummass->clear(); mummasserr->clear(); 
-  mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear();   muppz->clear(); 
-  mupmass->clear(); mupmasserr->clear(); 
+  mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear(); 
+  muppz->clear(); 
+  mupmass->clear(); mupmasserr->clear(); mumutrkr->clear(); mumutrkz->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
   mumucosalphabs->clear();  mumucosalphabserr->clear();  
   mumisgoodmuon->clear();  mupisgoodmuon->clear(); 
@@ -862,10 +875,9 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
 
-  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, DCAmumu; 
+  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, mumutrk_R, mumutrk_Z, DCAmumu; 
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-
   double dimu_ks_mass, pion_trk_pt, kstar_mass; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
@@ -906,7 +918,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       if ( ! hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr)) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
-      if ( !hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT, DCAmumu) ) continue; 
+      if ( !hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
+					 mumutrk_R, mumutrk_Z, DCAmumu) ) continue; 
       
       // check dimuon vertex 
       if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
@@ -953,7 +966,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  nBu++; 
 	  // save the tree variables 
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
-			    DCAmumu,  mu_mu_vtx_cl,  MuMuLSBS, MuMuLSBSErr, 
+			    mumutrk_R, mumutrk_Z, DCAmumu,  mu_mu_vtx_cl, 
+			    MuMuLSBS, MuMuLSBSErr, 
 			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, dimu_ks_mass); 
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
@@ -1081,6 +1095,8 @@ BToKstarMuMu::hasGoodTrackDcaPoint (const reco::TransientTrack track, const Glob
 bool
 BToKstarMuMu::hasGoodClosestApproachTracks (const reco::TransientTrack muTrackpTT, 
 					    const reco::TransientTrack muTrackmTT,
+					    double & trk_R, 
+					    double & trk_Z, 
 					    double & DCAmumu)
 {
   ClosestApproachInRPhi ClosestApp; 
@@ -1089,6 +1105,9 @@ BToKstarMuMu::hasGoodClosestApproachTracks (const reco::TransientTrack muTrackpT
   
   GlobalPoint XingPoint = ClosestApp.crossingPoint();
   
+  trk_R = sqrt(XingPoint.x()*XingPoint.x() + XingPoint.y()*XingPoint.y()); 
+  trk_Z = fabs(XingPoint.z()); 
+
   if ((sqrt(XingPoint.x()*XingPoint.x() + XingPoint.y()*XingPoint.y()) > 
        TrkMaxR_) || (fabs(XingPoint.z()) > TrkMaxZ_))  return false;
 
@@ -1865,6 +1884,7 @@ BToKstarMuMu::saveSoftMuonVariables(pat::Muon iMuonM, pat::Muon iMuonP,
 void 
 BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr, 
 				double DCAmupBS, double DCAmupBSErr,
+				double mumutrk_R, double mumutrk_Z, 
 				double DCAmumu,  double mu_mu_vtx_cl, 
 				double MuMuLSBS, double MuMuLSBSErr, 
 				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr, 
@@ -1876,6 +1896,8 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   mupdcabs->push_back(DCAmupBS);
   mupdcabserr->push_back(DCAmupBSErr);
 
+  mumutrkr->push_back(mumutrk_R);
+  mumutrkz->push_back(mumutrk_Z); 
   mumudca->push_back(DCAmumu);
   mumuvtxcl->push_back(mu_mu_vtx_cl); 
   mumulsbs->push_back(MuMuLSBS);
