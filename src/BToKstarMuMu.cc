@@ -96,6 +96,7 @@ enum HistName{
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
+  h_mupdcabs, 
   h_mumumass,
   h_kshortmass,
   kHistNameSize
@@ -109,6 +110,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; [cm]", 100, 0, 10},
+  {"h_mupdcabs", "#mu^{+} DCA beam spot; [cm]", 100, 0, 10},
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 100, 2, 10},
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -881,6 +883,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
 
+  bool passed; 
   double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, mumutrk_R, mumutrk_Z, DCAmumu; 
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
@@ -910,7 +913,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     
     // check mu- DCA to beam spot 
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
-    bool passed = hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
+    passed = hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
     BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
     
     // if ( ! hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr)) continue; 
@@ -929,8 +932,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	   (fabs(muTrackp->eta()) > MuonMaxEta_)) continue;
       
       // check mu+ DCA to beam spot 
-      const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_));   
-      if ( ! hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr)) continue; 
+      const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
+      passed = hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
+      BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
+      
+      // if ( ! hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr)) continue; 
+      if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
       if ( !hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
