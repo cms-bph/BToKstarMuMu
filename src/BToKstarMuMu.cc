@@ -112,6 +112,7 @@ enum HistName{
 
   h_bvtxchisq, 
   h_kshortmass,
+  h_kstarmass, 
 
   kHistNameSize
 };
@@ -142,6 +143,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
+  {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 10},
 };
 
 // Define histograms 
@@ -1042,11 +1044,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
 	  
 	  if (!passed) continue; 
-	  // if ( ! hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
-	  // 			 pionTrack, b_vtx_chisq, 
-	  // 			 vertexFitTree, ksVertexFitTree)) continue; 
 	  
-	  if ( ! hasGoodKstarChargedMass(vertexFitTree, kstar_mass) ) continue; 
+	  passed = hasGoodKstarChargedMass(vertexFitTree, kstar_mass); 
+	  BToKstarMuMuFigures[h_kstarmass]->Fill(kstar_mass); 
+	  if (!passed) continue; 
+	  // if ( ! hasGoodKstarChargedMass(vertexFitTree, kstar_mass) ) continue; 
 	  
 	  if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
 
