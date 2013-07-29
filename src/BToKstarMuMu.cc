@@ -105,6 +105,7 @@ enum HistName{
   h_mumupt, 
 
   h_mumumass,
+  h_mumulxybs, 
   h_kshortmass,
   kHistNameSize
 };
@@ -127,6 +128,7 @@ HistArgs hist_args[kHistNameSize] = {
 
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
    100, 2, 20},
+  {"h_mumulxybs", "#mu^{+}#mu^{-} Lxy #sigma beam spot", 100, 0, 100},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -980,6 +982,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       BToKstarMuMuFigures[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
       BToKstarMuMuFigures[h_mumupt]->Fill(mu_mu_pt); 
       BToKstarMuMuFigures[h_mumumass]->Fill(mu_mu_mass); 
+      BToKstarMuMuFigures[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
 
       if ( !passed) continue; 
       // if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
