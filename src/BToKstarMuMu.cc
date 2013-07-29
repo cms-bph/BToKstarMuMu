@@ -102,8 +102,9 @@ enum HistName{
   h_mumutrkz, 
   h_mumudca, 
   h_mumuvtxcl, 
-  h_mumumass,
+  h_mumupt, 
 
+  h_mumumass,
   h_kshortmass,
   kHistNameSize
 };
@@ -122,6 +123,8 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
   {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
+  {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
+
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
    100, 2, 10},
 
@@ -201,7 +204,7 @@ private:
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
-			  double &, double &, double &, double &, double &);
+			  double &, double &, double &, double &, double &, double &);
 
   bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle, double &);
 
@@ -899,7 +902,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   bool passed; 
   double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, mumutrk_R, mumutrk_Z, DCAmumu; 
   reco::TransientTrack refitMupTT, refitMumTT; 
-  double mu_mu_vtx_cl, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS, MuMuCosAlphaBSErr;
+  double mu_mu_vtx_cl, mu_mu_pt, MuMuLSBS, MuMuLSBSErr, MuMuCosAlphaBS; 
+  double  MuMuCosAlphaBSErr;
   double dimu_ks_mass, pion_trk_pt, kstar_mass; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
@@ -960,7 +964,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
       BToKstarMuMuFigures[h_mumutrkz]->Fill(mumutrk_Z); 
 
-      cout << ">>> mumutrk_Z = " << mumutrk_Z << endl; 
+      // cout << ">>> mumutrk_Z = " << mumutrk_Z << endl; 
 
       BToKstarMuMuFigures[h_mumudca]->Fill(DCAmumu); 
 
@@ -968,10 +972,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
       // check dimuon vertex 
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
-				 mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
+				 mu_mu_vtx_cl, mu_mu_pt, MuMuLSBS, MuMuLSBSErr,
 				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
       
       BToKstarMuMuFigures[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
+      BToKstarMuMuFigures[h_mumupt]->Fill(mu_mu_pt); 
+
       if ( !passed) continue; 
       // if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
       // 			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
@@ -1174,7 +1180,7 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 				 const reco::TransientTrack muTrackmTT, 
 				 reco::TransientTrack &refitMupTT, 
 				 reco::TransientTrack &refitMumTT, 
-				 double & mu_mu_vtx_cl,
+				 double & mu_mu_vtx_cl, double & mu_mu_pt, 
 				 double & MuMuLSBS, double & MuMuLSBSErr, 
 				 double & MuMuCosAlphaBS, double & MuMuCosAlphaBSErr)
 {
@@ -1228,7 +1234,7 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 		refitMupTT.track().momentum().z(), MuonMass_); 
   
   mydimu = mymum + mymup; 
-  
+  mu_mu_pt = mydimu.Perp(); 
   if ((mydimu.Perp() < MuMuMinPt_) || 
       (mydimu.M() < MuMuMinInvMass_) ||
       (mydimu.M() > MuMuMaxInvMass_)) {
