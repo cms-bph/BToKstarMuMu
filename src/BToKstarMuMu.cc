@@ -110,6 +110,7 @@ enum HistName{
   h_dimuksmass, 
   h_trkpt, 
 
+  h_bvtxchisq, 
   h_kshortmass,
 
   kHistNameSize
@@ -137,6 +138,8 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_dimuksmass", "Dimu Kshort mass; M(Dimu Kshort) [GeV]", 100, 0, 20},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
+
+  {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
 };
@@ -210,6 +213,7 @@ private:
 
   bool hasGoodBuVertex(const reco::TrackRef, const reco::TrackRef, 
 		       const vector<reco::TrackRef>, const reco::TrackRef, 
+		       double &, 
 		       RefCountedKinematicTree &, RefCountedKinematicTree &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
@@ -915,7 +919,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, MuMuLSBS, MuMuLSBSErr; 
   double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-  double dimu_ks_mass, pion_trk_pt, kstar_mass; 
+  double dimu_ks_mass, pion_trk_pt, kstar_mass, b_vtx_chisq; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
@@ -1030,12 +1034,17 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  BToKstarMuMuFigures[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
-	  // if ( ! hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt)) continue; 
-	  
 	  reco::TrackRef pionTrack = iTrack->track(); 
 	  
-	  if ( ! hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, pionTrack,
-				 vertexFitTree, ksVertexFitTree)) continue; 
+	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
+				   pionTrack, b_vtx_chisq, 
+				   vertexFitTree, ksVertexFitTree); 
+	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
+	  
+	  if (!passed) continue; 
+	  // if ( ! hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
+	  // 			 pionTrack, b_vtx_chisq, 
+	  // 			 vertexFitTree, ksVertexFitTree)) continue; 
 	  
 	  if ( ! hasGoodKstarChargedMass(vertexFitTree, kstar_mass) ) continue; 
 	  
@@ -1458,6 +1467,7 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
 			      const reco::TrackRef mu2Track,
 			      const vector<reco::TrackRef> kshortDaughterTracks, 
 			      const reco::TrackRef pionTrack, 
+			      double & bvtxchisq, 
 			      RefCountedKinematicTree &vertexFitTree, 
 			      RefCountedKinematicTree &ksVertexFitTree)
 {
@@ -1477,7 +1487,8 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   vector<RefCountedKinematicParticle> vFitMCParticles;
   vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,chi,ndf,MuonMassErr_));
   vFitMCParticles.push_back(pFactory.particle(mu2TT,MuonMass_,chi,ndf,MuonMassErr_));
-  vFitMCParticles.push_back(pFactory.particle(pionTT, PionMass_, chi, ndf, PionMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(pionTT, PionMass_, chi, 
+					      ndf, PionMassErr_));
   vFitMCParticles.push_back(ks_KP);
 
   KinematicParticleVertexFitter fitter;   
@@ -1488,6 +1499,8 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   RefCountedKinematicVertex bDecayVertexMC = vertexFitTree->currentDecayVertex();
   if ( !bDecayVertexMC->vertexIsValid()) return false; 
  
+
+  bvtxchisq = bDecayVertexMC->chiSquared(); 
   if ( bDecayVertexMC->chiSquared()<0
        || bDecayVertexMC->chiSquared()>1000 ) return false; 
 
