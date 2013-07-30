@@ -34,7 +34,7 @@ struct HistArgs{
 };
 
 enum HistName{
-  h_mupt,
+  h_truemupt,
   kHistNameSize
 };
 
@@ -42,7 +42,7 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_truemupt", "#mu pT; pT [GeV]", 100, 0, 30}
+  {"h_truemupt", "True #mu^{+} pT; pT [GeV]", 100, 0, 30}
 };
 
 // Define histograms 
@@ -102,31 +102,24 @@ void summary(TString infile, TString outfile){
   // TH1F *h_truemupt = get_true_mupt();  
 
   TTree *t = (TTree*) fi->Get("tree"); 
-  vector<double> *bmass = 0;  // must init with 0! 
+  vector<double>  *bmass = 0;  // must init with 0! 
   vector<bool>    *istruebu = 0;
+  vector<double>  *muppt = 0; 
   t->SetBranchAddress("bmass", &bmass); 
   t->SetBranchAddress("istruebu", &istruebu); 
+  t->SetBranchAddress("muppt", &muppt); 
 
-  // t->GetEntry(1);
-  // cout << "bmass size = " << bmass->size() << endl; 
-    
   Int_t nentries = (Int_t)t->GetEntries();
   for (Int_t i=0;i<nentries;i++) {
     t->GetEntry(i);
     if (bmass->size() < 1) continue; 
     
-    if (bmass->size() > 100) cout << "bmass size = " << bmass->size() << endl;     
     for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-      if (istruebu->at(i)) cout << "true B! " << endl; 
-	// histos[h_truemupt]->Fill(
+      if (istruebu->at(i)) histos[h_truemupt]->Fill(muppt->at(i)); 
     }
-
-    
   }
 
 
-  
- 
   // gDirectory->GetObject("h_mupt", histos[h_mupt]); 
   // gDirectory->GetObject("h_mupt", h); 
   
@@ -153,7 +146,7 @@ void summary(TString infile, TString outfile){
   h->Write(); 
   h->Delete(); 
 
-  t->Draw("bmass");   
+  histos[h_truemupt]->Draw(); 
   c->Print(pdffile.Data());
 
   // p2 
@@ -161,57 +154,7 @@ void summary(TString infile, TString outfile){
 
   delete c; 
   fo->Close(); 
-
-
-  // // fill histograms
-  // Int_t nentries = (Int_t)ch->GetEntries();
-  
-  // if (nentries == 0) {
-  //   cerr << "No entries found!" << endl; 
-  //   gSystem->Exit(0);
-  // }
-
-  // for (Int_t i=0;i<nentries;i++) {
-  //   ch->GetEntry(i);
-  //   histos[h_mumumass]->Fill(Mumumass); 
-  
-  //   if (Bchg > 0) {
-  //     histos[h_kstarpmass]->Fill(Kstarmass); 
-  //     histos[h_bpmass]->Fill(Bmass); 
-  //     if (sel_bmass_res(label, Mumumass)) {
-  // 	histos[h_bpmass_res]->Fill(Bmass); 
-
-  // 	if (Bmass > 5 and Bmass < 6) {
-  // 	  histos[h_bpmass_res_zoom_5_6]->Fill(Bmass); 
-  // 	}
-
-  // 	if (Bmass > 5.3 and Bmass < 5.8) {
-  // 	  histos[h_bpmass_res_zoom_5p3_5p8]->Fill(Bmass); 
-  // 	}
-	
-  //     } else {
-  // 	histos[h_bpmass_nonres]->Fill(Bmass); 
-  // 	if (Bmass > 5 and Bmass < 6) {
-  // 	  histos[h_bpmass_nonres_zoom_5_6]->Fill(Bmass); 
-  // 	}
-	
-  //     }
-      
-  //   }
-  // }
-  
-  // c->Print(Form("%s[", pdffile.Data()));
-
-  // for(int i = 0; i < kHistNameSize; i++) {
-  //   histos[i]->Draw();
-  //   c->Print(pdffile.Data());
-  //   histos[i]->Write();
-  //   histos[i]->Delete();
-  // }
-  // c->Print(Form("%s]", pdffile.Data()));
-  // delete c; 
-  // f->Close(); 
-  
+ 
 }
 
   
