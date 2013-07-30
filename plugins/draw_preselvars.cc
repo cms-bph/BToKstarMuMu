@@ -35,6 +35,7 @@ struct HistArgs{
 
 enum HistName{
   h_truemupt,
+  h_truemueta,
   kHistNameSize
 };
 
@@ -42,7 +43,8 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_truemupt", "True muon pT; pT [GeV]", 100, 0, 30}
+  {"h_truemupt", "True muon pT; pT [GeV]", 100, 0, 30},
+  {"h_truemueta", "True muon eta; eta", 100, 0, 10}
 };
 
 // Define histograms 
@@ -90,21 +92,25 @@ void summary(TString infile, TString outfile){
   for(int i=0; i<kHistNameSize; i++) {
     histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
 			 hist_args[i].n_bins, hist_args[i].x_min, 
-			 hist_args[i].x_max);
-  }
+			 hist_args[i].x_max); }
 
   TFile *fi = TFile::Open(infile); 
-  TH1F *h = (TH1F*) fi->Get("h_mupt"); 
+  TH1F *h_mupt = (TH1F*) fi->Get("h_mupt"); 
+  TH1F *h_mueta = (TH1F*) fi->Get("h_mueta"); 
 
   TTree *t = (TTree*) fi->Get("tree"); 
   vector<double>  *bmass = 0;  // must init with 0! 
   vector<bool>    *istruebu = 0;
   vector<double>  *muppt = 0; 
   vector<double>  *mumpt = 0; 
+  vector<double>  *mupeta = 0; 
+  vector<double>  *mumeta = 0; 
   t->SetBranchAddress("bmass", &bmass); 
   t->SetBranchAddress("istruebu", &istruebu); 
   t->SetBranchAddress("muppt", &muppt); 
   t->SetBranchAddress("mumpt", &mumpt); 
+  t->SetBranchAddress("mupeta", &mupeta); 
+  t->SetBranchAddress("mumeta", &mumeta); 
 
   Int_t nentries = (Int_t)t->GetEntries();
   // Int_t nentries = 1000;  
@@ -114,8 +120,13 @@ void summary(TString infile, TString outfile){
     if (bmass->size() < 1) continue; 
     
     for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-      if (istruebu->at(i)) histos[h_truemupt]->Fill(muppt->at(i)); 
-      if (istruebu->at(i)) histos[h_truemupt]->Fill(mumpt->at(i)); 
+      if (istruebu->at(i)) {
+	histos[h_truemupt]->Fill(muppt->at(i)); 
+	histos[h_truemupt]->Fill(mumpt->at(i)); 
+
+	histos[h_truemueta]->Fill(mupeta->at(i)); 
+	histos[h_truemueta]->Fill(mumeta->at(i)); 
+      }
     }
   }
 
@@ -132,19 +143,27 @@ void summary(TString infile, TString outfile){
   c->Print(Form("%s[", pdffile.Data()));
 
   c->Divide(2, 1); 
-  // p1 
+  // mupt 
   c->cd(1); 
-  h->Draw(); 
+  h_mupt->Draw(); 
 
   c->cd(2); 
   histos[h_truemupt]->Draw(); 
   c->Print(pdffile.Data());
+  h_mupt->Write(); 
+  h_mupt->Delete(); 
 
-  h->Write(); 
-  h->Delete(); 
+
+  // mueta 
+  c->cd(1); 
+  h_mueta->Draw(); 
+
+  c->cd(2); 
+  histos[h_truemueta]->Draw(); 
+  c->Print(pdffile.Data());
+  h_mueta->Write(); 
+  h_mueta->Delete(); 
   
-
-
   c->Print(Form("%s]", pdffile.Data()));
   delete c; 
   fo->Close(); 
