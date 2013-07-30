@@ -106,17 +106,16 @@ void summary(TString infile, TString outfile){
   // TH1F *h_truemupt = get_true_mupt();  
 
   TTree *t = (TTree*) fi->Get("tree"); 
-  // t->Draw("bmass"); 
-  vector<double> *bmass = 0; 
-  // TBranch        *b_bmass;   //!
+  vector<double> *bmass = 0;  // must init with 0! 
   t->SetBranchAddress("bmass", &bmass); 
-  // t->SetBranchAddress("bmass", &bmass, &b_bmass);
+
   // t->GetEntry(1);
   // cout << "bmass size = " << bmass->size() << endl; 
     
   Int_t nentries = (Int_t)t->GetEntries();
   for (Int_t i=0;i<nentries;i++) {
     t->GetEntry(i);
+    if (bmass->size() < 1) continue; 
     cout << "bmass size = " << bmass->size() << endl;     
   }
 
