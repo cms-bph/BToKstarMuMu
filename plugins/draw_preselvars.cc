@@ -42,7 +42,7 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_truemupt", "True #mu^{+} pT; pT [GeV]", 100, 0, 30}
+  {"h_truemupt", "True muon pT; pT [GeV]", 100, 0, 30}
 };
 
 // Define histograms 
@@ -86,7 +86,6 @@ void set_root_style(int stat=1110, int grid=0){
 
 
 void summary(TString infile, TString outfile){
-
   // create histograms 
   for(int i=0; i<kHistNameSize; i++) {
     histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
@@ -94,44 +93,36 @@ void summary(TString infile, TString outfile){
 			 hist_args[i].x_max);
   }
 
-  // cout << "infile = " << infile.Data() << endl ; 
-
   TFile *fi = TFile::Open(infile); 
   TH1F *h = (TH1F*) fi->Get("h_mupt"); 
-
-  // TH1F *h_truemupt = get_true_mupt();  
 
   TTree *t = (TTree*) fi->Get("tree"); 
   vector<double>  *bmass = 0;  // must init with 0! 
   vector<bool>    *istruebu = 0;
   vector<double>  *muppt = 0; 
+  vector<double>  *mumpt = 0; 
   t->SetBranchAddress("bmass", &bmass); 
   t->SetBranchAddress("istruebu", &istruebu); 
   t->SetBranchAddress("muppt", &muppt); 
+  t->SetBranchAddress("mumpt", &mumpt); 
 
   Int_t nentries = (Int_t)t->GetEntries();
+  // Int_t nentries = 1000;  
+
   for (Int_t i=0;i<nentries;i++) {
     t->GetEntry(i);
     if (bmass->size() < 1) continue; 
     
     for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
       if (istruebu->at(i)) histos[h_truemupt]->Fill(muppt->at(i)); 
+      if (istruebu->at(i)) histos[h_truemupt]->Fill(mumpt->at(i)); 
     }
   }
 
-
-  // gDirectory->GetObject("h_mupt", histos[h_mupt]); 
-  // gDirectory->GetObject("h_mupt", h); 
-  
-  // if (!h) {
-  //   cerr << "No object found!" << endl; 
-  //   return;				       
-  // }
-  
   // save figures
   set_root_style(); 
 
-  c = new TCanvas("c","c", 640, 640); 
+  c = new TCanvas("c","c", 800, 400); 
   c->UseCurrentStyle() ;
   TFile *fo = new TFile(outfile, "recreate");
 
@@ -140,18 +131,21 @@ void summary(TString infile, TString outfile){
 
   c->Print(Form("%s[", pdffile.Data()));
 
+  c->Divide(2, 1); 
   // p1 
+  c->cd(1); 
   h->Draw(); 
-  c->Print(pdffile.Data());
-  h->Write(); 
-  h->Delete(); 
 
+  c->cd(2); 
   histos[h_truemupt]->Draw(); 
   c->Print(pdffile.Data());
 
-  // p2 
-  c->Print(Form("%s]", pdffile.Data()));
+  h->Write(); 
+  h->Delete(); 
+  
 
+
+  c->Print(Form("%s]", pdffile.Data()));
   delete c; 
   fo->Close(); 
  
