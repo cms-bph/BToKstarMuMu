@@ -100,10 +100,8 @@ void summary(TString infile, TString outfile){
 
   cout << "infile = " << infile.Data() << endl ;
  
-  // TFile *fi = TFile::Open(infile); 
-  TFile fi(infile); 
-  // TH1F *h = (TH1F*) fi->Get("h_mupt"); 
-  TH1F *h = (TH1F*) fi.Get("h_mupt"); 
+  TFile *fi = TFile::Open(infile); 
+  TH1F *h = (TH1F*) fi->Get("h_mupt"); 
 
   
   // // create histograms 
@@ -130,17 +128,19 @@ void summary(TString infile, TString outfile){
 
   TString pdffile = outfile; 
   pdffile.ReplaceAll(".root", ".pdf"); 
-  // c->Print(Form("%s[", pdffile.Data()));
+
+  c->Print(Form("%s[", pdffile.Data()));
 
   h->Draw(); 
-  
-  //  c->Print(Form("%s]", pdffile.Data()));
-  c->Print("v1.pdf"); 
-
+  c->Print(pdffile.Data());
   h->Write(); 
+  h->Delete(); 
+  
+  c->Print(Form("%s]", pdffile.Data()));
 
-  fo->Close(); 
   delete c; 
+  fo->Close(); 
+
 
   // // fill histograms
   // Int_t nentries = (Int_t)ch->GetEntries();
