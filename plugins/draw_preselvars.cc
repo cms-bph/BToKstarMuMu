@@ -100,12 +100,47 @@ void summary(TString infile, TString outfile){
 
   cout << "infile = " << infile.Data() << endl ;
  
+  // TFile *fi = TFile::Open(infile); 
+  TFile fi(infile); 
+  // TH1F *h = (TH1F*) fi->Get("h_mupt"); 
+  TH1F *h = (TH1F*) fi.Get("h_mupt"); 
+
+  
   // // create histograms 
   // for(int i=0; i<kHistNameSize; i++) {
   //   histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
   // 				       hist_args[i].n_bins,
   // 				       hist_args[i].x_min, hist_args[i].x_max);
   // }
+
+  // gDirectory->GetObject("h_mupt", histos[h_mupt]); 
+  // gDirectory->GetObject("h_mupt", h); 
+  
+  // if (!h) {
+  //   cerr << "No object found!" << endl; 
+  //   return;				       
+  // }
+  
+  // save figures
+  set_root_style(); 
+
+  c = new TCanvas("c","c", 640, 640); 
+  c->UseCurrentStyle() ;
+  TFile *fo = new TFile(outfile, "recreate");
+
+  TString pdffile = outfile; 
+  pdffile.ReplaceAll(".root", ".pdf"); 
+  // c->Print(Form("%s[", pdffile.Data()));
+
+  h->Draw(); 
+  
+  //  c->Print(Form("%s]", pdffile.Data()));
+  c->Print("v1.pdf"); 
+
+  h->Write(); 
+
+  fo->Close(); 
+  delete c; 
 
   // // fill histograms
   // Int_t nentries = (Int_t)ch->GetEntries();
@@ -144,15 +179,6 @@ void summary(TString infile, TString outfile){
   //   }
   // }
   
-  // // save figures
-  // set_root_style(); 
-
-  // c = new TCanvas("c","c", 640, 640); 
-  // c->UseCurrentStyle() ;
-  // TFile *f = new TFile(outfile, "recreate");
-
-  // TString pdffile = outfile; 
-  // pdffile.ReplaceAll(".root", ".pdf"); 
   // c->Print(Form("%s[", pdffile.Data()));
 
   // for(int i = 0; i < kHistNameSize; i++) {
