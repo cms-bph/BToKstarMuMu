@@ -98,10 +98,28 @@ void set_root_style(int stat=1110, int grid=0){
 
 void summary(TString infile, TString outfile){
 
-  cout << "infile = " << infile.Data() << endl ;
+  // cout << "infile = " << infile.Data() << endl ;
  
   TFile *fi = TFile::Open(infile); 
   TH1F *h = (TH1F*) fi->Get("h_mupt"); 
+
+  // TH1F *h_truemupt = get_true_mupt();  
+
+  TTree *t = (TTree*) fi->Get("tree"); 
+  // t->Draw("bmass"); 
+  vector<double> *bmass = 0; 
+  // TBranch        *b_bmass;   //!
+  t->SetBranchAddress("bmass", &bmass); 
+  // t->SetBranchAddress("bmass", &bmass, &b_bmass);
+  // t->GetEntry(1);
+  // cout << "bmass size = " << bmass->size() << endl; 
+    
+  Int_t nentries = (Int_t)t->GetEntries();
+  for (Int_t i=0;i<nentries;i++) {
+    t->GetEntry(i);
+    cout << "bmass size = " << bmass->size() << endl;     
+  }
+
 
   
   // // create histograms 
@@ -131,11 +149,16 @@ void summary(TString infile, TString outfile){
 
   c->Print(Form("%s[", pdffile.Data()));
 
+  // p1 
   h->Draw(); 
   c->Print(pdffile.Data());
   h->Write(); 
   h->Delete(); 
-  
+
+  t->Draw("bmass");   
+  c->Print(pdffile.Data());
+
+  // p2 
   c->Print(Form("%s]", pdffile.Data()));
 
   delete c; 
