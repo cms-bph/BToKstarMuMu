@@ -42,7 +42,7 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_mupt", "#mu pT; pT [GeV]", 100, 0, 30}
+  {"h_truemupt", "#mu pT; pT [GeV]", 100, 0, 30}
 };
 
 // Define histograms 
@@ -50,17 +50,6 @@ TH1F *histos[kHistNameSize];
 
 TChain *ch; 
 TCanvas *c;
-
-double Mumumass = 0; 
-double Kstarmass = 0; 
-
-double Bmass = 0; 
-double Bpt = 0; 
-int Bchg = 0; 
-double Bvtxcl = 0; 
-double Blxysig = 0; 
-double Bcosalphabs = 0; 
-double Bctau = 0; 
 
 void set_root_style(int stat=1110, int grid=0){
   
@@ -98,8 +87,15 @@ void set_root_style(int stat=1110, int grid=0){
 
 void summary(TString infile, TString outfile){
 
-  // cout << "infile = " << infile.Data() << endl ;
- 
+  // create histograms 
+  for(int i=0; i<kHistNameSize; i++) {
+    histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
+			 hist_args[i].n_bins, hist_args[i].x_min, 
+			 hist_args[i].x_max);
+  }
+
+  // cout << "infile = " << infile.Data() << endl ; 
+
   TFile *fi = TFile::Open(infile); 
   TH1F *h = (TH1F*) fi->Get("h_mupt"); 
 
@@ -107,7 +103,9 @@ void summary(TString infile, TString outfile){
 
   TTree *t = (TTree*) fi->Get("tree"); 
   vector<double> *bmass = 0;  // must init with 0! 
+  vector<bool>    *istruebu = 0;
   t->SetBranchAddress("bmass", &bmass); 
+  t->SetBranchAddress("istruebu", &istruebu); 
 
   // t->GetEntry(1);
   // cout << "bmass size = " << bmass->size() << endl; 
@@ -116,18 +114,19 @@ void summary(TString infile, TString outfile){
   for (Int_t i=0;i<nentries;i++) {
     t->GetEntry(i);
     if (bmass->size() < 1) continue; 
-    cout << "bmass size = " << bmass->size() << endl;     
+    
+    if (bmass->size() > 100) cout << "bmass size = " << bmass->size() << endl;     
+    for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
+      if (istruebu->at(i)) cout << "true B! " << endl; 
+	// histos[h_truemupt]->Fill(
+    }
+
+    
   }
 
 
   
-  // // create histograms 
-  // for(int i=0; i<kHistNameSize; i++) {
-  //   histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
-  // 				       hist_args[i].n_bins,
-  // 				       hist_args[i].x_min, hist_args[i].x_max);
-  // }
-
+ 
   // gDirectory->GetObject("h_mupt", histos[h_mupt]); 
   // gDirectory->GetObject("h_mupt", h); 
   
