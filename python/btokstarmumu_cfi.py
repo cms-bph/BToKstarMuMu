@@ -161,7 +161,9 @@ process.ntuple = cms.EDAnalyzer(
     MuonLabel = cms.InputTag('cleanPatMuonsTriggerMatch'),
     MuonMinPt = cms.untracked.double(3.0), # [GeV]
     MuonMaxEta = cms.untracked.double(2.2),  
-    TrkMaxDcaBs = cms.untracked.double(2.0), # [cm]
+    MuonMaxDcaBs = cms.untracked.double(2.0), # [cm]
+    TrkMaxDcaSigBs = cms.untracked.double(1.2), # hadron DCA/sigma w/respect to BS [1.2]
+
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
     MuMuMaxDca = cms.untracked.double(0.5), # [cm]
