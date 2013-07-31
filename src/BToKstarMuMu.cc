@@ -111,6 +111,7 @@ enum HistName{
   h_dimuksmass, 
   h_trkpt, 
 
+  h_trkdcasigbs,
   h_bvtxchisq, 
   h_kshortmass,
   h_kstarmass, 
@@ -141,6 +142,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_dimuksmass", "Dimu Kshort mass; M(Dimu Kshort) [GeV]", 100, 0, 20},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
 
+  {"h_trkdcabssig", "#Pion track DCA/sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
   {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
@@ -278,7 +280,7 @@ private:
   double MuonMinPt_; 
   double MuonMaxEta_; 
   double MuonMaxDcaBs_; 
-  double TrkMaxDcaBs_; 
+  double TrkMaxDcaSigBs_; 
   double TrkMaxR_;
   double TrkMaxZ_; 
   double MuMuMaxDca_; 
@@ -405,7 +407,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuonMinPt_(iConfig.getUntrackedParameter<double>("MuonMinPt")),
   MuonMaxEta_(iConfig.getUntrackedParameter<double>("MuonMaxEta")),
   MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
-  TrkMaxDcaBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaBs")),
+  TrkMaxDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaSigBs")),
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
   MuMuMaxDca_(iConfig.getUntrackedParameter<double>("MuMuMaxDca")),
@@ -904,11 +906,6 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent,
 
    if ( theTrackRef->pt() < KstarChargedTrackMinPt_ ) return false; 
 
-   // // compute track DCA to beam spot 
-   // const reco::TransientTrack theTrackTT(theTrackRef, &(*bFieldHandle_));   
-   // double DCAKstTrkBS, DCAKstTrkBSErr; 
-   // if ( ! hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr)) return false; 
-
    return true;
 }
 
@@ -1048,6 +1045,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  // compute track DCA to beam spot 
 	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
 	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
+	  BToKstarMuMuFigures[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
 
 	  if (!passed) continue; 
 	  
@@ -1196,7 +1194,7 @@ BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack TrackTT,
   
   DcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   DcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( DcaBs > TrkMaxDcaBs_ )   return false; 
+  if ( DcaBs/DcaBsErr > TrkMaxDcaSigBs_ )   return false; 
   return true; 
 }
 
