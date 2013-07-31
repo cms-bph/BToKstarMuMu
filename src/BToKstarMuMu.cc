@@ -1882,7 +1882,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     if (imum != -1 && imup != -1) {
       mum = b.daughter(imum);
       mup = b.daughter(imup);
-      // cout << ">>> found k* mu mu " << endl; 
     } 
 
     // K* J/psi 
@@ -1896,13 +1895,21 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (imum != -1 && imup != -1) {
 	mum = jpsi.daughter(imum);
 	mup = jpsi.daughter(imup);
-
-	// cout << ">>> found Jpsi! " << endl; 
       } 
     }
 
     // K* psi(2S) 
     else if ( ipsi2s != -1) {
+      const reco::Candidate & psi2s = *(b.daughter(ipsi2s));
+      for ( size_t j = 0; j < psi2s.numberOfDaughters(); ++j){
+	const reco::Candidate  &dau = *(psi2s.daughter(j));
+	if ( dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
+	if ( dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
+      }
+      if (imum != -1 && imup != -1) {
+	mum = psi2s.daughter(imum);
+	mup = psi2s.daughter(imup);
+      } 
     }
 
     if ( mum == NULL || mup == NULL) continue; 
