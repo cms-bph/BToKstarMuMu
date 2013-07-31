@@ -94,7 +94,6 @@ struct HistArgs{
 };
 
 enum HistName{
-  h_nevents, 
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
@@ -124,7 +123,6 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_nevents", "Total number of processed events", 100, 0, 1000000},
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
@@ -320,7 +318,6 @@ private:
   TFile* fout_;
   TTree* tree_;
   
-  unsigned int nevents; 
   unsigned int run, event, lumiblock, nprivtx; 
   vector<string> *triggernames;
   vector<int> *triggerprescales;
@@ -502,9 +499,6 @@ BToKstarMuMu::~BToKstarMuMu()
 void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  nevents += 1; 
-  BToKstarMuMuFigures[h_nevents]->Fill(nevents); 
-
   clearVariables(); 
 
   run = iEvent.id().run() ;
@@ -540,8 +534,6 @@ BToKstarMuMu::beginJob()
 {
   fout_ = new TFile(FileName_.c_str(), "RECREATE");
   fout_->cd();
-
-  nevents = 0; 
 
   for(int i=0; i<kHistNameSize; i++) {
     BToKstarMuMuFigures[i] = new TH1F(hist_args[i].name, hist_args[i].title,
