@@ -208,6 +208,7 @@ private:
 
   bool hasGoodDimuonKshortMass(const reco::TrackRef, const reco::TrackRef, 
 			       const reco::VertexCompositeCandidate, double &); 
+  bool hasGoodMuonDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
@@ -276,6 +277,7 @@ private:
   edm::InputTag MuonLabel_;
   double MuonMinPt_; 
   double MuonMaxEta_; 
+  double MuonMaxDcaBs_; 
   double TrkMaxDcaBs_; 
   double TrkMaxR_;
   double TrkMaxZ_; 
@@ -402,6 +404,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuonLabel_(iConfig.getParameter<edm::InputTag>("MuonLabel")),
   MuonMinPt_(iConfig.getUntrackedParameter<double>("MuonMinPt")),
   MuonMaxEta_(iConfig.getUntrackedParameter<double>("MuonMaxEta")),
+  MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
   TrkMaxDcaBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaBs")),
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
@@ -958,7 +961,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     
     // check mu- DCA to beam spot 
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
-    passed = hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
+    passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
     BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
     
     if ( ! passed ) continue; 
@@ -977,7 +980,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       
       // check mu+ DCA to beam spot 
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
-      passed = hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
+      passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
       BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
       
       if ( ! passed ) continue; 
@@ -1157,8 +1160,8 @@ BToKstarMuMu::computeCosAlpha (double Vx, double Vy, double Vz,
 
 
 bool 
-BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack muTrackTT, 
-				 double &muDcaBs, double &muDcaBsErr)
+BToKstarMuMu::hasGoodMuonDcaBs (const reco::TransientTrack muTrackTT, 
+				double &muDcaBs, double &muDcaBsErr)
 {
   TrajectoryStateClosestToPoint theDCAXBS = 
     muTrackTT.trajectoryStateClosestToPoint(
@@ -1169,7 +1172,24 @@ BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack muTrackTT,
   
   muDcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   muDcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( muDcaBs > TrkMaxDcaBs_ )   return false; 
+  if ( muDcaBs > MuonMaxDcaBs_ )   return false; 
+  return true; 
+}
+
+bool 
+BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack TrackTT, 
+				 double &DcaBs, double &DcaBsErr)
+{
+  TrajectoryStateClosestToPoint theDCAXBS = 
+    TrackTT.trajectoryStateClosestToPoint(
+     GlobalPoint(beamSpot_.position().x(),
+		 beamSpot_.position().y(),beamSpot_.position().z()));
+  
+  if ( !theDCAXBS.isValid() )  return false; 
+  
+  DcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
+  DcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
+  if ( DcaBs > TrkMaxDcaBs_ )   return false; 
   return true; 
 }
 
