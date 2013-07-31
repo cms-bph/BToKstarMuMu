@@ -904,10 +904,10 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent,
 
    if ( theTrackRef->pt() < KstarChargedTrackMinPt_ ) return false; 
 
-   // compute track DCA to beam spot 
-   const reco::TransientTrack theTrackTT(theTrackRef, &(*bFieldHandle_));   
-   double DCAKstTrkBS, DCAKstTrkBSErr; 
-   if ( ! hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr)) return false; 
+   // // compute track DCA to beam spot 
+   // const reco::TransientTrack theTrackTT(theTrackRef, &(*bFieldHandle_));   
+   // double DCAKstTrkBS, DCAKstTrkBSErr; 
+   // if ( ! hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr)) return false; 
 
    return true;
 }
@@ -936,6 +936,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, MuMuLSBS, MuMuLSBSErr; 
   double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
   double dimu_ks_mass, pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
+  double DCAKstTrkBS, DCAKstTrkBSErr; 
 
   vector<reco::TrackRef> kshortDaughterTracks;
   int nBu = 0; 
@@ -1043,6 +1044,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if (!passed) continue; 
 	  
 	  reco::TrackRef pionTrack = iTrack->track(); 
+
+	  // compute track DCA to beam spot 
+	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
+	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
+
+	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
 				   pionTrack, b_vtx_chisq, 
