@@ -80,6 +80,8 @@ const int PIONPLUS_PDG_ID = 211;
 const int KSHORTZERO_PDG_ID = 310; 
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
+const int JPSI_PDG_ID = 443; 
+const int PSI2S_PDG_ID = 10443; 
 const double PI = 3.141592653589793;
 
 // Structures 
@@ -1803,17 +1805,20 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
     int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1), ipip(-1), ipim(-1); 
-
+    int ijpsi(-1), ipsi2s(-1); 
+    
     // loop over all B+/- daughters 
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(b.daughter(j));
       if (dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
       if (dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
       if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;  
+      if (dau.pdgId() == JPSI_PDG_ID ) ijpsi = j; 
+      if (dau.pdgId() == PSI2S_PDG_ID ) ipsi2s = j; 
     }
 
-    if (ikst == -1 || imum == -1 || imup == -1) continue; 
-
+    // determine the K*+ -> Ks0 pi+
+    if ( ikst == -1 ) continue; 
     const reco::Candidate & kst = *(b.daughter(ikst));
     
     for ( size_t j = 0; j < kst.numberOfDaughters(); ++j){
@@ -1824,6 +1829,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
     if (iks == -1 || ipi == -1) continue; 
    
+    // Ks0 -> pi+ pi-
     const reco::Candidate & ks = *(kst.daughter(iks));
     for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(ks.daughter(j));
@@ -1832,25 +1838,16 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     }
    
     if (ipip == -1 || ipim == -1) continue; 
-   
+    
+    // store the B and K* vars
     const reco::Candidate & pip = *(ks.daughter(ipip));
     const reco::Candidate & pim = *(ks.daughter(ipim));
-    const reco::Candidate & pi = *(kst.daughter(ipi));
-    const reco::Candidate & mum = *(b.daughter(imum));
-    const reco::Candidate & mup = *(b.daughter(imup));
+    const reco::Candidate & pi  = *(kst.daughter(ipi));
 
     genbchg = b.charge(); 
     genbpx = b.px();
     genbpy = b.py();
     genbpz = b.pz();
- 
-    genmumpx = mum.px();
-    genmumpy = mum.py();
-    genmumpz = mum.pz();
-
-    genmuppx = mup.px();
-    genmuppy = mup.py();
-    genmuppz = mup.pz();
 
     genkstpx = kst.px();
     genkstpy = kst.py();
@@ -1876,6 +1873,34 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genpimpx = pim.px();
     genpimpy = pim.py();
     genpimpz = pim.pz();
+  
+ 
+    // mu mu from the B+ -> K* mu mu 
+    const reco::Candidate *mum = NULL;  
+    const reco::Candidate *mup = NULL;  
+    
+    if (imum != -1 && imup != -1) {
+      mum = b.daughter(imum);
+      mup = b.daughter(imup);
+    } 
+    // K* J/psi 
+    else if ( ijpsi != -1 ) {
+      
+    }
+    // K* psi(2S) 
+    else if ( ipsi2s != -1) {
+    }
+
+    if ( mum == NULL || mup == NULL) continue; 
+
+    genmumpx = mum->px();
+    genmumpy = mum->py();
+    genmumpz = mum->pz();
+    
+    genmuppx = mup->px();
+    genmuppy = mup->py();
+    genmuppz = mup->pz();
+    
   }
 }
 
