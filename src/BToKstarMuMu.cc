@@ -97,23 +97,21 @@ enum HistName{
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
-  // h_mupdcabs, 
-
   h_mumutrkr, 
   h_mumutrkz, 
+
   h_mumudca, 
   h_mumuvtxcl, 
   h_mumupt, 
-
   h_mumumass,
   h_mumulxybs, 
+
   h_mumucosalphabs, 
   h_trkpt, 
-
   h_trkdcasigbs,
   h_bvtxchisq, 
-  // h_kshortmass,
   h_kstarmass, 
+
   h_bmass, 
 
   kHistNameSize
@@ -123,28 +121,26 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
+
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
-  // {"h_mupdcabs", "#mu^{+} DCA beam spot; DCA [cm]", 100, 0, 10},
-
   {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 50},
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
+
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
   {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
   {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
-
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
    100, 2, 20},
   {"h_mumulxybs", "#mu^{+}#mu^{-} Lxy #sigma beam spot", 100, 0, 100},
+
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
-
   {"h_trkdcabssig", "#Pion track DCA/#sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
-
-  // {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
   {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 20},
+
   {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
 
 };
@@ -326,9 +322,7 @@ private:
   
   // dimuon 
   vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz; 
-  // vector<double> *mummass, *mummasserr; 
   vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
-  // vector<double> *mupmass, *mupmasserr; 
   vector<double> *mumutrkr, *mumutrkz , *mumudca; 
   vector<double> *mumuvtxcl, *mumulsbs, *mumulsbserr;  
   vector<double> *mumucosalphabs, *mumucosalphabserr; 
@@ -446,12 +440,9 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   tree_(0), 
   triggernames(0), triggerprescales(0), 
   mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), 
-  // mummass(0),  mummasserr(0),
   mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0), muppz(0), 
-  // mupmass(0),  mupmasserr(0),
-  mumutrkr(0), mumutrkz(0), 
-  mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
-  mumucosalphabs(0),  mumucosalphabserr(0), 
+  mumutrkr(0), mumutrkz(0), mumudca(0),  mumuvtxcl(0),  mumulsbs(0), 
+  mumulsbserr(0), mumucosalphabs(0),  mumucosalphabserr(0), 
   mumumass(0), mumumasserr(0), 
   mumisgoodmuon(0), mupisgoodmuon(0), 
   mumnpixhits(0), mupnpixhits(0), mumnpixlayers(0), mupnpixlayers(0), 
@@ -571,15 +562,11 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumpx", &mumpx);
   tree_->Branch("mumpy", &mumpy);
   tree_->Branch("mumpz", &mumpz);
-  // tree_->Branch("mummass", &mummass); 
-  // tree_->Branch("mummasserr", &mummasserr); 
   tree_->Branch("mupdcabs", &mupdcabs);
   tree_->Branch("mupdcabserr", &mupdcabserr);
   tree_->Branch("muppx", &muppx);
   tree_->Branch("muppy", &muppy);
   tree_->Branch("muppz", &muppz);
-  // tree_->Branch("mupmass", &mupmass); 
-  // tree_->Branch("mupmasserr", &mupmasserr); 
   tree_->Branch("mumutrkr", &mumutrkr);
   tree_->Branch("mumutrkz", &mumutrkz);
   tree_->Branch("mumudca", &mumudca);
@@ -773,10 +760,8 @@ BToKstarMuMu::clearVariables(){
   triggerprescales->clear();
   mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();  
   mumpz->clear(); 
-  // mummass->clear(); mummasserr->clear(); 
   mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear(); 
   muppz->clear(); 
-  // mupmass->clear(); mupmasserr->clear(); 
   mumutrkr->clear(); mumutrkz->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
   mumucosalphabs->clear();  mumucosalphabserr->clear();
@@ -837,10 +822,8 @@ BToKstarMuMu::hltReport(const edm::Event& iEvent)
   edm::Handle<edm::TriggerResults> hltTriggerResults;
   try {iEvent.getByLabel( TriggerResultsLabel_, hltTriggerResults ); }
   catch ( ... ) { edm::LogInfo("myHLT") 
-      << __LINE__ 
-      << " : couldn't get handle on HLT Trigger" ; }
+      << __LINE__ << " : couldn't get handle on HLT Trigger" ; }
   
-  // Save trigger info
   HLTConfigProvider hltConfig_;
   if (hltTriggerResults.isValid()) {
     const edm::TriggerNames& triggerNames_ = iEvent.triggerNames(*hltTriggerResults);
@@ -855,9 +838,7 @@ BToKstarMuMu::hltReport(const edm::Event& iEvent)
 
 	// Loop over our interested HLT trigger names to find if this event contains. 
 	for (unsigned int it=0; it<TriggerNames_.size(); it++){
-	  //if (TriggerNames_[it] == triggername)	{
 	  if (triggername.find(TriggerNames_[it]) != string::npos) {
-	    // triggernames->push_back(triggername); 
 	    // save the no versioned case 
 	    triggernames->push_back(TriggerNames_[it]); 
 	    triggerprescales->push_back(triggerprescale); 
@@ -991,7 +972,6 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       // check mu+ DCA to beam spot 
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
       passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
-      // BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
@@ -1304,7 +1284,6 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   
   mydimu = mymum + mymup; 
   mu_mu_pt = mydimu.Perp(); 
-  // mu_mu_mass = mydimu.M(); 
  
   mu_mu_mass = mumu_KP->currentState().mass(); 
   mu_mu_mass_err = sqrt(mumu_KP->currentState().kinematicParametersError().
@@ -1312,10 +1291,6 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 
   if ((mu_mu_pt < MuMuMinPt_) || (mu_mu_mass < MuMuMinInvMass_) ||
       (mu_mu_mass > MuMuMaxInvMass_))  return false;
-
-  // cout << ">>> dimu mass :  " << mydimu.M() << ", fit: " << mu_mu_mass << ", diff="
-  //      << mydimu.M()-mu_mu_mass << endl; 
-
 
   // compute the distance between mumu vtx and beam spot 
   computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
@@ -1349,14 +1324,11 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 		  &MuMuCosAlphaBS,&MuMuCosAlphaBSErr);	  
   
   if (MuMuCosAlphaBS < MuMuMinCosAlphaBs_)  return false;
-  
-  
 
   return true; 
 }
 
 
-  
 bool
 BToKstarMuMu::matchMuonTrack (const edm::Event& iEvent, 
 			      const reco::TrackRef theTrackRef)
@@ -1435,10 +1407,7 @@ bool
 BToKstarMuMu::matchKshortTrack (const edm::Event& iEvent, 
 				const reco::TrackRef theTrackRef)
 {
-  if ( theTrackRef.isNull() ) {
-    // edm::LogInfo("myKshortMatch") << "Null track ref!"; 
-    return false;
-  }
+  if ( theTrackRef.isNull() ) return false;
 
   edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
   iEvent.getByLabel(KshortLabel_, theKshorts);
@@ -1590,14 +1559,10 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   muppx->push_back(mup_KP->currentState().globalMomentum().x());
   muppy->push_back(mup_KP->currentState().globalMomentum().y());
   muppz->push_back(mup_KP->currentState().globalMomentum().z());
-  // mupmass->push_back(mup_KP->currentState().mass());
-  // mupmasserr->push_back(mup_KP->currentState().kinematicParametersError().matrix()(6,6));
   
   mumpx->push_back(mum_KP->currentState().globalMomentum().x());
   mumpy->push_back(mum_KP->currentState().globalMomentum().y());
   mumpz->push_back(mum_KP->currentState().globalMomentum().z());
-  // mummass->push_back(mum_KP->currentState().mass());
-  // mummasserr->push_back(mum_KP->currentState().kinematicParametersError().matrix()(6,6));
 
 
   vertexFitTree->movePointerToTheNextChild();  // pion track 
@@ -1606,8 +1571,6 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   trkpx->push_back(pi1_KP->currentState().globalMomentum().x());
   trkpy->push_back(pi1_KP->currentState().globalMomentum().y());
   trkpz->push_back(pi1_KP->currentState().globalMomentum().z());
-  // trkmass->push_back(pi1_KP->currentState().mass());
-  // trkmasserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
 
   vertexFitTree->movePointerToTheNextChild();  // ks 
   RefCountedKinematicParticle ks_KP = vertexFitTree->currentParticle();
@@ -1748,18 +1711,14 @@ BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree,
 }
 
 double 
-BToKstarMuMu::computeEta (double Px,
-			  double Py,
-			  double Pz)
+BToKstarMuMu::computeEta (double Px, double Py, double Pz)
 {
   double P = sqrt(Px*Px + Py*Py + Pz*Pz);
   return 0.5*log((P + Pz) / (P - Pz));
 }
 
 double 
-BToKstarMuMu::computePhi (double Px,
-			  double Py,
-			  double Pz)
+BToKstarMuMu::computePhi (double Px, double Py, double Pz)
 {
   double phi = atan(Py / Px);
   if (Px < 0 && Py < 0) phi = phi - PI;
@@ -1768,12 +1727,8 @@ BToKstarMuMu::computePhi (double Px,
 }
 
 double
-BToKstarMuMu::computeEtaPhiDistance (double Px1,
-				     double Py1,
-				     double Pz1,
-				     double Px2,
-				     double Py2,
-				     double Pz2)
+BToKstarMuMu::computeEtaPhiDistance (double Px1, double Py1, double Pz1,
+				     double Px2, double Py2, double Pz2)
 {
   double phi1 = computePhi (Px1,Py1,Pz1);
   double eta1 = computeEta (Px1,Py1,Pz1);
