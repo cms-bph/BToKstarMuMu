@@ -191,11 +191,12 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
-    KstarMinMass = cms.untracked.double(0.49), # [GeV/c2] K*+ mass = 891.66 +- 0.26 MeV 
-    KstarMaxMass = cms.untracked.double(1.29), # [GeV/c2] K*0 mass = 895.94 +- 0.26 MeV
+    # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
+    KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
+    KstarMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
 
-    BMinMass = cms.untracked.double(2.0), # [GeV/c2]n B+ mass = 5279 MeV 
-    BMaxMass = cms.untracked.double(8.0), # [GeV/c2]n B+ mass = 5279 MeV 
+    BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 
+    BMaxMass = cms.untracked.double(8.0), # [GeV/c2] B+ mass = 5279 MeV 
 )
 
 
