@@ -112,7 +112,7 @@ enum HistName{
 
   h_trkdcasigbs,
   h_bvtxchisq, 
-  h_kshortmass,
+  // h_kshortmass,
   h_kstarmass, 
   h_bmass, 
 
@@ -143,7 +143,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_trkdcabssig", "#Pion track DCA/sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
-  {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
+  // {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
   {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 20},
   {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
 
@@ -223,7 +223,7 @@ private:
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
 			  double &, double &, double &, double &, double &,
-			  double &, double &);
+			  double &, double &, double &);
 
   bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle, double &);
 
@@ -251,7 +251,8 @@ private:
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
   void saveDimuVariables(double, double, double, double, double, double, 
-			 double, double, double, double, double, double);
+			 double, double, double, double, double, double,
+			 double, double);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
   void saveTruthMatch(const edm::Event& iEvent); 
 
@@ -331,6 +332,7 @@ private:
   vector<double> *mumutrkr, *mumutrkz , *mumudca; 
   vector<double> *mumuvtxcl, *mumulsbs, *mumulsbserr;  
   vector<double> *mumucosalphabs, *mumucosalphabserr; 
+  vector<double> *mumumass, *mumumasserr; 
 
   // soft muon variables 
   vector<bool>   *mumisgoodmuon, *mupisgoodmuon ; 
@@ -448,6 +450,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   mupmasserr(0), mumutrkr(0), mumutrkz(0), 
   mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
   mumucosalphabs(0),  mumucosalphabserr(0), 
+  mumumass(0), mumumasserr(0), 
   mumisgoodmuon(0), mupisgoodmuon(0), 
   mumnpixhits(0), mupnpixhits(0), mumnpixlayers(0), mupnpixlayers(0), 
   mumntrkhits(0), mupntrkhits(0), mumntrklayers(0), mupntrklayers(0), 
@@ -583,6 +586,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumulsbserr", &mumulsbserr);
   tree_->Branch("mumucosalphabs", &mumucosalphabs);
   tree_->Branch("mumucosalphabserr", &mumucosalphabserr);
+  tree_->Branch("mumumass", &mumumass);
+  tree_->Branch("mumumasserr", &mumumasserr);
   tree_->Branch("mumisgoodmuon", &mumisgoodmuon);
   tree_->Branch("mupisgoodmuon", &mupisgoodmuon);
   tree_->Branch("mumnpixhits", &mumnpixhits);
@@ -773,7 +778,8 @@ BToKstarMuMu::clearVariables(){
   muppz->clear(); 
   mupmass->clear(); mupmasserr->clear(); mumutrkr->clear(); mumutrkz->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
-  mumucosalphabs->clear();  mumucosalphabserr->clear();  
+  mumucosalphabs->clear();  mumucosalphabserr->clear();
+  mumumass->clear(); mumumasserr->clear(); 
   mumisgoodmuon->clear();  mupisgoodmuon->clear(); 
   mumnpixhits->clear();  mupnpixhits->clear();  mumnpixlayers->clear(); 
   mupnpixlayers->clear(); 
@@ -938,8 +944,9 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr;
   double mumutrk_R, mumutrk_Z, DCAmumu; 
   reco::TransientTrack refitMupTT, refitMumTT; 
-  double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, MuMuLSBS, MuMuLSBSErr; 
-  double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
+  double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
+  double MuMuLSBS, MuMuLSBSErr; 
+  double MuMuCosAlphaBS, MuMuCosAlphaBSErr;
   double pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
   double DCAKstTrkBS, DCAKstTrkBSErr; 
   vector<reco::TrackRef> kshortDaughterTracks;
@@ -996,7 +1003,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
       // check dimuon vertex 
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
-				 mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, 
+				 mu_mu_vtx_cl, mu_mu_pt, 
+				 mu_mu_mass, mu_mu_mass_err, 
 				 MuMuLSBS, MuMuLSBSErr,
 				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
       
@@ -1057,9 +1065,10 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  nb++; 
 	  // save the tree variables 
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
-			    mumutrk_R, mumutrk_Z, DCAmumu,  mu_mu_vtx_cl, 
+			    mumutrk_R, mumutrk_Z, DCAmumu, mu_mu_vtx_cl, 
 			    MuMuLSBS, MuMuLSBSErr, 
-			    MuMuCosAlphaBS, MuMuCosAlphaBSErr); // , dimu_ks_mass); 
+			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, 
+			    mu_mu_mass, mu_mu_mass_err); 
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
@@ -1240,7 +1249,7 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 				 reco::TransientTrack &refitMupTT, 
 				 reco::TransientTrack &refitMumTT, 
 				 double & mu_mu_vtx_cl, double & mu_mu_pt, 
-				 double & mu_mu_mass, 
+				 double & mu_mu_mass, double & mu_mu_mass_err, 
 				 double & MuMuLSBS, double & MuMuLSBSErr, 
 				 double & MuMuCosAlphaBS,
 				 double & MuMuCosAlphaBSErr)
@@ -1294,13 +1303,18 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   
   mydimu = mymum + mymup; 
   mu_mu_pt = mydimu.Perp(); 
-  mu_mu_mass = mydimu.M(); 
+  // mu_mu_mass = mydimu.M(); 
 
   if ((mydimu.Perp() < MuMuMinPt_) || 
       (mydimu.M() < MuMuMinInvMass_) ||
       (mydimu.M() > MuMuMaxInvMass_)) {
     return false;
   }
+
+  mu_mu_mass = mumu_KP->currentState().mass(); 
+  mu_mu_mass_err = sqrt(mumu_KP->currentState().kinematicParametersError().
+			matrix()(6,6));
+
   // compute the distance between mumu vtx and beam spot 
   computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
 	     beamSpot_.position().x(),beamSpot_.position().y(),0.0,
@@ -1334,6 +1348,8 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   
   if (MuMuCosAlphaBS < MuMuMinCosAlphaBs_)  return false;
   
+  
+
   return true; 
 }
 
@@ -2034,7 +2050,9 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
 				double mumutrk_R, double mumutrk_Z, 
 				double DCAmumu,  double mu_mu_vtx_cl, 
 				double MuMuLSBS, double MuMuLSBSErr, 
-				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr) 
+				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr,
+				double mu_mu_mass, double mu_mu_mass_err) 
+ 
 {
   mumdcabs->push_back(DCAmumBS);
   mumdcabserr->push_back(DCAmumBSErr);
@@ -2050,6 +2068,9 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   mumulsbserr->push_back(MuMuLSBSErr);
   mumucosalphabs->push_back(MuMuCosAlphaBS);
   mumucosalphabserr->push_back(MuMuCosAlphaBSErr); 
+
+  mumumass->push_back(mu_mu_mass); 
+  mumumasserr->push_back(mu_mu_mass_err); 
 }
 
 void 
