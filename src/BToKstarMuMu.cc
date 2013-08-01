@@ -352,6 +352,7 @@ private:
   vector<double> *kstarmass; 
 
   // B+ and B- 
+  int nb; 
   vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
@@ -449,7 +450,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
   kstarmass(0),
   
-  bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0),
+  nb(0), bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0),
   bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
@@ -626,6 +627,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("kslsbserr", &kslsbserr);
   tree_->Branch("kstarmass", &kstarmass);
     
+  tree_->Branch("nb", &nb, "nb/I");
   tree_->Branch("bchg", &bchg);
   tree_->Branch("bpx", &bpx);
   tree_->Branch("bpxerr", &bpxerr);
@@ -783,7 +785,7 @@ BToKstarMuMu::clearVariables(){
   kstarmass->clear();  
 
   bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear();
-  bpz->clear(); bpzerr->clear(); 
+  bpz->clear(); bpzerr->clear(); nb = 0; 
   bchg->clear(); bmass->clear(); bmasserr->clear(); 
   bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear();
   bvtxyerr->clear();
@@ -1076,6 +1078,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     } // close mu+ loop
   } // close mu- loop 
 
+  nb = nBu; 
   if ( nBu > 0) edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
     
 }
