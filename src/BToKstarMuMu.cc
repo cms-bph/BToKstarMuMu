@@ -257,25 +257,40 @@ private:
 
   // ----------member data ---------------------------
 
-  // --- input from python file --- 
-  string FileName_; 
-  bool SaveGenInfo_; 
+  // --- begin input from python file --- 
+  string OutputFileName_; 
+
+  // particle properties 
+  ParticleMass MuonMass_; 
+  float MuonMassErr_; 
+  ParticleMass PionMass_; 
+  float PionMassErr_; 
+  ParticleMass KshortMass_; 
+  float KshortMassErr_; 
+  double BuMass_; 
+
+  // labels 
   edm::InputTag GenParticlesLabel_;
+  edm::InputTag TriggerResultsLabel_;
+  edm::InputTag BeamSpotLabel_;
+  edm::InputTag VertexLabel_;
+  edm::InputTag MuonLabel_;
+  edm::InputTag KshortLabel_;
+  edm::InputTag TrackLabel_;
+  vector<string> TriggerNames_; 
+  vector<string> LastFilterNames_;
+
+  // gen particle 
+  bool SaveGenInfo_; 
   double TruthMatchMuonMaxR_; 
   double TruthMatchPionMaxR_; 
   double TruthMatchKsMaxVtx_; 
 
-  edm::InputTag TriggerResultsLabel_;
-  vector<string> TriggerNames_, LastFilterNames_;
-  map<string, string> mapTriggerToLastFilter_;
-  edm::InputTag BeamSpotLabel_;
-  edm::InputTag VertexLabel_;
-
-  // Muon 
-  edm::InputTag MuonLabel_;
+  // pre-selection cuts
   double MuonMinPt_; 
   double MuonMaxEta_; 
   double MuonMaxDcaBs_; 
+  double TrkMinPt_; 
   double TrkMaxDcaSigBs_; 
   double TrkMaxR_;
   double TrkMaxZ_; 
@@ -286,31 +301,19 @@ private:
   double MuMuMaxInvMass_; 
   double MuMuMinLxySigmaBs_; 
   double MuMuMinCosAlphaBs_; 
-  ParticleMass MuonMass_; 
-  float MuonMassErr_; 
-
-  // Kshort 
-  edm::InputTag KshortLabel_;
-  edm::InputTag TrackLabel_;
-  ParticleMass PionMass_; 
-  float PionMassErr_; 
-  ParticleMass KshortMass_; 
-  float KshortMassErr_; 
-
-  // Kstar
-  double KstarChargedTrackMinPt_; 
-  double KstarMinMass_, KstarMaxMass_; 
-
-  // B meson
+  double KstarMinMass_; 
+  double KstarMaxMass_; 
+  double BMinMass_; 
   double BMaxMass_; 
-  double BuMass_; 
-  
 
+  // --- end input from python file --- 
+
+ 
   // Across the event 
+  map<string, string> mapTriggerToLastFilter_;
   reco::BeamSpot beamSpot_;  
   edm::ESHandle<MagneticField> bFieldHandle_;
   reco::Vertex primaryVertex_;
-
 
   // ---- Root Variables ---- 
   TFile* fout_;
@@ -387,24 +390,44 @@ private:
 // constructors and destructor
 //
 BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
-  FileName_(iConfig.getParameter<string>("FileName")),
-  SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
+  OutputFileName_(iConfig.getParameter<string>("OutputFileName")),
+
+  // particle properties 
+  MuonMass_(iConfig.getUntrackedParameter<double>("MuonMass")),
+  MuonMassErr_(iConfig.getUntrackedParameter<double>("MuonMassErr")),
+  PionMass_(iConfig.getUntrackedParameter<double>("PionMass")),
+  PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
+  KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
+  KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
+  BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
+
+  // labels 
   GenParticlesLabel_(iConfig.getParameter<edm::InputTag>("GenParticlesLabel")),
-  TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
-  TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
-  TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
   TriggerResultsLabel_(iConfig.getParameter<edm::InputTag>("TriggerResultsLabel")),
-  TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
-  LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
   BeamSpotLabel_(iConfig.getParameter<edm::InputTag>("BeamSpotLabel")),
   VertexLabel_(iConfig.getParameter<edm::InputTag>("VertexLabel")),
   MuonLabel_(iConfig.getParameter<edm::InputTag>("MuonLabel")),
+  KshortLabel_(iConfig.getParameter<edm::InputTag>("KshortLabel")),
+  TrackLabel_(iConfig.getParameter<edm::InputTag>("TrackLabel")),
+  TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
+  LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
+  
+  // gen particle
+  SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
+  TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
+  TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
+  TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
+
+  // pre-selection cuts 
   MuonMinPt_(iConfig.getUntrackedParameter<double>("MuonMinPt")),
   MuonMaxEta_(iConfig.getUntrackedParameter<double>("MuonMaxEta")),
   MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
+
+  TrkMinPt_(iConfig.getUntrackedParameter<double>("TrkMinPt")),
   TrkMaxDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaSigBs")),
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
+
   MuMuMaxDca_(iConfig.getUntrackedParameter<double>("MuMuMaxDca")),
   MuMuMinVtxCl_(iConfig.getUntrackedParameter<double>("MuMuMinVtxCl")),
   MuMuMinPt_(iConfig.getUntrackedParameter<double>("MuMuMinPt")),
@@ -412,20 +435,11 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuMuMaxInvMass_(iConfig.getUntrackedParameter<double>("MuMuMaxInvMass")),
   MuMuMinLxySigmaBs_(iConfig.getUntrackedParameter<double>("MuMuMinLxySigmaBs")), 
   MuMuMinCosAlphaBs_(iConfig.getUntrackedParameter<double>("MuMuMinCosAlphaBs")), 
-  MuonMass_(iConfig.getUntrackedParameter<double>("MuonMass")),
-  MuonMassErr_(iConfig.getUntrackedParameter<double>("MuonMassErr")),
-  KshortLabel_(iConfig.getParameter<edm::InputTag>("KshortLabel")),
-  TrackLabel_(iConfig.getParameter<edm::InputTag>("TrackLabel")),
-  PionMass_(iConfig.getUntrackedParameter<double>("PionMass")),
-  PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
-  KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
-  KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
-  KstarChargedTrackMinPt_(iConfig.getUntrackedParameter<double>
-			  ("KstarChargedTrackMinPt")),
+
   KstarMinMass_(iConfig.getUntrackedParameter<double>("KstarMinMass")),
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
+  BMinMass_(iConfig.getUntrackedParameter<double>("BMinMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
-  BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
@@ -528,7 +542,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void 
 BToKstarMuMu::beginJob()
 {
-  fout_ = new TFile(FileName_.c_str(), "RECREATE");
+  fout_ = new TFile(OutputFileName_.c_str(), "RECREATE");
   fout_->cd();
 
   for(int i=0; i<kHistNameSize; i++) {
@@ -898,7 +912,7 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent,
    // check the track kinematics
    pion_trk_pt = theTrackRef->pt(); 
 
-   if ( theTrackRef->pt() < KstarChargedTrackMinPt_ ) return false; 
+   if ( theTrackRef->pt() < TrkMinPt_ ) return false; 
 
    return true;
 }
@@ -1460,8 +1474,8 @@ BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree,
  
   mykstar = myks + mypi; 
   kstar_mass = mykstar.M(); 
-  if ( mykstar.M() < KstarMinMass_  
-       ||  mykstar.M() > KstarMaxMass_ )  return false; 
+  if ( kstar_mass < KstarMinMass_  || kstar_mass > KstarMaxMass_ ) 
+    return false; 
 
   return true; 
 }
@@ -1474,7 +1488,7 @@ BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree,
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
   b_mass = b_KP->currentState().mass(); 
-  if ( b_KP->currentState().mass() > BMaxMass_ ) return false;  
+  if ( b_mass < BMinMass_ || b_mass > BMaxMass_ ) return false;  
   return true; 
 }
 
