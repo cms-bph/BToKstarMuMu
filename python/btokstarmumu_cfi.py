@@ -185,8 +185,8 @@ process.ntuple = cms.EDAnalyzer(
     KshortMass = cms.untracked.double(0.497614), 
     KshortMassErr = cms.untracked.double(0.000024),
  
-    DimukshortMinMass = cms.untracked.double(2.0),
-    DimukshortMaxMass = cms.untracked.double(8.0),
+    # DimukshortMinMass = cms.untracked.double(2.0),
+    # DimukshortMaxMass = cms.untracked.double(8.0),
 
     KstarChargedTrackMinPt = cms.untracked.double(0.0), # [GeV/c]
     KstarMinMass = cms.untracked.double(0.49), # [GeV/c2] K*+ mass = 891.66 +- 0.26 MeV 
