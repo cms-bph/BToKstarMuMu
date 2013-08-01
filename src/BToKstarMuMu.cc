@@ -110,8 +110,9 @@ enum HistName{
   h_trkpt, 
   h_trkdcasigbs,
   h_bvtxchisq, 
-  h_kstarmass, 
+  h_bvtxcl, 
 
+  h_kstarmass, 
   h_bmass, 
 
   kHistNameSize
@@ -129,7 +130,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
 
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
-  {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
+  {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 1},
   {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
   {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV/c^{2}]", 
    100, 2, 20},
@@ -139,6 +140,8 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
   {"h_trkdcabssig", "#Pion track DCA/#sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
+  {"h_bvtxcl", "B decay vertex CL", 100, 0, 1},
+
   {"h_kstarmass", "Kstar mass; M(K*) [GeV/^{2}]", 100, 0, 20},
 
   {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
@@ -146,7 +149,7 @@ HistArgs hist_args[kHistNameSize] = {
 };
 
 // Define histograms 
-TH1F *BToKstarMuMuFigures[kHistNameSize];
+TH1F *histos[kHistNameSize];
 
 //
 // class declaration
@@ -545,7 +548,7 @@ BToKstarMuMu::beginJob()
   fout_->cd();
 
   for(int i=0; i<kHistNameSize; i++) {
-    BToKstarMuMuFigures[i] = new TH1F(hist_args[i].name, hist_args[i].title,
+    histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
 				      hist_args[i].n_bins,
 				      hist_args[i].x_min, hist_args[i].x_max);
   }
@@ -710,8 +713,8 @@ BToKstarMuMu::endJob()
   tree_->Write();
   
   for(int i = 0; i < kHistNameSize; i++) {
-    BToKstarMuMuFigures[i]->Write();
-    BToKstarMuMuFigures[i]->Delete();
+    histos[i]->Write();
+    histos[i]->Delete();
   }
   fout_->Close();
 }
@@ -947,8 +950,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
     if ( muTrackm.isNull() ) continue; 
 
-    BToKstarMuMuFigures[h_mupt]->Fill(muTrackm->pt()); 
-    BToKstarMuMuFigures[h_mueta]->Fill(muTrackm->eta()); 
+    histos[h_mupt]->Fill(muTrackm->pt()); 
+    histos[h_mueta]->Fill(muTrackm->eta()); 
 
     if ( (muTrackm->charge() != -1) ||
 	 (muTrackm->pt() < MuonMinPt_) ||
@@ -957,7 +960,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     // check mu- DCA to beam spot 
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
     passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
-    BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
+    histos[h_mumdcabs]->Fill(DCAmumBS); 
     if ( ! passed ) continue; 
 
     // ---------------------------------
@@ -980,9 +983,9 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       // check goodness of muons closest approach and the 3D-DCA
       passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
 					    mumutrk_R, mumutrk_Z, DCAmumu); 
-      BToKstarMuMuFigures[h_mumutrkr]->Fill(mumutrk_R); 
-      BToKstarMuMuFigures[h_mumutrkz]->Fill(mumutrk_Z); 
-      BToKstarMuMuFigures[h_mumudca]->Fill(DCAmumu); 
+      histos[h_mumutrkr]->Fill(mumutrk_R); 
+      histos[h_mumutrkz]->Fill(mumutrk_Z); 
+      histos[h_mumudca]->Fill(DCAmumu); 
       if ( !passed ) continue; 
 
       // check dimuon vertex 
@@ -992,11 +995,11 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 				 MuMuLSBS, MuMuLSBSErr,
 				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
       
-      BToKstarMuMuFigures[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
-      BToKstarMuMuFigures[h_mumupt]->Fill(mu_mu_pt); 
-      BToKstarMuMuFigures[h_mumumass]->Fill(mu_mu_mass); 
-      BToKstarMuMuFigures[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
-      BToKstarMuMuFigures[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
+      histos[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
+      histos[h_mumupt]->Fill(mu_mu_pt); 
+      histos[h_mumumass]->Fill(mu_mu_mass); 
+      histos[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
+      histos[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
       if ( !passed) continue; 
       
       // ---------------------------------
@@ -1021,7 +1024,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	      iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
 	  passed = hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
-	  BToKstarMuMuFigures[h_trkpt]->Fill(pion_trk_pt); 
+	  histos[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
 
@@ -1029,21 +1032,22 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  reco::TrackRef pionTrack = iTrack->track(); 
 	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
 	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
-	  BToKstarMuMuFigures[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
+	  histos[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
 				   pionTrack, b_vtx_chisq, b_vtx_cl, 
 				   vertexFitTree, ksVertexFitTree); 
-	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
+	  histos[h_bvtxchisq]->Fill(b_vtx_chisq); 
+	  histos[h_bvtxcl]->Fill(b_vtx_cl); 
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodKstarChargedMass(vertexFitTree, kstar_mass); 
-	  BToKstarMuMuFigures[h_kstarmass]->Fill(kstar_mass); 
+	  histos[h_kstarmass]->Fill(kstar_mass); 
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuMass(vertexFitTree, b_mass); 
-	  BToKstarMuMuFigures[h_bmass]->Fill(b_mass); 
+	  histos[h_bmass]->Fill(b_mass); 
 	  if (!passed) continue; 
 
 	  nb++; 
