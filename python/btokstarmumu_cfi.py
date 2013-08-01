@@ -201,7 +201,6 @@ process.ntuple = cms.EDAnalyzer(
     BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 
     BMaxMass = cms.untracked.double(8.0), # [GeV/c2] B+ mass = 5279 MeV 
 
-
 )
 
 
