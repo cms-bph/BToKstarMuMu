@@ -1067,6 +1067,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  trkdcabserr->push_back(DCAKstTrkBSErr); 
 	  kstarmass->push_back(kstar_mass); 
 	  bchg->push_back(iTrack->charge()); 
+	  bvtxcl->push_back(b_vtx_cl); 
+
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
 	  saveBuCosAlpha(vertexFitTree); 
@@ -1600,9 +1602,6 @@ void
 BToKstarMuMu::saveBuVertex(RefCountedKinematicTree vertexFitTree){
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
-  bvtxcl->push_back( ChiSquaredProbability((double)(b_KV->chiSquared()),
-					   (double)(b_KV->degreesOfFreedom())) );
-
   bvtxx->push_back((*b_KV).position().x());  
   bvtxxerr->push_back(sqrt( abs(b_KV->error().cxx()) ));
   bvtxy->push_back((*b_KV).position().y());  
