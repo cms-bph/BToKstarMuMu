@@ -173,30 +173,35 @@ process.ntuple = cms.EDAnalyzer(
     TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
     TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
 
-    # pre-selection cuts 
+    # HLT-trigger cuts 
     MuonMinPt = cms.untracked.double(3.0), # [GeV]
     MuonMaxEta = cms.untracked.double(2.2),  
     MuonMaxDcaBs = cms.untracked.double(2.0), # [cm]
 
+    MuMuMinPt = cms.untracked.double(6.9),      # [GeV/c]
+    MuMuMinInvMass = cms.untracked.double(1.0), # [GeV/c2]
+    MuMuMaxInvMass = cms.untracked.double(4.8), # [GeV/c2]
+
+    MuMuMinVtxCl = cms.untracked.double(0.05), 
+    MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
+    MuMuMaxDca = cms.untracked.double(0.5), # [cm]
+    MuMuMinCosAlphaBs = cms.untracked.double(0.9),
+
+    # pre-selection cuts 
     TrkMinPt = cms.untracked.double(0.4), # [GeV/c]
     TrkMaxDcaSigBs = cms.untracked.double(1.2), # hadron DCA/sigma w/respect to BS [1.2]
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
 
-    MuMuMaxDca = cms.untracked.double(0.5), # [cm]
-    MuMuMinVtxCl = cms.untracked.double(0.05), 
-    MuMuMinPt = cms.untracked.double(6.9),      # [GeV/c]
-    MuMuMinInvMass = cms.untracked.double(1.0), # [GeV/c2]
-    MuMuMaxInvMass = cms.untracked.double(4.8), # [GeV/c2]
-    MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
-    MuMuMinCosAlphaBs = cms.untracked.double(0.9),
-
     # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
     KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
     KstarMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
 
+    BMinVtxCl = cms.untracked.double(0.01), 
     BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 
     BMaxMass = cms.untracked.double(8.0), # [GeV/c2] B+ mass = 5279 MeV 
+
+
 )
 
 
