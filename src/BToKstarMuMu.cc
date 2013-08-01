@@ -928,9 +928,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
   double pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
   double DCAKstTrkBS, DCAKstTrkBSErr; 
-
   vector<reco::TrackRef> kshortDaughterTracks;
-  int nBu = 0; 
   RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
 
 
@@ -941,7 +939,6 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
        iMuonM != patMuonHandle->end(); iMuonM++){
     
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
-   
     if ( muTrackm.isNull() ) continue; 
 
     BToKstarMuMuFigures[h_mupt]->Fill(muTrackm->pt()); 
@@ -955,7 +952,6 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
     passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
     BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
-    
     if ( ! passed ) continue; 
 
     // ---------------------------------
@@ -974,18 +970,14 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
       passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
       BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
-      
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
       passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
 					    mumutrk_R, mumutrk_Z, DCAmumu); 
       BToKstarMuMuFigures[h_mumutrkr]->Fill(mumutrk_R); 
-
       BToKstarMuMuFigures[h_mumutrkz]->Fill(mumutrk_Z); 
-
       BToKstarMuMuFigures[h_mumudca]->Fill(DCAmumu); 
-
       if ( !passed ) continue; 
 
       // check dimuon vertex 
@@ -999,7 +991,6 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       BToKstarMuMuFigures[h_mumumass]->Fill(mu_mu_mass); 
       BToKstarMuMuFigures[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
       BToKstarMuMuFigures[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
-
       if ( !passed) continue; 
       
       // ---------------------------------
@@ -1027,13 +1018,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  BToKstarMuMuFigures[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
-	  reco::TrackRef pionTrack = iTrack->track(); 
 
 	  // compute track DCA to beam spot 
+	  reco::TrackRef pionTrack = iTrack->track(); 
 	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
 	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
 	  BToKstarMuMuFigures[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
-
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
@@ -1048,10 +1038,9 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  
 	  passed = hasGoodBuMass(vertexFitTree, b_mass); 
 	  BToKstarMuMuFigures[h_bmass]->Fill(b_mass); 
-	  
 	  if (!passed) continue; 
 
-	  nBu++; 
+	  nb++; 
 	  // save the tree variables 
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
 			    mumutrk_R, mumutrk_Z, DCAmumu,  mu_mu_vtx_cl, 
@@ -1078,8 +1067,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     } // close mu+ loop
   } // close mu- loop 
 
-  nb = nBu; 
-  if ( nBu > 0) edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
+  if ( nb > 0) edm::LogInfo("myBu") << "Found " << nb << " Bu -> K* mu mu."; 
     
 }
 
