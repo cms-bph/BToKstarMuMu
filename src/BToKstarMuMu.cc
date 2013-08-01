@@ -345,7 +345,7 @@ private:
   
   // pion track 
   vector<int> *trkchg; // +1 for pi+, -1 for pi-
-  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr, *trkpt;
+  vector<double> *trkpx, *trkpy, *trkpz, *trkpt; 
   vector<double> *trkdcabs, *trkdcabserr; 
 
 
@@ -460,7 +460,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   mumdzvtx(0), mupdzvtx(0), mumtriglastfilter(0), muptriglastfilter(0), 
   mumpt(0), muppt(0), mumeta(0), mupeta(0), 
 
-  trkchg(0), trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), trkpt(0),  
+  trkchg(0), trkpx(0), trkpy(0), trkpz(0), trkpt(0),  
   trkdcabs(0), trkdcabserr(0), 
 
   pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
@@ -617,8 +617,6 @@ BToKstarMuMu::beginJob()
   tree_->Branch("trkpx", &trkpx);
   tree_->Branch("trkpy", &trkpy);
   tree_->Branch("trkpz", &trkpz);
-  tree_->Branch("trkmass", &trkmass);
-  tree_->Branch("trkmasserr", &trkmasserr);
   tree_->Branch("trkpt", &trkpt);
   tree_->Branch("trkdcabs", &trkdcabs);
   tree_->Branch("trkdcabserr", &trkdcabserr);
@@ -795,7 +793,7 @@ BToKstarMuMu::clearVariables(){
   mumeta->clear(); mupeta->clear(); 
 
   trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
-  trkmass->clear(); trkmasserr->clear(); trkpt->clear();
+  trkpt->clear();
   trkdcabs->clear(); trkdcabserr->clear(); 
 
   pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); 
@@ -1307,16 +1305,17 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   mydimu = mymum + mymup; 
   mu_mu_pt = mydimu.Perp(); 
   // mu_mu_mass = mydimu.M(); 
-
-  if ((mydimu.Perp() < MuMuMinPt_) || 
-      (mydimu.M() < MuMuMinInvMass_) ||
-      (mydimu.M() > MuMuMaxInvMass_)) {
-    return false;
-  }
-
+ 
   mu_mu_mass = mumu_KP->currentState().mass(); 
   mu_mu_mass_err = sqrt(mumu_KP->currentState().kinematicParametersError().
 			matrix()(6,6));
+
+  if ((mu_mu_pt < MuMuMinPt_) || (mu_mu_mass < MuMuMinInvMass_) ||
+      (mu_mu_mass > MuMuMaxInvMass_))  return false;
+
+  // cout << ">>> dimu mass :  " << mydimu.M() << ", fit: " << mu_mu_mass << ", diff="
+  //      << mydimu.M()-mu_mu_mass << endl; 
+
 
   // compute the distance between mumu vtx and beam spot 
   computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
@@ -1607,8 +1606,8 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   trkpx->push_back(pi1_KP->currentState().globalMomentum().x());
   trkpy->push_back(pi1_KP->currentState().globalMomentum().y());
   trkpz->push_back(pi1_KP->currentState().globalMomentum().z());
-  trkmass->push_back(pi1_KP->currentState().mass());
-  trkmasserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
+  // trkmass->push_back(pi1_KP->currentState().mass());
+  // trkmasserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
 
   vertexFitTree->movePointerToTheNextChild();  // ks 
   RefCountedKinematicParticle ks_KP = vertexFitTree->currentParticle();
