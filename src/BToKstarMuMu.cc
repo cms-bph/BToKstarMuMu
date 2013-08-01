@@ -213,7 +213,7 @@ private:
 
   bool hasGoodBuVertex(const reco::TrackRef, const reco::TrackRef, 
 		       const vector<reco::TrackRef>, const reco::TrackRef, 
-		       double &, 
+		       double &, double &, 
 		       RefCountedKinematicTree &, RefCountedKinematicTree &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
@@ -300,8 +300,10 @@ private:
   double MuMuMinCosAlphaBs_; 
   double KstarMinMass_; 
   double KstarMaxMass_; 
+  double BMinVtxCl_; 
   double BMinMass_; 
   double BMaxMass_; 
+
 
   // --- end input from python file --- 
 
@@ -434,6 +436,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   KstarMinMass_(iConfig.getUntrackedParameter<double>("KstarMinMass")),
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
+  BMinVtxCl_(iConfig.getUntrackedParameter<double>("BMinVtxCl")),
   BMinMass_(iConfig.getUntrackedParameter<double>("BMinMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
 
@@ -929,7 +932,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
   double MuMuLSBS, MuMuLSBSErr; 
   double MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-  double pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
+  double pion_trk_pt, kstar_mass, b_vtx_chisq, b_vtx_cl, b_mass; 
   double DCAKstTrkBS, DCAKstTrkBSErr; 
   vector<reco::TrackRef> kshortDaughterTracks;
   RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
@@ -1030,7 +1033,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
-				   pionTrack, b_vtx_chisq, 
+				   pionTrack, b_vtx_chisq, b_vtx_cl, 
 				   vertexFitTree, ksVertexFitTree); 
 	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
 	  if (!passed) continue; 
@@ -1485,7 +1488,7 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
 			      const reco::TrackRef mu2Track,
 			      const vector<reco::TrackRef> kshortDaughterTracks, 
 			      const reco::TrackRef pionTrack, 
-			      double & bvtxchisq, 
+			      double & b_vtx_chisq, double & b_vtx_cl, 
 			      RefCountedKinematicTree &vertexFitTree, 
 			      RefCountedKinematicTree &ksVertexFitTree)
 {
@@ -1521,10 +1524,16 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   if ( !bDecayVertexMC->vertexIsValid()) return false; 
  
 
-  bvtxchisq = bDecayVertexMC->chiSquared(); 
+  b_vtx_chisq = bDecayVertexMC->chiSquared(); 
   if ( bDecayVertexMC->chiSquared()<0
        || bDecayVertexMC->chiSquared()>1000 ) return false; 
 
+  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+  b_vtx_cl = ChiSquaredProbability((double)(b_KV->chiSquared()),
+				   (double)(b_KV->degreesOfFreedom()));
+
+  if ( b_vtx_cl < BMinVtxCl_ ) return false; 
+  
   return true; 
 }
 
