@@ -326,9 +326,9 @@ private:
   
   // dimuon 
   vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz; 
-  vector<double> *mummass, *mummasserr; 
+  // vector<double> *mummass, *mummasserr; 
   vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
-  vector<double> *mupmass, *mupmasserr; 
+  // vector<double> *mupmass, *mupmasserr; 
   vector<double> *mumutrkr, *mumutrkz , *mumudca; 
   vector<double> *mumuvtxcl, *mumulsbs, *mumulsbserr;  
   vector<double> *mumucosalphabs, *mumucosalphabserr; 
@@ -445,9 +445,11 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
-  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), mummass(0), 
-  mummasserr(0), mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0), muppz(0), mupmass(0),
-  mupmasserr(0), mumutrkr(0), mumutrkz(0), 
+  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), 
+  // mummass(0),  mummasserr(0),
+  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0), muppz(0), 
+  // mupmass(0),  mupmasserr(0),
+  mumutrkr(0), mumutrkz(0), 
   mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
   mumucosalphabs(0),  mumucosalphabserr(0), 
   mumumass(0), mumumasserr(0), 
@@ -569,15 +571,15 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumpx", &mumpx);
   tree_->Branch("mumpy", &mumpy);
   tree_->Branch("mumpz", &mumpz);
-  tree_->Branch("mummass", &mummass); 
-  tree_->Branch("mummasserr", &mummasserr); 
+  // tree_->Branch("mummass", &mummass); 
+  // tree_->Branch("mummasserr", &mummasserr); 
   tree_->Branch("mupdcabs", &mupdcabs);
   tree_->Branch("mupdcabserr", &mupdcabserr);
   tree_->Branch("muppx", &muppx);
   tree_->Branch("muppy", &muppy);
   tree_->Branch("muppz", &muppz);
-  tree_->Branch("mupmass", &mupmass); 
-  tree_->Branch("mupmasserr", &mupmasserr); 
+  // tree_->Branch("mupmass", &mupmass); 
+  // tree_->Branch("mupmasserr", &mupmasserr); 
   tree_->Branch("mumutrkr", &mumutrkr);
   tree_->Branch("mumutrkz", &mumutrkz);
   tree_->Branch("mumudca", &mumudca);
@@ -773,10 +775,11 @@ BToKstarMuMu::clearVariables(){
   triggerprescales->clear();
   mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();  
   mumpz->clear(); 
-  mummass->clear(); mummasserr->clear(); 
+  // mummass->clear(); mummasserr->clear(); 
   mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear(); 
   muppz->clear(); 
-  mupmass->clear(); mupmasserr->clear(); mumutrkr->clear(); mumutrkz->clear(); 
+  // mupmass->clear(); mupmasserr->clear(); 
+  mumutrkr->clear(); mumutrkz->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
   mumucosalphabs->clear();  mumucosalphabserr->clear();
   mumumass->clear(); mumumasserr->clear(); 
@@ -1588,14 +1591,14 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   muppx->push_back(mup_KP->currentState().globalMomentum().x());
   muppy->push_back(mup_KP->currentState().globalMomentum().y());
   muppz->push_back(mup_KP->currentState().globalMomentum().z());
-  mupmass->push_back(mup_KP->currentState().mass());
-  mupmasserr->push_back(mup_KP->currentState().kinematicParametersError().matrix()(6,6));
+  // mupmass->push_back(mup_KP->currentState().mass());
+  // mupmasserr->push_back(mup_KP->currentState().kinematicParametersError().matrix()(6,6));
   
   mumpx->push_back(mum_KP->currentState().globalMomentum().x());
   mumpy->push_back(mum_KP->currentState().globalMomentum().y());
   mumpz->push_back(mum_KP->currentState().globalMomentum().z());
-  mummass->push_back(mum_KP->currentState().mass());
-  mummasserr->push_back(mum_KP->currentState().kinematicParametersError().matrix()(6,6));
+  // mummass->push_back(mum_KP->currentState().mass());
+  // mummasserr->push_back(mum_KP->currentState().kinematicParametersError().matrix()(6,6));
 
 
   vertexFitTree->movePointerToTheNextChild();  // pion track 
