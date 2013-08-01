@@ -346,7 +346,8 @@ private:
   
   // pion track 
   vector<int> *trkchg; // +1 for pi+, -1 for pi-
-  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr, *trkpt; 
+  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr, *trkpt;
+  vector<double> *trkdcabs, *trkdcabserr; 
 
 
   // kshort 
@@ -453,6 +454,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
 
   trkchg(0), 
   trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), trkpt(0),  
+  trkdcabs(0), trkdcabserr(0), 
 
   pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
   pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
@@ -608,6 +610,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("trkmass", &trkmass);
   tree_->Branch("trkmasserr", &trkmasserr);
   tree_->Branch("trkpt", &trkpt);
+  tree_->Branch("trkdcabs", &trkdcabs);
+  tree_->Branch("trkdcabserr", &trkdcabserr);
 
   tree_->Branch("pimpx", &pimpx);
   tree_->Branch("pimpy", &pimpy);
@@ -779,7 +783,8 @@ BToKstarMuMu::clearVariables(){
   mumeta->clear(); mupeta->clear(); 
 
   trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
-  trkmass->clear(); trkmasserr->clear(); trkpt->clear(); 
+  trkmass->clear(); trkmasserr->clear(); trkpt->clear();
+  trkdcabs->clear(); trkdcabserr->clear(); 
 
   pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); 
   pimd0->clear(); pimd0err->clear();
@@ -1036,7 +1041,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 		= thePATTrackHandle->begin();
 	      iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
-	  passed =  hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
+	  passed = hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
 	  BToKstarMuMuFigures[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
@@ -1076,6 +1081,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  saveKshortVariables(ksVertexFitTree); 
 
 	  trkpt->push_back(pion_trk_pt); 
+	  trkdcabs->push_back(DCAKstTrkBS); 
+	  trkdcabserr->push_back(DCAKstTrkBSErr); 
 	  kstarmass->push_back(kstar_mass); 
 	  bchg->push_back(iTrack->charge()); 
 	  saveBuToKstarMuMu(vertexFitTree); 
