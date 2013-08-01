@@ -131,7 +131,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
   {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
   {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
-  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
+  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV/c^{2}]", 
    100, 2, 20},
   {"h_mumulxybs", "#mu^{+}#mu^{-} Lxy #sigma beam spot", 100, 0, 100},
 
@@ -139,7 +139,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
   {"h_trkdcabssig", "#Pion track DCA/#sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
-  {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 20},
+  {"h_kstarmass", "Kstar mass; M(K*) [GeV/^{2}]", 100, 0, 20},
 
   {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
 
