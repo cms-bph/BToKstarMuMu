@@ -97,7 +97,7 @@ enum HistName{
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
-  h_mupdcabs, 
+  // h_mupdcabs, 
 
   h_mumutrkr, 
   h_mumutrkz, 
@@ -126,7 +126,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 10},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
-  {"h_mupdcabs", "#mu^{+} DCA beam spot; DCA [cm]", 100, 0, 10},
+  // {"h_mupdcabs", "#mu^{+} DCA beam spot; DCA [cm]", 100, 0, 10},
 
   {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 50},
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
@@ -140,7 +140,7 @@ HistArgs hist_args[kHistNameSize] = {
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
 
-  {"h_trkdcabssig", "#Pion track DCA/sigam beam spot; DCA/#sigma", 100, 0, 10},
+  {"h_trkdcabssig", "#Pion track DCA/#sigam beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
 
   // {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
@@ -991,7 +991,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       // check mu+ DCA to beam spot 
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
       passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
-      BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
+      // BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
