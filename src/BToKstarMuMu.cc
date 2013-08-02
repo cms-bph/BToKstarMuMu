@@ -360,9 +360,9 @@ private:
 
 
   // kshort 
-  vector<double> *pimpx, *pimpy, *pimpz, *pimmass, *pimd0, *pimd0err; 
-  vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
-  vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
+  vector<double> *pimpx, *pimpy, *pimpz, *pimd0, *pimd0err; 
+  vector<double> *pippx, *pippy, *pippz, *pipd0, *pipd0err; 
+  vector<double> *kspx, *kspy, *kspz; 
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl, *kslsbs, *kslsbserr; 
   vector<double> *kstarmass; 
 
@@ -471,9 +471,9 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   trkchg(0), trkpx(0), trkpy(0), trkpz(0), trkpt(0),  
   trkdcabs(0), trkdcabserr(0), 
 
-  pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
-  pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
-  kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
+  pimpx(0), pimpy(0), pimpz(0), pimd0(0), pimd0err(0), 
+  pippx(0), pippy(0), pippz(0), pipd0(0), pipd0err(0), 
+  kspx(0), kspy(0), kspz(0), 
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
   kstarmass(0),
   
@@ -626,20 +626,16 @@ BToKstarMuMu::beginJob()
   tree_->Branch("pimpx", &pimpx);
   tree_->Branch("pimpy", &pimpy);
   tree_->Branch("pimpz", &pimpz);
-  tree_->Branch("pimmass", &pimmass);
   tree_->Branch("pimd0", &pimd0);
   tree_->Branch("pimd0err", &pimd0err);
   tree_->Branch("pippx", &pippx);
   tree_->Branch("pippy", &pippy);
   tree_->Branch("pippz", &pippz);
-  tree_->Branch("pipmass", &pipmass);
   tree_->Branch("pipd0", &pipd0);
   tree_->Branch("pipd0err", &pipd0err);
   tree_->Branch("kspx", &kspx);
   tree_->Branch("kspy", &kspy);
   tree_->Branch("kspz", &kspz);
-  tree_->Branch("ksmass", &ksmass);
-  tree_->Branch("ksmasserr", &ksmasserr);
   tree_->Branch("ksvtxx", &ksvtxx);
   tree_->Branch("ksvtxy", &ksvtxy);
   tree_->Branch("ksvtxz", &ksvtxz);
@@ -796,11 +792,11 @@ BToKstarMuMu::clearVariables(){
   trkpt->clear();
   trkdcabs->clear(); trkdcabserr->clear(); 
 
-  pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); 
+  pimpx->clear(); pimpy->clear(); pimpz->clear();
   pimd0->clear(); pimd0err->clear();
-  pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); 
+  pippx->clear(); pippy->clear(); pippz->clear();
   pipd0->clear(); pipd0err->clear();
-  kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
+  kspx->clear(); kspy->clear(); kspz->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
   kslsbs->clear(); kslsbserr->clear(); 
   kstarmass->clear();  
@@ -1602,8 +1598,8 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   kspx->push_back(ks_KP->currentState().globalMomentum().x());
   kspy->push_back(ks_KP->currentState().globalMomentum().y());
   kspz->push_back(ks_KP->currentState().globalMomentum().z());
-  ksmass->push_back(ks_KP->currentState().mass());
-  ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
+  // ksmass->push_back(ks_KP->currentState().mass());
+  // ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
 
 }
 
