@@ -291,7 +291,7 @@ private:
   vector<string> LastFilterNames_;
 
   // gen particle 
-  bool SaveGenInfo_; 
+  bool   IsMonteCarlo_; 
   double TruthMatchMuonMaxR_; 
   double TruthMatchPionMaxR_; 
   double TruthMatchKsMaxVtx_; 
@@ -424,7 +424,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
   
   // gen particle
-  SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
+  IsMonteCarlo_(iConfig.getUntrackedParameter<bool>("IsMonteCarlo")),
   TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
   TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
   TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
@@ -523,13 +523,11 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   clearVariables(); 
 
-
   run = iEvent.id().run() ;
   event = iEvent.id().event() ;
   lumiblock = iEvent.luminosityBlock(); 
 
-  cout << ">>> Begin event: " << event << "--------------" << endl; 
-  if (SaveGenInfo_) saveGenInfo(iEvent);
+  if (IsMonteCarlo_) saveGenInfo(iEvent);
 
   hltReport(iEvent);
 
@@ -540,14 +538,10 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       buildBuToKstarMuMu(iEvent) ;  
 
-      if (SaveGenInfo_) {
-	// saveGenInfo(iEvent);
-	saveTruthMatch(iEvent);
-      }
+      if (IsMonteCarlo_) saveTruthMatch(iEvent);
       
       tree_->Fill();
     }
-
   }
   
   clearVariables(); 
@@ -678,7 +672,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bctauerr", &bctauerr);
 
 
-  if (SaveGenInfo_) {
+  if (IsMonteCarlo_) {
     tree_->Branch("genbchg",     &genbchg    , "genbchg/I"   );
     tree_->Branch("genbpx",      &genbpx     , "genbpx/D"    );
     tree_->Branch("genbpy",      &genbpy     , "genbpy/D"    );
@@ -818,7 +812,7 @@ BToKstarMuMu::clearVariables(){
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
 
-  if (SaveGenInfo_) {
+  if (IsMonteCarlo_) {
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
     genkspx = 0;   genkspy = 0;   genkspz = 0; 
@@ -1792,9 +1786,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(b.daughter(j));
      
-      cout << " Bu daughter pdgID = " << dau.pdgId() << endl; 
-
-
       if (dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
       if (dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
       if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;  
@@ -1812,7 +1803,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (dau.pdgId() == KZERO_PDG_ID) ikz = j; 
     }
 
-
     // get the Kshort 
     const reco::Candidate *ks = NULL; 
 
@@ -1821,17 +1811,15 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
     // case 2: K*+ -> K0 pi+ -> KS0 pi+ 
     else if (ikz != -1 && ipi != -1) { 
-
       const reco::Candidate & kz = *(kst.daughter(ikz));
       for ( size_t j = 0; j < kz.numberOfDaughters(); ++j){
 	const reco::Candidate  &dau = *(kz.daughter(j));
 	if (dau.pdgId() == KSHORTZERO_PDG_ID) iks = j; 
-	cout << " K0 daughter pdgID = " << dau.pdgId() << endl; 
       }
        if (iks != -1 ) ks = kz.daughter(iks);
     }
     
-    if ( iks == -1 || ipi == -1 ) continue; 
+    if (  ks == NULL || iks == -1 || ipi == -1 ) continue; 
 
     for ( size_t j = 0; j < ks->numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(ks->daughter(j)) ;
@@ -1839,32 +1827,26 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if ( dau.pdgId() == -PIONPLUS_PDG_ID) ipim = j; 
     }
 
-    cout << "has Ks0 -> pi+ pi-" << endl; 
-    
     if (ipip == -1 || ipim == -1) continue; 
     
     // store the B and K* vars
-    // const reco::Candidate & pip = *(ks.daughter(ipip));
-    // const reco::Candidate & pim = *(ks.daughter(ipim));
-    // const reco::Candidate & pi  = *(kst.daughter(ipi));
     const reco::Candidate & pip = *(ks->daughter(ipip));
     const reco::Candidate & pim = *(ks->daughter(ipim));
     const reco::Candidate & pi  = *(kst.daughter(ipi));
-    cout << "ijpsi = " << ijpsi << endl; 
-    // mu mu from the B+ -> K* mu mu 
+
     const reco::Candidate *mum = NULL;  
     const reco::Candidate *mup = NULL;  
     
     // K* mu mu 
     if (imum != -1 && imup != -1) {
-      cout << "Found GEN B+-> K* mu mu " << endl; 
+      // cout << "Found GEN B+-> K* mu mu " << endl; 
       mum = b.daughter(imum);
       mup = b.daughter(imup);
     } 
 
     // K* J/psi 
     else if ( ijpsi != -1 ) {
-      cout << "Found GEN B+-> K* J/psi " << endl; 
+      // cout << "Found GEN B+-> K* J/psi " << endl; 
       const reco::Candidate & jpsi = *(b.daughter(ijpsi));
       for ( size_t j = 0; j < jpsi.numberOfDaughters(); ++j){
 	const reco::Candidate  &dau = *(jpsi.daughter(j));
@@ -1879,7 +1861,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
     // K* psi(2S) 
     else if ( ipsi2s != -1) {
-      cout << "Found GEN B+-> K* psi(2S) " << endl; 
+      // cout << "Found GEN B+-> K* psi(2S) " << endl; 
       const reco::Candidate & psi2s = *(b.daughter(ipsi2s));
       for ( size_t j = 0; j < psi2s.numberOfDaughters(); ++j){
 	const reco::Candidate  &dau = *(psi2s.daughter(j));
@@ -1932,7 +1914,6 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genmuppx = mup->px();
     genmuppy = mup->py();
     genmuppz = mup->pz();
-    
   }
 }
 
