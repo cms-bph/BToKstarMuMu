@@ -77,11 +77,21 @@ using namespace std;
 
 const int MUONMINUS_PDG_ID = 13; 
 const int PIONPLUS_PDG_ID = 211; 
+const int KLONGZERO_PDG_ID = 130; 
 const int KSHORTZERO_PDG_ID = 310; 
+const int KZERO_PDG_ID = 311; 
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
 const int JPSI_PDG_ID = 443; 
 const int PSI2S_PDG_ID = 10443; 
+
+const int ETA_PDG_ID = 221; 
+const int DZERO_PDG_ID = 421; 
+const int DSTAR2007_PDG_ID = 423; 
+const int DSPLUS_PDG_ID = 431; 
+const int DS1PLUS2460_PDG_ID = 20433; 
+const int SIGMACSTARPLUSPLUS_PDG_ID = 4224; 
+const int DELTAPLUS_PDG_ID = 2224; 
 const double PI = 3.141592653589793;
 
 // Structures 
@@ -513,9 +523,13 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   clearVariables(); 
 
+
   run = iEvent.id().run() ;
   event = iEvent.id().event() ;
   lumiblock = iEvent.luminosityBlock(); 
+
+  cout << ">>> Begin event: " << event << "--------------" << endl; 
+  if (SaveGenInfo_) saveGenInfo(iEvent);
 
   hltReport(iEvent);
 
@@ -527,7 +541,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       buildBuToKstarMuMu(iEvent) ;  
 
       if (SaveGenInfo_) {
-	saveGenInfo(iEvent);
+	// saveGenInfo(iEvent);
 	saveTruthMatch(iEvent);
       }
       
@@ -1772,11 +1786,15 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
     int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1), ipip(-1), ipim(-1); 
-    int ijpsi(-1), ipsi2s(-1); 
+    int ijpsi(-1), ipsi2s(-1), ikz(-1); 
     
     // loop over all B+/- daughters 
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(b.daughter(j));
+     
+      cout << " Bu daughter pdgID = " << dau.pdgId() << endl; 
+
+
       if (dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
       if (dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
       if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;  
@@ -1784,75 +1802,69 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (dau.pdgId() == PSI2S_PDG_ID ) ipsi2s = j; 
     }
 
-    // determine the K*+ -> Ks0 pi+
     if ( ikst == -1 ) continue; 
     const reco::Candidate & kst = *(b.daughter(ikst));
     
     for ( size_t j = 0; j < kst.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(kst.daughter(j));
-      if (abs(dau.pdgId()) == KSHORTZERO_PDG_ID) iks = j; 
+      if (dau.pdgId() == KSHORTZERO_PDG_ID) iks = j; 
       if (abs(dau.pdgId()) == PIONPLUS_PDG_ID) ipi = j; 
+      if (dau.pdgId() == KZERO_PDG_ID) ikz = j; 
     }
 
-    if (iks == -1 || ipi == -1) continue; 
-   
-    // Ks0 -> pi+ pi-
-    const reco::Candidate & ks = *(kst.daughter(iks));
-    for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
-      const reco::Candidate  &dau = *(ks.daughter(j));
+
+    // get the Kshort 
+    const reco::Candidate *ks = NULL; 
+
+    // case 1: K*+ -> Ks0 pi+ 
+    if (iks != -1 ) ks = kst.daughter(iks);
+
+    // case 2: K*+ -> K0 pi+ -> KS0 pi+ 
+    else if (ikz != -1 && ipi != -1) { 
+
+      const reco::Candidate & kz = *(kst.daughter(ikz));
+      for ( size_t j = 0; j < kz.numberOfDaughters(); ++j){
+	const reco::Candidate  &dau = *(kz.daughter(j));
+	if (dau.pdgId() == KSHORTZERO_PDG_ID) iks = j; 
+	cout << " K0 daughter pdgID = " << dau.pdgId() << endl; 
+      }
+       if (iks != -1 ) ks = kz.daughter(iks);
+    }
+    
+    if ( iks == -1 || ipi == -1 ) continue; 
+
+    for ( size_t j = 0; j < ks->numberOfDaughters(); ++j){
+      const reco::Candidate  &dau = *(ks->daughter(j)) ;
       if ( dau.pdgId() == PIONPLUS_PDG_ID) ipip = j; 
       if ( dau.pdgId() == -PIONPLUS_PDG_ID) ipim = j; 
     }
-   
+
+    cout << "has Ks0 -> pi+ pi-" << endl; 
+    
     if (ipip == -1 || ipim == -1) continue; 
     
     // store the B and K* vars
-    const reco::Candidate & pip = *(ks.daughter(ipip));
-    const reco::Candidate & pim = *(ks.daughter(ipim));
+    // const reco::Candidate & pip = *(ks.daughter(ipip));
+    // const reco::Candidate & pim = *(ks.daughter(ipim));
+    // const reco::Candidate & pi  = *(kst.daughter(ipi));
+    const reco::Candidate & pip = *(ks->daughter(ipip));
+    const reco::Candidate & pim = *(ks->daughter(ipim));
     const reco::Candidate & pi  = *(kst.daughter(ipi));
-
-    genbchg = b.charge(); 
-    genbpx = b.px();
-    genbpy = b.py();
-    genbpz = b.pz();
-
-    genkstpx = kst.px();
-    genkstpy = kst.py();
-    genkstpz = kst.pz();
-    
-    genkspx = ks.px();
-    genkspy = ks.py();
-    genkspz = ks.pz();
-
-    genksvtxx = ks.vx();
-    genksvtxy = ks.vy();
-    genksvtxz = ks.vz();
-
-    gentrkchg = pi.charge(); 
-    gentrkpx = pi.px();
-    gentrkpy = pi.py();
-    gentrkpz = pi.pz();
-
-    // save kshort pions 
-    genpippx = pip.px();
-    genpippy = pip.py();
-    genpippz = pip.pz();
-    genpimpx = pim.px();
-    genpimpy = pim.py();
-    genpimpz = pim.pz();
-  
- 
+    cout << "ijpsi = " << ijpsi << endl; 
     // mu mu from the B+ -> K* mu mu 
     const reco::Candidate *mum = NULL;  
     const reco::Candidate *mup = NULL;  
     
+    // K* mu mu 
     if (imum != -1 && imup != -1) {
+      cout << "Found GEN B+-> K* mu mu " << endl; 
       mum = b.daughter(imum);
       mup = b.daughter(imup);
     } 
 
     // K* J/psi 
     else if ( ijpsi != -1 ) {
+      cout << "Found GEN B+-> K* J/psi " << endl; 
       const reco::Candidate & jpsi = *(b.daughter(ijpsi));
       for ( size_t j = 0; j < jpsi.numberOfDaughters(); ++j){
 	const reco::Candidate  &dau = *(jpsi.daughter(j));
@@ -1867,6 +1879,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
     // K* psi(2S) 
     else if ( ipsi2s != -1) {
+      cout << "Found GEN B+-> K* psi(2S) " << endl; 
       const reco::Candidate & psi2s = *(b.daughter(ipsi2s));
       for ( size_t j = 0; j < psi2s.numberOfDaughters(); ++j){
 	const reco::Candidate  &dau = *(psi2s.daughter(j));
@@ -1881,6 +1894,37 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
 
     if ( mum == NULL || mup == NULL) continue; 
 
+    // save gen info
+    genbchg = b.charge(); 
+    genbpx = b.px();
+    genbpy = b.py();
+    genbpz = b.pz();
+
+    genkstpx = kst.px();
+    genkstpy = kst.py();
+    genkstpz = kst.pz();
+    
+    genkspx = ks->px();
+    genkspy = ks->py();
+    genkspz = ks->pz();
+
+    genksvtxx = ks->vx();
+    genksvtxy = ks->vy();
+    genksvtxz = ks->vz();
+
+    gentrkchg = pi.charge(); 
+    gentrkpx = pi.px();
+    gentrkpy = pi.py();
+    gentrkpz = pi.pz();
+
+    // save kshort pions 
+    genpippx = pip.px();
+    genpippy = pip.py();
+    genpippz = pip.pz();
+    genpimpx = pim.px();
+    genpimpy = pim.py();
+    genpimpz = pim.pz();
+  
     genmumpx = mum->px();
     genmumpy = mum->py();
     genmumpz = mum->pz();
