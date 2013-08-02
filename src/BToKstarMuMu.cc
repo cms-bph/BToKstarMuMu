@@ -256,7 +256,8 @@ private:
   void saveBuCtau(RefCountedKinematicTree); 
 
   void saveGenInfo(const edm::Event&); 
-  void saveKshortVariables(RefCountedKinematicTree); 
+  void saveKshortVariables(RefCountedKinematicTree, 
+			   reco::VertexCompositeCandidate); 
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
   void saveDimuVariables(double, double, double, double, double, double, 
@@ -1068,7 +1069,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
-	  saveKshortVariables(ksVertexFitTree); 
+	  saveKshortVariables(ksVertexFitTree, *iKshort); 
 
 	  trkpt->push_back(pion_trk_pt); 
 	  trkdcabs->push_back(DCAKstTrkBS); 
@@ -1950,7 +1951,8 @@ BToKstarMuMu::isGenMuonP(const reco::Candidate *p){
 
 
 void 
-BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
+BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree, 
+				  reco::VertexCompositeCandidate iKshort)
 {
   ksVertexFitTree->movePointerToTheTop();
   RefCountedKinematicVertex ks_vertex = ksVertexFitTree->currentDecayVertex();
@@ -2003,7 +2005,31 @@ BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
   pimpx->push_back(ksPimKP.momentum().x());
   pimpy->push_back(ksPimKP.momentum().y());
   pimpz->push_back(ksPimKP.momentum().z());
+
+  if ( iKshort.daughter(0)->charge() < 0) {
+    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+		      (iKshort.daughter(0)))->track()->d0()); 
+    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			 (iKshort.daughter(0)))->track()->d0Error()); 
+    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+		      (iKshort.daughter(1)))->track()->d0()); 
+    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			 (iKshort.daughter(1)))->track()->d0Error()); 
+    
+  } else {
+    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(1)))->track()->d0()); 
+    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(1)))->track()->d0Error()); 
+    
+    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(0)))->track()->d0()); 
+    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(0)))->track()->d0Error()); 
+  }
 }
+  
+
 
 
 void 
