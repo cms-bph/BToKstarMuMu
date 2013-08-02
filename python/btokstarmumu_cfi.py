@@ -168,7 +168,7 @@ process.ntuple = cms.EDAnalyzer(
 
 
     # gen particle 
-    SaveGenInfo = cms.untracked.bool(False),
+    IsMonteCarlo = cms.untracked.bool(False),
     TruthMatchMuonMaxR = cms.untracked.double(0.004), # [eta-phi]
     TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
     TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
