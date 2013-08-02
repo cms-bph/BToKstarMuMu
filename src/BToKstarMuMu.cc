@@ -134,7 +134,7 @@ HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
 
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
-  {"h_mueta", "Muon eta", 100, 0, 10},
+  {"h_mueta", "Muon eta", 100, 0, 3},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
   {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 50},
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
@@ -148,7 +148,7 @@ HistArgs hist_args[kHistNameSize] = {
 
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
-  {"h_trkdcabssig", "#Pion track DCA/#sigam beam spot; DCA/#sigma", 100, 0, 10},
+  {"h_trkdcabssig", "Pion track DCA/#sigma beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
   {"h_bvtxcl", "B decay vertex CL", 100, 0, 1},
 
@@ -1076,6 +1076,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  kstarmass->push_back(kstar_mass); 
 	  bchg->push_back(iTrack->charge()); 
 	  bvtxcl->push_back(b_vtx_cl); 
+	  
 
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
