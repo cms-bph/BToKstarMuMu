@@ -4,7 +4,7 @@ from btokstarmumu_cfi import process
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring('file:2011May10ReReco_numEvent1000.root' )
+                            fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/data/Run2011/2011May10ReReco_numEvent1000.root' )
     )
 process.GlobalTag.globaltag = cms.string('GR_R_42_V25::All')
 
