@@ -65,79 +65,14 @@ def main(args):
 def get_goodfiles(label):
     comname = get_name_from_label(label) 
     cmd = 'find_goodfiles.py -c crab_%s -q' %comname
-    
-    if ('B2KstarMuMu/RECO_Brian_prod_2' in label or 
-        'B0Psi2SKstMuMuKPi/RECO_Brian_prod1' in label or 
-        'B0JPsiKstMuMuKPi/RECO_Brian_prod1' in label) and 'v3' in label:
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_4_2_8_patch7/src/BphAna/B0KstMuMu_V00_06_01/python')
 
-    elif ('Run2012B-PromptReco-v1_3' in label or \
-          'Run2012B-PromptReco-v1_3_1' in label) :
+    if 'run2011v0_' in label: 
         procdir = os.path.join(
             atr.afbpath,
-            'rel/CMSSW_5_3_2_patch4/src/BphAna/B0KstMuMu/python')
-
-    elif ('Run2012B-PromptReco-v2_1' in label) :
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_5_3_2_patch4/src/BphAna/B0KstMuMu_V00_06_07/python')
-
-    elif ('Run2011A-May10ReReco-v1.9' in label or
-          'Run2011A-PromptReco-v4.6' in label or
-          'Run2011A-PromptReco-v5.6' in label or
-          'Run2011A-PromptReco-v6.5' in label or
-          'Run2011B-PromptReco-v1.6' in label or
-          'B2KstarMuMu/RECO_Brian_prod_2_1_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_2_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_3_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_4_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_6_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_7_v5' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_8_v5' in label or
-          'B0JPsiKstMuMuKPi/RECO_Brian_prod1_v5' in label or
-          'B0Psi2SKstMuMuKPi/RECO_Brian_prod1_v5' in label 
-          ) :
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_4_2_8_patch7/src/BphAna/B0KstMuMu_V00_07_01/python')
-        
-    elif ('B2KstarMuMu/RECO_Brian_prod_2_1_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_2_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_3_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_4_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_6_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_7_v7' in label or 
-          'B2KstarMuMu/RECO_Brian_prod_2_8_v7' in label or
-          'B0JPsiKstMuMuKPi/RECO_Brian_prod1_v7' in label or
-          'B0Psi2SKstMuMuKPi/RECO_Brian_prod1_v7' in label 
-          ) :
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_4_2_8_patch7/src/BphAna/B0KstMuMu_V00_08_01/python')
-
-    elif ('Run2011A-May10ReReco-v1.10.6' in label or
-          'Run2011A-PromptReco-v4.10' in label or
-          'Run2011A-PromptReco-v5.10' in label or 
-          'Run2011A-PromptReco-v6.10' in label or
-          'Run2011B-PromptReco-v1.10.1' in label ): 
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_V00_00_01/python')
-
-    elif ('Run2011A-May10ReReco-v1.11' in label or
-          'Run2011A-PromptReco-v4.11' in label or
-          'Run2011A-PromptReco-v5.11' in label or 
-          'Run2011A-PromptReco-v6.11' in label or
-          'Run2011B-PromptReco-v1.11' in label ): 
-        procdir = os.path.join(
-            atr.afbpath,
-            'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_V00_00_02/python')
-
+            'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
     else: 
         raise NameError(label)
-
+        
     output = proc_cmd(cmd, procdir=procdir)
     goodfiles = []
     for line in output.split():
