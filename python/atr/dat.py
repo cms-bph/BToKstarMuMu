@@ -254,6 +254,10 @@ def jobs_created(datatype, label):
             'Run2011A-May10ReReco-v1.11'
             ]:
         total_jobs = 1028
+    elif label in [
+            'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1', 
+            ]:
+        total_jobs = 20 
     else:
         raise NameError(label)
     
@@ -318,6 +322,11 @@ def get_filepath(datatype, label):
           'Run2011B-PromptReco-v1.11' in label): 
         primarydataset = 'MuOnia'
         psethash = '22d243fc4e0d9b61112c0c52bbb77f98'
+        
+    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1' in label): 
+        primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
+        psethash = 'a8d57e0034258aee57fcad0fa4e53647'
+
     else:
         raise NameError(label)
     
