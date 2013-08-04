@@ -12,8 +12,6 @@ from tls.filetools import CfgFile
 from tls import * 
 import atr
 from dat import (get_dataset_run2011, get_lumi_mask_run2011,
-                 get_dataset_reco_brian_prod,
-                 get_dataset_run2012, get_lumi_mask_run2012, 
                  get_output_name)
 
 import cfg 
