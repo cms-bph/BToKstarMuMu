@@ -702,7 +702,6 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genpimpx",  &genpimpx , "genpimpx/D");
     tree_->Branch("genpimpy",  &genpimpy , "genpimpy/D");
     tree_->Branch("genpimpz",  &genpimpz , "genpimpz/D");
-    // tree_->Branch("decname",  &decname , "decname/C");
     tree_->Branch("decname",  &decname);
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
@@ -1845,7 +1844,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       // cout << "Found GEN B+-> K* mu mu " << endl; 
       mum = b.daughter(imum);
       mup = b.daughter(imup);
-      decname = "BToKstarMuMu"; 
+      decname = "BuToKstarMuMu"; 
     } 
 
     // K* J/psi 
@@ -1860,6 +1859,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (imum != -1 && imup != -1) {
 	mum = jpsi.daughter(imum);
 	mup = jpsi.daughter(imup);
+	decname = "BuToKstarJPsi"; 
       } 
     }
 
@@ -1875,6 +1875,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (imum != -1 && imup != -1) {
 	mum = psi2s.daughter(imum);
 	mup = psi2s.daughter(imup);
+	decname = "BuToKstarPsi2S"; 
       } 
     }
 
