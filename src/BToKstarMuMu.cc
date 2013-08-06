@@ -386,6 +386,8 @@ private:
   double genmuppx, genmuppy, genmuppz;
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
+  
+  string decname; 
 
   vector<bool> *istruemum, *istruemup, *istrueks, *istruetrk, *istruebu;  
 };
@@ -493,6 +495,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
+  decname(""), 
   istruemum(0), istruemup(0), istrueks(0), istruetrk(0), istruebu(0) 
   
 { 
@@ -699,6 +702,8 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genpimpx",  &genpimpx , "genpimpx/D");
     tree_->Branch("genpimpy",  &genpimpy , "genpimpy/D");
     tree_->Branch("genpimpz",  &genpimpz , "genpimpz/D");
+    // tree_->Branch("decname",  &decname , "decname/C");
+    tree_->Branch("decname",  &decname);
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
     tree_->Branch("istrueks",   &istrueks  );
@@ -819,7 +824,7 @@ BToKstarMuMu::clearVariables(){
     genmuppx = 0;  genmuppy = 0;  genmuppz = 0; 
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
-
+    decname = ""; 
     istruemum->clear(); istruemup->clear(); istrueks->clear();
     istruetrk->clear(); istruebu->clear(); 
   }
@@ -1840,6 +1845,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       // cout << "Found GEN B+-> K* mu mu " << endl; 
       mum = b.daughter(imum);
       mup = b.daughter(imup);
+      decname = "BToKstarMuMu"; 
     } 
 
     // K* J/psi 
