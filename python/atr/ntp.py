@@ -198,5 +198,16 @@ def datasets_njobs(label):
     return datasets_njobs
 
         
+def grid_path(label):
+    com_name = get_name_from_label(label)
+    eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
+    if label == 'Run2011A-PromptReco-v6_run2011v0': 
+        srcdir = os.path.join(
+            eosbase, 'MuOnia',
+            com_name, '09dd54ed3307c6d768a6853667b85e6a')
+    else:
+        raise NameError(label)
+    return srcdir 
+    
     
 
