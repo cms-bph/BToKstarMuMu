@@ -8,12 +8,17 @@ __copyright__ = "Copyright (c) Xin Shi"
 
 import sys 
 from tls import * 
+import atr 
 import json
 
 
 def main(args):
     if args[0] == 'eos':
         eos_rm(args[1])
+    elif args[0] == 'data' :
+        label = args[1]
+        eosdir = atr.ntp.grid_path(label)
+        eos_rm(eosdir)
     else:
         raise NameError(args)
 
