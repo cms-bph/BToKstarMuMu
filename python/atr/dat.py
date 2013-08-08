@@ -198,9 +198,7 @@ def jobs_created(datatype, label):
             ]:
         total_jobs = 1279
     elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v5.6',
-            'Run2011A-PromptReco-v5.10', 
-            'Run2011A-PromptReco-v5.11'
+            'Run2011A-PromptReco-v5_run2011v0'
             ]:
         total_jobs = 326
     elif datatype == 'data' and label in [
@@ -208,8 +206,7 @@ def jobs_created(datatype, label):
             ]:
         total_jobs = 474 
     elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v6.10', 
-            'Run2011A-PromptReco-v6.11'
+            'Run2011A-PromptReco-v6_run2011v0', 
             ]:
         total_jobs = 473 
     elif datatype == 'data' and label in [
@@ -273,6 +270,14 @@ def get_filepath(datatype, label):
     if 'Run2011A-May10ReReco-v1_run2011v0_2' in label:
         primarydataset = 'MuOnia'
         psethash = 'f379a209b0c58c9fe256f1d4da070fb3'
+
+    elif 'Run2011A-PromptReco-v5_run2011v0' in label:
+        primarydataset = 'MuOnia'
+        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+    
+    elif 'Run2011A-PromptReco-v6_run2011v0' in label:
+        primarydataset = 'MuOnia'
+        psethash = '09dd54ed3307c6d768a6853667b85e6a'
 
     elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
