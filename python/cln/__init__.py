@@ -18,7 +18,7 @@ def main(args):
     elif args[0] == 'data' :
         label = args[1]
         eosdir = atr.ntp.grid_path(label)
-        eos_rm(eosdir)
+        quick_rm(eosdir)
     else:
         raise NameError(args)
 
@@ -49,7 +49,7 @@ def eos_rm(dir):
         sys.stdout.write('%s  ' %n)
         sys.stdout.flush()
         cmd = 'cmsRm %s ' % f
-        proc_cmd(cmd)
+        proc_cmd(cmd, procdir=dir)
 
     sys.stdout.write(' all done.\n')
 
@@ -64,3 +64,8 @@ def parse_ls(content, ignore=None, poz=None):
         name = l.split()[-1]
         names.append(name)
     return names
+
+def quick_rm(dir):
+    cmd = 'rm -rf %s' % dir
+    proc_cmd(cmd)
+    sys.stdout.write(' done.\n')     
