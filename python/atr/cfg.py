@@ -470,6 +470,6 @@ def BuToKstarJPsi_7TeV_5E5_v1_run2011v0(f, label):
 def BuToKstarMuMu_7TeV_2E7_v1_run2011v0(f, label):
     f, cfg_file = BuToKstarJPsi_7TeV_5E5_v1_run2011v0(f, label)
     f.set('CMSSW', 'datasetpath', '/BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen/Fall11-HLTMuonia_PU_S6_START42_V14B-v1/AODSIM')
-    f.set('CMSSW', 'number_of_jobs', 200)
+    f.set('CMSSW', 'number_of_jobs', 1200)
     return f, cfg_file
 
