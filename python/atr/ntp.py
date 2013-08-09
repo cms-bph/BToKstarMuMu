@@ -23,29 +23,6 @@ def ntppath(label, datatype):
     if label == '5ifbv1':
         path_ = os.path.join(datpath, 'ntp')
 
-    elif label in ['5ifbv2', '5ifbv2.2']:
-        path_ = ['/castor/cern.ch/user/z/zhlinl/b2KstarMuMu/TTree/10Dec2011/May10ReReco-v1',
-                 '/castor/cern.ch/user/z/zhlinl/b2KstarMuMu/TTree/10Dec2011/Run2011A-PromptReco-v4',
-                 '/castor/cern.ch/user/z/zhlinl/b2KstarMuMu/TTree/10Dec2011/Run2011A-PromptReco-v5'
-                 ]
-    
-        
-    elif label == '5ifbv2.1':
-        path_ = os.path.join(datpath, 'skm')
-
-
-    elif label in ['5ifbv2.3', '5ifbv2.3.1', '5ifbv2.3.2',
-                   '5ifbv2.6.1', '5ifbv2.6.2']:
-        path_label = get_label_by_version(label, 'x.x')
-        ds = [ 'Run2011A-PromptReco-v5', 'Run2011A-PromptReco-v4',
-               'Run2011A-May10ReReco-v1', 'Run2011A-PromptReco-v6',
-               'Run2011B-PromptReco-v1']
-
-        path_ = []
-        for dataset in ds:
-            path_.append('%s/srm/%s/%s/%s' %(
-                castor_datpath, datatype, path_label, dataset))
-
     elif label in ['B2KstarMuMu/GEN_1M_v1.1', 'B2KstarMuMu/RECO_1M_v2.2',
                    'B2KstarMuMu/RECO_1M_v2.2/GEN', 'B2KstarMuMu/RECO_1M_v2.3']:
         path_ = os.path.join(datpath, 'ntp', datatype, label)
@@ -77,51 +54,6 @@ def datasets(datatype, label, test=False):
     com_name = get_name_from_label(label)
     function = getattr(ntp, '%s' %com_name)
     return function(datatype, label)
-
-    
-    if 'B2KstarMuMu/RECO_100M_v1.1' in label: 
-        sys.stdout.write('Using only one file!!! \n')
-        rootfile = '/afs/cern.ch/user/x/xshi/work/cms/afb/dat/eos/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_1/ee707b714b6111f91c879d76d7f3a27d/tree_B2KstarMuMu_50_1_vbq.root'
-
-    elif 'B2KstarMuMu/RECO_100M_v1.2' in label:
-        rootfile = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_2/ee707b714b6111f91c879d76d7f3a27d/*.root'
-        if test:
-            sys.stdout.write('Testing only one file. \n')
-            rootfile = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_2/ee707b714b6111f91c879d76d7f3a27d/tree_B2KstarMuMu_68_1_30S.root'
-            #rootfile = '/afs/cern.ch/user/x/xshi/work/cms/afb/dat/eos/B2KstarMuMu_RECO_100M_v1_2/tree_B2KstarMuMu_68_1_30S.root'
-
-    elif 'B2KstarMuMu/RECO_100M_v1.3' in label:
-        rootpath = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_3/a3995a8bd4369ba4e1dcae10384ea80e/'
-        rootfile = rootpath + '*.root'
-        if test:
-            sys.stdout.write('Testing only one file. \n')
-            rootfile = rootpath + 'tree_B2KstarMuMu_9_1_5l4.root'
-
-    elif 'B2KstarMuMu/RECO_100M_v1.4' in label:
-        rootpath = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_4/faed562cb83316ea0bcafcfac78d74da/'
-        rootfile = rootpath + '*.root'
-        if test:
-            sys.stdout.write('Testing only one file. \n')
-            rootfile = rootpath + 'tree_B2KstarMuMu_21_1_YQK.root'
-
-    elif 'B2KstarMuMu/RECO_100M_v1.5' in label:
-        rootpath = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_5/faed562cb83316ea0bcafcfac78d74da/'
-        rootfile = rootpath + '*.root'
-        if test:
-            sys.stdout.write('Testing only one file. \n')
-            rootfile = rootpath + 'tree_B2KstarMuMu_34_1_NLL.root'
-
-    elif 'B2KstarMuMu/RECO_100M_v1.6' in label:
-        rootpath = 'root://eoscms//eos/cms/store/user/xshi/B2KstarMuMu_GEN_SIM_HLT_100M_v1/B2KstarMuMu_RECO_100M_v1_6/a204b02393b0f85107bbc203039e4560/'
-        rootfile = rootpath + '*.root'
-        if test:
-            sys.stdout.write('Testing only one file. \n')
-            rootfile = rootpath + 'B0ToKstMuMu_97_1_UBI.root'
-
-    else:
-        raise NameError(label)
-
-    return rootfile
 
 
 def root_tree_obj(datatype, label):
@@ -201,7 +133,10 @@ def datasets_njobs(label):
 def grid_path(label):
     com_name = get_name_from_label(label)
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
-    if label == 'Run2011A-PromptReco-v6_run2011v0': 
+    if label in ['Run2011A-PromptReco-v5_run2011v0', 
+                 'Run2011A-PromptReco-v6_run2011v0', 
+                 'Run2011B-PromptReco-v1_run2011v0'
+                 ] : 
         srcdir = os.path.join(
             eosbase, 'MuOnia',
             com_name, '09dd54ed3307c6d768a6853667b85e6a')
