@@ -164,6 +164,7 @@ def jobs_created(datatype, label):
         total_jobs = 1028
     elif label in [
             'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1', 
+            'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_2', 
             ]:
         total_jobs = 20 
     else:
@@ -194,7 +195,7 @@ def get_filepath(datatype, label):
         primarydataset = 'MuOnia'
         psethash = '09dd54ed3307c6d768a6853667b85e6a'
 
-    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1' in label): 
+    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
         psethash = 'a8d57e0034258aee57fcad0fa4e53647'
 
