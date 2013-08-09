@@ -60,9 +60,7 @@ def Run2011A_PromptReco_v5_run2011v0(com_name):
     merge_root_files(srcdir, dstdir)
 
 def Run2011A_PromptReco_v6_run2011v0(com_name):
-    eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
-    srcdir = os.path.join(
-        eosbase, 'MuOnia',
-        com_name, '09dd54ed3307c6d768a6853667b85e6a')
-    dstdir = os.path.join(eosbase, 'dat/ntp/data', com_name)
-    merge_root_files(srcdir, dstdir)
+    Run2011A_PromptReco_v5_run2011v0(com_name)
+
+def Run2011B_PromptReco_v1_run2011v0(com_name):
+    Run2011A_PromptReco_v6_run2011v0(com_name)
