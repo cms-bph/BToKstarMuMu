@@ -66,7 +66,7 @@ def get_goodfiles(label):
     comname = get_name_from_label(label) 
     cmd = 'find_goodfiles.py -c crab_%s -q' %comname
 
-    if 'run2011v0_' in label: 
+    if 'run2011v0' in label: 
         procdir = os.path.join(
             atr.afbpath,
             'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')

@@ -11,95 +11,7 @@ import os
 from tls import * 
 
 def datasets(datatype, label):
-    if datatype == 'dt' and label in ['5ifbv2.3', '5ifbv2.4']:
-        datasets = {
-            'Run2011A-May10ReReco-v1': {
-                'datasetpath': '/MuOnia/Run2011A-May10ReReco-v1/AOD',
-                'lumi_mask': 'Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt',
-                'pset': 'b2MuMuX_data_May10ReReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'number_of_jobs': '200'                
-            },
-            
-            'Run2011A-PromptReco-v4': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v4/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'number_of_jobs': '300'     
-            },
-
-            'Run2011A-PromptReco-v5': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v5/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'number_of_jobs': '200'     
-            },
-
-            'Run2011A-PromptReco-v6': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v6/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'number_of_jobs': '180'     
-            },
-
-            'Run2011B-PromptReco-v1': {
-                'datasetpath': '/MuOnia/Run2011B-PromptReco-v1/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'number_of_jobs': '500'     
-            },
-            }
-
-    elif datatype == 'dt' and label in ['5ifbv2.5', '5ifbv2.6']:
-        datasets = {
-            'Run2011A-May10ReReco-v1': {
-                'datasetpath': '/MuOnia/Run2011A-May10ReReco-v1/AOD',
-                'lumi_mask': 'Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt',
-                'pset': 'b2MuMuX_data_May10ReReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'lumis_per_job': '100'
-            },
-            
-            'Run2011A-PromptReco-v4': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v4/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'lumis_per_job': '100'
-            },
-
-            'Run2011A-PromptReco-v5': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v5/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'lumis_per_job': '100'
-            },
-
-            'Run2011A-PromptReco-v6': {
-                'datasetpath': '/MuOnia/Run2011A-PromptReco-v6/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'lumis_per_job': '100'
-            },
-
-            'Run2011B-PromptReco-v1': {
-                'datasetpath': '/MuOnia/Run2011B-PromptReco-v1/AOD',
-                'lumi_mask': 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt',
-                'pset': 'b2MuMuX_data_promptReco_Run2011A.py',
-                'output_file': 'tree_b2MuMuX.root', 
-                'lumis_per_job': '100'
-            },
-            }
-                
-    else:
-        raise NameError(label)
-
+    raise NameError(label)
     return datasets
 
 
@@ -215,8 +127,7 @@ def jobs_created(datatype, label):
         total_jobs = 1504 
 
     elif datatype == 'data' and label in [
-            'Run2011B-PromptReco-v1.10.1', 
-            'Run2011B-PromptReco-v1.11'
+            'Run2011B-PromptReco-v1_run2011v0', 
             ]:
         total_jobs = 1578
 
@@ -276,6 +187,10 @@ def get_filepath(datatype, label):
         psethash = '09dd54ed3307c6d768a6853667b85e6a'
     
     elif 'Run2011A-PromptReco-v6_run2011v0' in label:
+        primarydataset = 'MuOnia'
+        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+
+    elif 'Run2011B-PromptReco-v1_run2011v0' in label:
         primarydataset = 'MuOnia'
         psethash = '09dd54ed3307c6d768a6853667b85e6a'
 
