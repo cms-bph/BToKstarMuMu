@@ -104,9 +104,7 @@ def jobs_created(datatype, label):
             ]:
         total_jobs = 1028
     elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v4.6',
-            'Run2011A-PromptReco-v4.10', 
-            'Run2011A-PromptReco-v4.11'
+            'Run2011A-PromptReco-v4_run2011v0_1',
             ]:
         total_jobs = 1279
     elif datatype == 'data' and label in [
@@ -183,6 +181,10 @@ def get_filepath(datatype, label):
         primarydataset = 'MuOnia'
         psethash = 'f379a209b0c58c9fe256f1d4da070fb3'
 
+    elif 'Run2011A-PromptReco-v4_run2011v0_1' in label:
+        primarydataset = 'MuOnia'
+        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+    
     elif 'Run2011A-PromptReco-v5_run2011v0' in label:
         primarydataset = 'MuOnia'
         psethash = '09dd54ed3307c6d768a6853667b85e6a'

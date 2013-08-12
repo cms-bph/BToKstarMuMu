@@ -151,7 +151,8 @@ def datasets_njobs(label):
 def grid_path(label):
     com_name = get_name_from_label(label)
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
-    if label in ['Run2011A-PromptReco-v5_run2011v0', 
+    if label in ['Run2011A-PromptReco-v4_run2011v0_1', 
+                 'Run2011A-PromptReco-v5_run2011v0', 
                  'Run2011A-PromptReco-v6_run2011v0', 
                  'Run2011B-PromptReco-v1_run2011v0'
                  ] : 
