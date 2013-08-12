@@ -182,7 +182,7 @@ int SingleBuToKstarMuMuSelector::SelectB(string label){
       if (bctau->at(i) < 0.03) continue; 
 
     // Kstarmass = GetKstarMass(i);
-    Kstarmass = ksmass->at(i);
+    Kstarmass = kstarmass->at(i);
     float kstar_mass_delta; 
     // if ( label == "Run2011v11.1" ) 
     kstar_mass_delta = 0.06; 

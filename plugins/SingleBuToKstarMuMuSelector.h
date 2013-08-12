@@ -4,7 +4,7 @@
 // This class was automatically generated on
 // Tue Feb 26 11:42:08 2013 by ROOT version 5.27/06b
 // from TTree tree/BToKstarMuMu
-// found on file: /afs/cern.ch/user/x/xshi/work/cms/afb/dat/ntp/data/MuOnia/Run2011A_May10ReReco_v1_10_6/BToKstarMuMu_692_1_H0J.root
+// found on file: root://eoscms//eos/cms/store/user/xshi/dat/ntp/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/BToKstarMuMu_merged_1.root
 //////////////////////////////////////////////////////////
 
 #ifndef SingleBuToKstarMuMuSelector_h
@@ -34,21 +34,21 @@ public :
    vector<double>  *mumpx;
    vector<double>  *mumpy;
    vector<double>  *mumpz;
-   vector<double>  *mummass;
-   vector<double>  *mummasserr;
    vector<double>  *mupdcabs;
    vector<double>  *mupdcabserr;
    vector<double>  *muppx;
    vector<double>  *muppy;
    vector<double>  *muppz;
-   vector<double>  *mupmass;
-   vector<double>  *mupmasserr;
+   vector<double>  *mumutrkr;
+   vector<double>  *mumutrkz;
    vector<double>  *mumudca;
    vector<double>  *mumuvtxcl;
    vector<double>  *mumulsbs;
    vector<double>  *mumulsbserr;
    vector<double>  *mumucosalphabs;
    vector<double>  *mumucosalphabserr;
+   vector<double>  *mumumass;
+   vector<double>  *mumumasserr;
    vector<bool>    *mumisgoodmuon;
    vector<bool>    *mupisgoodmuon;
    vector<int>     *mumnpixhits;
@@ -67,35 +67,38 @@ public :
    vector<double>  *mupdzvtx;
    vector<string>  *mumtriglastfilter;
    vector<string>  *muptriglastfilter;
+   vector<double>  *mumpt;
+   vector<double>  *muppt;
+   vector<double>  *mumeta;
+   vector<double>  *mupeta;
    vector<int>     *trkchg;
    vector<double>  *trkpx;
    vector<double>  *trkpy;
    vector<double>  *trkpz;
-   vector<double>  *trkmass;
-   vector<double>  *trkmasserr;
+   vector<double>  *trkpt;
+   vector<double>  *trkdcabs;
+   vector<double>  *trkdcabserr;
    vector<double>  *pimpx;
    vector<double>  *pimpy;
    vector<double>  *pimpz;
-   vector<double>  *pimmass;
    vector<double>  *pimd0;
    vector<double>  *pimd0err;
    vector<double>  *pippx;
    vector<double>  *pippy;
    vector<double>  *pippz;
-   vector<double>  *pipmass;
    vector<double>  *pipd0;
    vector<double>  *pipd0err;
    vector<double>  *kspx;
    vector<double>  *kspy;
    vector<double>  *kspz;
-   vector<double>  *ksmass;
-   vector<double>  *ksmasserr;
    vector<double>  *ksvtxx;
    vector<double>  *ksvtxy;
    vector<double>  *ksvtxz;
    vector<double>  *ksvtxcl;
    vector<double>  *kslsbs;
    vector<double>  *kslsbserr;
+   vector<double>  *kstarmass;
+   Int_t           nb;
    vector<int>     *bchg;
    vector<double>  *bpx;
    vector<double>  *bpxerr;
@@ -147,6 +150,7 @@ public :
    Double_t        genpimpx;
    Double_t        genpimpy;
    Double_t        genpimpz;
+   string          *decname;
    vector<bool>    *istruemum;
    vector<bool>    *istruemup;
    vector<bool>    *istrueks;
@@ -165,21 +169,21 @@ public :
    TBranch        *b_mumpx;   //!
    TBranch        *b_mumpy;   //!
    TBranch        *b_mumpz;   //!
-   TBranch        *b_mummass;   //!
-   TBranch        *b_mummasserr;   //!
    TBranch        *b_mupdcabs;   //!
    TBranch        *b_mupdcabserr;   //!
    TBranch        *b_muppx;   //!
    TBranch        *b_muppy;   //!
    TBranch        *b_muppz;   //!
-   TBranch        *b_mupmass;   //!
-   TBranch        *b_mupmasserr;   //!
+   TBranch        *b_mumutrkr;   //!
+   TBranch        *b_mumutrkz;   //!
    TBranch        *b_mumudca;   //!
    TBranch        *b_mumuvtxcl;   //!
    TBranch        *b_mumulsbs;   //!
    TBranch        *b_mumulsbserr;   //!
    TBranch        *b_mumucosalphabs;   //!
    TBranch        *b_mumucosalphabserr;   //!
+   TBranch        *b_mumumass;   //!
+   TBranch        *b_mumumasserr;   //!
    TBranch        *b_mumisgoodmuon;   //!
    TBranch        *b_mupisgoodmuon;   //!
    TBranch        *b_mumnpixhits;   //!
@@ -198,35 +202,38 @@ public :
    TBranch        *b_mupdzvtx;   //!
    TBranch        *b_mumtriglastfilter;   //!
    TBranch        *b_muptriglastfilter;   //!
+   TBranch        *b_mumpt;   //!
+   TBranch        *b_muppt;   //!
+   TBranch        *b_mumeta;   //!
+   TBranch        *b_mupeta;   //!
    TBranch        *b_trkchg;   //!
    TBranch        *b_trkpx;   //!
    TBranch        *b_trkpy;   //!
    TBranch        *b_trkpz;   //!
-   TBranch        *b_trkmass;   //!
-   TBranch        *b_trkmasserr;   //!
+   TBranch        *b_trkpt;   //!
+   TBranch        *b_trkdcabs;   //!
+   TBranch        *b_trkdcabserr;   //!
    TBranch        *b_pimpx;   //!
    TBranch        *b_pimpy;   //!
    TBranch        *b_pimpz;   //!
-   TBranch        *b_pimmass;   //!
    TBranch        *b_pimd0;   //!
    TBranch        *b_pimd0err;   //!
    TBranch        *b_pippx;   //!
    TBranch        *b_pippy;   //!
    TBranch        *b_pippz;   //!
-   TBranch        *b_pipmass;   //!
    TBranch        *b_pipd0;   //!
    TBranch        *b_pipd0err;   //!
    TBranch        *b_kspx;   //!
    TBranch        *b_kspy;   //!
    TBranch        *b_kspz;   //!
-   TBranch        *b_ksmass;   //!
-   TBranch        *b_ksmasserr;   //!
    TBranch        *b_ksvtxx;   //!
    TBranch        *b_ksvtxy;   //!
    TBranch        *b_ksvtxz;   //!
    TBranch        *b_ksvtxcl;   //!
    TBranch        *b_kslsbs;   //!
    TBranch        *b_kslsbserr;   //!
+   TBranch        *b_kstarmass;   //!
+   TBranch        *b_nb;   //!
    TBranch        *b_bchg;   //!
    TBranch        *b_bpx;   //!
    TBranch        *b_bpxerr;   //!
@@ -278,6 +285,7 @@ public :
    TBranch        *b_genpimpx;   //!
    TBranch        *b_genpimpy;   //!
    TBranch        *b_genpimpz;   //!
+   TBranch        *b_decname;   //!
    TBranch        *b_istruemum;   //!
    TBranch        *b_istruemup;   //!
    TBranch        *b_istrueks;   //!
@@ -330,21 +338,21 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    mumpx = 0;
    mumpy = 0;
    mumpz = 0;
-   mummass = 0;
-   mummasserr = 0;
    mupdcabs = 0;
    mupdcabserr = 0;
    muppx = 0;
    muppy = 0;
    muppz = 0;
-   mupmass = 0;
-   mupmasserr = 0;
+   mumutrkr = 0;
+   mumutrkz = 0;
    mumudca = 0;
    mumuvtxcl = 0;
    mumulsbs = 0;
    mumulsbserr = 0;
    mumucosalphabs = 0;
    mumucosalphabserr = 0;
+   mumumass = 0;
+   mumumasserr = 0;
    mumisgoodmuon = 0;
    mupisgoodmuon = 0;
    mumnpixhits = 0;
@@ -363,35 +371,37 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    mupdzvtx = 0;
    mumtriglastfilter = 0;
    muptriglastfilter = 0;
+   mumpt = 0;
+   muppt = 0;
+   mumeta = 0;
+   mupeta = 0;
    trkchg = 0;
    trkpx = 0;
    trkpy = 0;
    trkpz = 0;
-   trkmass = 0;
-   trkmasserr = 0;
+   trkpt = 0;
+   trkdcabs = 0;
+   trkdcabserr = 0;
    pimpx = 0;
    pimpy = 0;
    pimpz = 0;
-   pimmass = 0;
    pimd0 = 0;
    pimd0err = 0;
    pippx = 0;
    pippy = 0;
    pippz = 0;
-   pipmass = 0;
    pipd0 = 0;
    pipd0err = 0;
    kspx = 0;
    kspy = 0;
    kspz = 0;
-   ksmass = 0;
-   ksmasserr = 0;
    ksvtxx = 0;
    ksvtxy = 0;
    ksvtxz = 0;
    ksvtxcl = 0;
    kslsbs = 0;
    kslsbserr = 0;
+   kstarmass = 0;
    bchg = 0;
    bpx = 0;
    bpxerr = 0;
@@ -414,6 +424,7 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    blsbserr = 0;
    bctau = 0;
    bctauerr = 0;
+   decname = 0;
    istruemum = 0;
    istruemup = 0;
    istrueks = 0;
@@ -435,21 +446,21 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    fChain->SetBranchAddress("mumpx", &mumpx, &b_mumpx);
    fChain->SetBranchAddress("mumpy", &mumpy, &b_mumpy);
    fChain->SetBranchAddress("mumpz", &mumpz, &b_mumpz);
-   fChain->SetBranchAddress("mummass", &mummass, &b_mummass);
-   fChain->SetBranchAddress("mummasserr", &mummasserr, &b_mummasserr);
    fChain->SetBranchAddress("mupdcabs", &mupdcabs, &b_mupdcabs);
    fChain->SetBranchAddress("mupdcabserr", &mupdcabserr, &b_mupdcabserr);
    fChain->SetBranchAddress("muppx", &muppx, &b_muppx);
    fChain->SetBranchAddress("muppy", &muppy, &b_muppy);
    fChain->SetBranchAddress("muppz", &muppz, &b_muppz);
-   fChain->SetBranchAddress("mupmass", &mupmass, &b_mupmass);
-   fChain->SetBranchAddress("mupmasserr", &mupmasserr, &b_mupmasserr);
+   fChain->SetBranchAddress("mumutrkr", &mumutrkr, &b_mumutrkr);
+   fChain->SetBranchAddress("mumutrkz", &mumutrkz, &b_mumutrkz);
    fChain->SetBranchAddress("mumudca", &mumudca, &b_mumudca);
    fChain->SetBranchAddress("mumuvtxcl", &mumuvtxcl, &b_mumuvtxcl);
    fChain->SetBranchAddress("mumulsbs", &mumulsbs, &b_mumulsbs);
    fChain->SetBranchAddress("mumulsbserr", &mumulsbserr, &b_mumulsbserr);
    fChain->SetBranchAddress("mumucosalphabs", &mumucosalphabs, &b_mumucosalphabs);
    fChain->SetBranchAddress("mumucosalphabserr", &mumucosalphabserr, &b_mumucosalphabserr);
+   fChain->SetBranchAddress("mumumass", &mumumass, &b_mumumass);
+   fChain->SetBranchAddress("mumumasserr", &mumumasserr, &b_mumumasserr);
    fChain->SetBranchAddress("mumisgoodmuon", &mumisgoodmuon, &b_mumisgoodmuon);
    fChain->SetBranchAddress("mupisgoodmuon", &mupisgoodmuon, &b_mupisgoodmuon);
    fChain->SetBranchAddress("mumnpixhits", &mumnpixhits, &b_mumnpixhits);
@@ -468,35 +479,38 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    fChain->SetBranchAddress("mupdzvtx", &mupdzvtx, &b_mupdzvtx);
    fChain->SetBranchAddress("mumtriglastfilter", &mumtriglastfilter, &b_mumtriglastfilter);
    fChain->SetBranchAddress("muptriglastfilter", &muptriglastfilter, &b_muptriglastfilter);
+   fChain->SetBranchAddress("mumpt", &mumpt, &b_mumpt);
+   fChain->SetBranchAddress("muppt", &muppt, &b_muppt);
+   fChain->SetBranchAddress("mumeta", &mumeta, &b_mumeta);
+   fChain->SetBranchAddress("mupeta", &mupeta, &b_mupeta);
    fChain->SetBranchAddress("trkchg", &trkchg, &b_trkchg);
    fChain->SetBranchAddress("trkpx", &trkpx, &b_trkpx);
    fChain->SetBranchAddress("trkpy", &trkpy, &b_trkpy);
    fChain->SetBranchAddress("trkpz", &trkpz, &b_trkpz);
-   fChain->SetBranchAddress("trkmass", &trkmass, &b_trkmass);
-   fChain->SetBranchAddress("trkmasserr", &trkmasserr, &b_trkmasserr);
+   fChain->SetBranchAddress("trkpt", &trkpt, &b_trkpt);
+   fChain->SetBranchAddress("trkdcabs", &trkdcabs, &b_trkdcabs);
+   fChain->SetBranchAddress("trkdcabserr", &trkdcabserr, &b_trkdcabserr);
    fChain->SetBranchAddress("pimpx", &pimpx, &b_pimpx);
    fChain->SetBranchAddress("pimpy", &pimpy, &b_pimpy);
    fChain->SetBranchAddress("pimpz", &pimpz, &b_pimpz);
-   fChain->SetBranchAddress("pimmass", &pimmass, &b_pimmass);
    fChain->SetBranchAddress("pimd0", &pimd0, &b_pimd0);
    fChain->SetBranchAddress("pimd0err", &pimd0err, &b_pimd0err);
    fChain->SetBranchAddress("pippx", &pippx, &b_pippx);
    fChain->SetBranchAddress("pippy", &pippy, &b_pippy);
    fChain->SetBranchAddress("pippz", &pippz, &b_pippz);
-   fChain->SetBranchAddress("pipmass", &pipmass, &b_pipmass);
    fChain->SetBranchAddress("pipd0", &pipd0, &b_pipd0);
    fChain->SetBranchAddress("pipd0err", &pipd0err, &b_pipd0err);
    fChain->SetBranchAddress("kspx", &kspx, &b_kspx);
    fChain->SetBranchAddress("kspy", &kspy, &b_kspy);
    fChain->SetBranchAddress("kspz", &kspz, &b_kspz);
-   fChain->SetBranchAddress("ksmass", &ksmass, &b_ksmass);
-   fChain->SetBranchAddress("ksmasserr", &ksmasserr, &b_ksmasserr);
    fChain->SetBranchAddress("ksvtxx", &ksvtxx, &b_ksvtxx);
    fChain->SetBranchAddress("ksvtxy", &ksvtxy, &b_ksvtxy);
    fChain->SetBranchAddress("ksvtxz", &ksvtxz, &b_ksvtxz);
    fChain->SetBranchAddress("ksvtxcl", &ksvtxcl, &b_ksvtxcl);
    fChain->SetBranchAddress("kslsbs", &kslsbs, &b_kslsbs);
    fChain->SetBranchAddress("kslsbserr", &kslsbserr, &b_kslsbserr);
+   fChain->SetBranchAddress("kstarmass", &kstarmass, &b_kstarmass);
+   fChain->SetBranchAddress("nb", &nb, &b_nb);
    fChain->SetBranchAddress("bchg", &bchg, &b_bchg);
    fChain->SetBranchAddress("bpx", &bpx, &b_bpx);
    fChain->SetBranchAddress("bpxerr", &bpxerr, &b_bpxerr);
@@ -548,6 +562,7 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    fChain->SetBranchAddress("genpimpx", &genpimpx, &b_genpimpx);
    fChain->SetBranchAddress("genpimpy", &genpimpy, &b_genpimpy);
    fChain->SetBranchAddress("genpimpz", &genpimpz, &b_genpimpz);
+   fChain->SetBranchAddress("decname", &decname, &b_decname);
    fChain->SetBranchAddress("istruemum", &istruemum, &b_istruemum);
    fChain->SetBranchAddress("istruemup", &istruemup, &b_istruemup);
    fChain->SetBranchAddress("istrueks", &istrueks, &b_istrueks);

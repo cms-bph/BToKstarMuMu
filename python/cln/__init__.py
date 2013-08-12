@@ -15,7 +15,7 @@ import json
 def main(args):
     if args[0] == 'eos':
         eos_rm(args[1])
-    elif args[0] == 'data' :
+    elif args[0] == 'data' or args[0] == 'mc':
         label = args[1]
         eosdir = atr.ntp.grid_path(label)
         quick_rm(eosdir)
