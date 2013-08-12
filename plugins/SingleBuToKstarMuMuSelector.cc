@@ -27,13 +27,13 @@ int n_processed_, n_selected_;
 TTree *tree_; 
 
 // Branch variables for new tree
-int Nb = 0;
+int    Nb = 0;
 double Mumumass = 0; 
 double Kstarmass = 0; 
 
 double Bmass = 0; 
 double Bpt = 0; 
-int Bchg = 0; 
+int    Bchg = 0; 
 double Bvtxcl = 0; 
 double Blxysig = 0; 
 double Bcosalphabs = 0; 
@@ -76,7 +76,7 @@ string get_option_value(string option, string name){
 void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
   
   t_begin_.Set(); 
-  printf(" ---------- Begin of Job ---------- ");
+  printf("\n ---------- Begin of Job ---------- \n");
   t_begin_.Print();
 
   n_processed_ = 0;
@@ -84,6 +84,7 @@ void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
 }
 
 void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
+  printf("\n ---------- Begin of Slave Job ---------- \n");
   TString option = GetOption();
   tree_ = new TTree("tree", "tree"); 
   
@@ -105,22 +106,18 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
 Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
   string option = GetOption();
-  string label = get_option_value(option, "label"); 
+  string cut = get_option_value(option, "cut"); 
   
-  // cout << "label: " << label << endl; 
-
   GetEntry(entry); 
   n_processed_ += 1; 
-  Nb = bmass->size(); 
-  
-  int i = SelectB(label); 
+  Nb = nb; 
+
+  int i = SelectB(cut); 
   if ( i != -1) {
     n_selected_ += 1; 
 
     SaveB(i);     
     SaveMuMu(i);
-    // SaveKstar(i); 
-    
     tree_->Fill();	   
   }
 
@@ -129,7 +126,7 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
 
 void SingleBuToKstarMuMuSelector::SlaveTerminate(){
-  printf ( "\n ---------- End of Slave Job ---------- " ) ;
+  printf ( "\n ---------- End of Slave Job ---------- \n" ) ;
   // t_now_.Set() ; 
   // t_now_.Print() ;
   // printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
@@ -142,16 +139,11 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   string option = GetOption();
   TString outfile = get_option_value(option, "outfile"); 
   
-  // if (option.BeginsWith("outfile=")) {
-  //   option.ReplaceAll("outfile=","");
-  //   if (!(option.IsNull())) outfile = option;
-  // }
-
   TFile file(outfile.Data(), "recreate"); 
   fOutput->Write();
   
   t_now_.Set(); 
-  printf(" ---------- End of Job ---------- " ) ;
+  printf(" \n ---------- End of Job ---------- \n" ) ;
   t_now_.Print();  
   printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
 	 n_processed_, n_selected_, 
@@ -160,42 +152,60 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 }
 
 
-int SingleBuToKstarMuMuSelector::SelectB(string label){
-  // if ( label != "Run2011v11.1" ) return -1;  
+int SingleBuToKstarMuMuSelector::SelectB(string cut){
+  // cout << "Selecting B with label - " << label << endl; 
 
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
 
-  // if ( ! HasGoodDimuon() ) return -1; 
+  if (cut == "cut0") {
+    for (int i = 0; i < nb; i++) {
 
-  for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-    if ( ! HasGoodDimuon(i) ) continue;  
-    
-    cout << "passed dimuon cut" << endl; 
-
-    if (bvtxcl->at(i) < 0.09) continue; 
-    double blxysig = blsbs->at(i)/blsbserr->at(i); 
-    if (blxysig < 12 ) continue; 
-    if (bcosalphabs->at(i) < 0.99) continue; 
-    
-    if ( label == "Run2011v10.1" ) 
-      if (bctau->at(i) < 0.03) continue; 
-
-    // Kstarmass = GetKstarMass(i);
-    Kstarmass = kstarmass->at(i);
-    float kstar_mass_delta; 
-    // if ( label == "Run2011v11.1" ) 
-    kstar_mass_delta = 0.06; 
-      
-    if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
-	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
-      continue; 
-
-    if (bvtxcl->at(i) > best_bvtxcl) {
-      best_bvtxcl = bvtxcl->at(i); 
-      best_idx = i; 
+      if (bvtxcl->at(i) > best_bvtxcl) {
+	best_bvtxcl = bvtxcl->at(i); 
+	best_idx = i; 
+      }
     }
   }
+
+  // if ( ! HasGoodDimuon() ) return -1; 
+
+  // for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
+  // for (int i = 0; i < Nb; i++) {
+    // for (int i = 0; i < nb; i++) {
+
+    
+    // if ( ! HasGoodDimuon(i) ) continue;  
+    
+    // cout << "passed dimuon cut" << endl; 
+
+    // if (bvtxcl->at(i) < 0.09) continue; 
+    // double blxysig = blsbs->at(i)/blsbserr->at(i); 
+    // if (blxysig < 12 ) continue; 
+    // if (bcosalphabs->at(i) < 0.99) continue; 
+    
+    // if ( label == "Run2011v10.1" ) 
+    //   if (bctau->at(i) < 0.03) continue; 
+
+    // // Kstarmass = GetKstarMass(i);
+    // Kstarmass = kstarmass->at(i);
+    // float kstar_mass_delta; 
+    // // if ( label == "Run2011v11.1" ) 
+    // kstar_mass_delta = 0.06; 
+      
+    // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
+    // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
+    //   continue; 
+    // cout << "n processed: " << n_processed_ << ", bvtxcl[" << i << "] ="
+    // 	   << bvtxcl->at(i)   << endl; 
+    
+
+    // if (bvtxcl->at(i) > best_bvtxcl) {
+    //   best_bvtxcl = bvtxcl->at(i); 
+    //   best_idx = i; 
+    // }
+
+  
   
   return best_idx;
 }
@@ -295,16 +305,16 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString label = argv[1]; 
+  TString cut = argv[1]; 
   TString infile = argv[2]; 
   TString outfile = argv[3]; 
   
-  Printf("label: '%s'", label.Data());
+  Printf("cut: '%s'", cut.Data());
   Printf("input file: '%s'", infile.Data());
   Printf("output file: '%s'", outfile.Data());
  
   TString option; 
-  option.Form("label=%s;outfile=%s", label.Data(), outfile.Data()); 
+  option.Form("cut=%s;outfile=%s", cut.Data(), outfile.Data()); 
 
   TChain *ch = new TChain("tree"); 
   ch->Add(infile.Data()); 

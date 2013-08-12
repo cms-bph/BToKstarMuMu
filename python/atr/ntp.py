@@ -40,14 +40,32 @@ def rootfile(datatype, label, test=False):
 
 
 def rootpath(datatype, label, test=False):
+    eosbase = 'root://eoscms//eos/cms/store/user/xshi/'
+    
     if datatype == 'data': 
-        eosbase = 'root://eoscms//eos/cms/store/user/xshi/'
         ntp_label = get_label_by_version(label, 'x')
         inpath = os.path.join(eosbase, 'dat/ntp/data', ntp_label)
     else:
-        inpath = os.path.join(atr.afbpath, 'dat/ntp/mc', label)
+        inpath = os.path.join(eosbase, 'dat/ntp/mc', label)
 
     return inpath 
+
+
+def rootname(datatype, label, batch=False):
+    if datatype == 'mc': 
+        if 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label:
+            name = 'BToKstarMuMu_merged_1'
+        else: 
+            raise NameError(label)
+
+    else:
+        raise NameError(datatype)
+        
+    if batch :
+        name = 'BToKstarMuMu_merged_${LSB_JOBINDEX}'
+        
+    return name
+
 
 
 def datasets(datatype, label, test=False):

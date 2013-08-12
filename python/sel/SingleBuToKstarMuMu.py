@@ -14,51 +14,35 @@ from tls import *
 def main(args):
     datatype = args[0]
     label = args[1]
+    cut = args[2]
 
-    #ntp_labels = [label]
     ntp_labels = atr.sel.ntp_labels(label)
 
     for ntp_label in ntp_labels:
-        proc_dataset(args, ntp_label)
+        proc_ntuple(args, ntp_label, cut)
 	    
 
-def proc_dataset(args, label): 
+def proc_ntuple(args, label, cut): 
     datatype = args[0]
 
     test = option_exists(args, '-t')
     batch = option_exists(args, '-b')
 
-    #inname = 'BToKstarMuMu*'
-    inname = 'BToKstarMuMu_merged_1'
+    inname = atr.ntp.rootname(datatype, label, batch) 
     comname = 'SingleBuToKstarMuMu'
 
     outname = comname    
-
-    # if datatype == 'data' and test:
-    #     inname = 'BToKstarMuMu_1'
-
-    #if batch and option_exists(args, '-J'):
     if batch :
-        inname = 'BToKstarMuMu_merged_${LSB_JOBINDEX}'
         outname = comname+'_${LSB_JOBINDEX}'
-        
-    # eosbase = 'root://eoscms//eos/cms/store/user/xshi/'
-    # inpath = os.path.join(eosbase, 'dat/ntp/data', label)
 
     inpath = atr.ntp.rootpath(datatype, label)
-    
     infile = os.path.join(inpath, inname+'.root')
     
-    outpath = os.path.join(atr.datpath, 'sel', datatype)
-    outfile = set_file(outpath, label, outname, '.root', test=test)
+    outpath = os.path.join(atr.datpath, 'sel', datatype, label)
+    outfile = set_file(outpath, cut, outname, '.root', test=test)
 
-    binname = './SingleBuToKstarMuMuSelector'
-    #procdir = os.path.join(os.environ['HOME'], 'work/cms/afb/src/cc')
     procdir = atr.sel.procdir(label)
-
-    selector_label = label.split('/')[0]
-
-    cmd = '%s %s %s %s' %(binname, selector_label, infile, outfile)
+    cmd = './sel %s %s %s' %(cut, infile, outfile)
 
     if option_exists(args, '-n'): 
         nentries = get_option(args, '-n') 

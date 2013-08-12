@@ -70,18 +70,8 @@ def BuToKstarMuMu_7TeV_2p5E3_v1_10(datatype, label):
 
 
 def ntp_labels(label):
-    if '/' in label: 
-        return [label]
-
-    if 'Run2011v10.' in label: 
-        subversion = label.replace('Run2011v10.', '')
-        ntp_labels = [
-            'Run2011v10.%s/May10ReReco_v1.%s'       %(subversion, subversion), 
-            'Run2011v10.%s/PromptReco_v4_10.%s'     %(subversion, subversion), 
-            'Run2011v10.%s/PromptReco_v5_10.%s'     %(subversion, subversion), 
-            'Run2011v10.%s/PromptReco_v6_10.%s'     %(subversion, subversion), 
-            'Run2011v10.%s/B_PromptReco_v1_10_1.%s' %(subversion, subversion), 
-        ]
+    if 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label: 
+        ntp_labels = [ label ] 
 
     elif 'Run2011v11.' in label: 
         mainversion = '11'
@@ -137,12 +127,9 @@ def njobs(label):
     return njobs
 
 def procdir(label):
-    if 'Run2011v11' in label: 
+    if 'run2011v0' in label: 
         procdir = os.path.join(atr.afbpath, 'rel', 'CMSSW_4_2_8_patch7', 
-                               'src/BphAna/BToKstarMuMu/plugins') 
-    elif 'BuToKstarMuMu/7TeV_2E7_v1' in label: 
-        procdir = os.path.join(atr.afbpath, 'rel', 'CMSSW_4_2_8_patch7', 
-                               'src/BphAna/BToKstarMuMu_v1/plugins') 
+                               'src/BphAna/BToKstarMuMu_run2011v0/plugins') 
     else: 
         raise NameError(label)
 
