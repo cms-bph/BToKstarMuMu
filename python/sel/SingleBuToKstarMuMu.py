@@ -41,8 +41,12 @@ def proc_ntuple(args, label, cut):
     outpath = os.path.join(atr.datpath, 'sel', datatype, label)
     outfile = set_file(outpath, cut, outname, '.root', test=test)
 
+    sel_datatype = datatype 
+    if 'BuToKstarJPsi' in label:
+        sel_datatype =  'BuToKstarJPsi' 
+
     procdir = atr.sel.procdir(label)
-    cmd = './sel %s %s %s' %(cut, infile, outfile)
+    cmd = './sel %s %s %s %s' %(sel_datatype, cut, infile, outfile)
 
     if option_exists(args, '-n'): 
         nentries = get_option(args, '-n') 

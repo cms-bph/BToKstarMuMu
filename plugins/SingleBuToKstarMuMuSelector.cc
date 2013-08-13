@@ -30,6 +30,7 @@ TTree *tree_;
 int    Nb = 0;
 double Mumumass = 0; 
 double Kstarmass = 0; 
+double Trkpt = 0; 
 
 double Bmass = 0; 
 double Bpt = 0; 
@@ -89,6 +90,8 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
   
   tree_->Branch("Mumumass", &Mumumass, "Mumumass/D");
   tree_->Branch("Kstarmass", &Kstarmass, "Kstarmass/D");
+  tree_->Branch("Trkpt", &Trkpt, "Trkpt/D");
+
   tree_->Branch("Bmass", &Bmass, "Bmass/D");
   tree_->Branch("Bpt", &Bpt, "Bpt/D");
   tree_->Branch("Bchg", &Bchg, "Bchg/I");
@@ -121,8 +124,8 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
       // 	   << "  decname = " << *decname << endl; 
       n_selected_ += 1; 
       
-      SaveB(i);     
-      SaveMuMu(i);
+      SaveEvent(i);     
+      // SaveMuMu(i);
       tree_->Fill();	   
     }
   }
@@ -241,13 +244,13 @@ bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
 }
 
 
-void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
-  TLorentzVector mup, mum, dimu; 
-  mup.SetXYZM(muppx->at(i), muppy->at(i), muppz->at(i), MUON_MASS); 
-  mum.SetXYZM(mumpx->at(i), mumpy->at(i), mumpz->at(i), MUON_MASS); 
-  dimu = mup + mum; 
-  Mumumass = dimu.M(); 
-}
+// void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
+//   TLorentzVector mup, mum, dimu; 
+//   mup.SetXYZM(muppx->at(i), muppy->at(i), muppz->at(i), MUON_MASS); 
+//   mum.SetXYZM(mumpx->at(i), mumpy->at(i), mumpz->at(i), MUON_MASS); 
+//   dimu = mup + mum; 
+//   Mumumass = dimu.M(); 
+// }
 
 
 // void SingleBuToKstarMuMuSelector::SaveKstar(int i){
@@ -259,7 +262,7 @@ void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
 // }
 
 
-void SingleBuToKstarMuMuSelector::SaveB(int i){
+void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Bmass = bmass->at(i); 
   Bchg = bchg->at(i); 
   Bvtxcl = bvtxcl->at(i); 
@@ -271,6 +274,10 @@ void SingleBuToKstarMuMuSelector::SaveB(int i){
   b.SetXYZM(bpx->at(i), bpy->at(i), bpz->at(i), bmass->at(i)); 
   Bpt = b.Pt(); 
 
+  Mumumass = mumumass->at(i); 
+  Kstarmass = kstarmass->at(i); 
+  Trkpt = trkpt->at(i); 
+  
 }
 
 // double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
