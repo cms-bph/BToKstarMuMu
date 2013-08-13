@@ -9,7 +9,7 @@ __copyright__ = "Copyright (c) Xin Shi"
 import sys 
 from tls import * 
 import atr
-from atr.cuts import select_b0s
+#from atr.cuts import select_b0s
 from ROOT import TH1F, TCanvas, TClonesArray, AddressOf, TLorentzVector
 
 def main(args):
