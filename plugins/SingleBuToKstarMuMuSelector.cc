@@ -85,7 +85,6 @@ void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
 }
 
 void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
-  // printf("\n ---------- Begin of Slave Job ---------- \n");
   TString option = GetOption();
   tree_ = new TTree("tree", "tree"); 
   
@@ -122,29 +121,19 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
     
     if ( datatype == "data" || 
 	 ( datatype == *decname && istruebu->at(i) ) ) {
-      // cout << "true Bu? :" << istruebu->at(i) 
-      // 	   << "  decname = " << *decname << endl; 
+
       n_selected_ += 1; 
-      
       SaveEvent(i);     
-      // SaveMuMu(i);
       tree_->Fill();	   
     }
   }
-
   return kTRUE;
 }
 
 
 void SingleBuToKstarMuMuSelector::SlaveTerminate(){
-  // printf ( "\n ---------- End of Slave Job ---------- \n" ) ;
-  // t_now_.Set() ; 
-  // t_now_.Print() ;
-  // printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
-  // 	 n_processed_, n_selected_, 
-  // 	 t_now_.Convert() - t_begin_.Convert(), 
-  // 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
+
 
 void SingleBuToKstarMuMuSelector::Terminate(){
   string option = GetOption();
@@ -156,7 +145,8 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   t_now_.Set(); 
   printf(" \n ---------- End Job ---------- \n" ) ;
   t_now_.Print();  
-  printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
+  printf(" processed: %i \n selected: %i \n \
+ duration: %i sec \n rate: %g evts/sec\n",
 	 n_processed_, n_selected_, 
 	 t_now_.Convert() - t_begin_.Convert(), 
 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
@@ -178,55 +168,19 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut){
     }
   }
 
-
-
-
   // if ( ! HasGoodDimuon() ) return -1; 
-
-  // for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-  // for (int i = 0; i < Nb; i++) {
-    // for (int i = 0; i < nb; i++) {
-
-    
-    // if ( ! HasGoodDimuon(i) ) continue;  
-    
-    // cout << "passed dimuon cut" << endl; 
-
-    // if (bvtxcl->at(i) < 0.09) continue; 
-    // double blxysig = blsbs->at(i)/blsbserr->at(i); 
-    // if (blxysig < 12 ) continue; 
-    // if (bcosalphabs->at(i) < 0.99) continue; 
-    
-    // if ( label == "Run2011v10.1" ) 
-    //   if (bctau->at(i) < 0.03) continue; 
-
-    // // Kstarmass = GetKstarMass(i);
-    // Kstarmass = kstarmass->at(i);
-    // float kstar_mass_delta; 
-    // // if ( label == "Run2011v11.1" ) 
-    // kstar_mass_delta = 0.06; 
-      
-    // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
-    // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
-    //   continue; 
-    // cout << "n processed: " << n_processed_ << ", bvtxcl[" << i << "] ="
-    // 	   << bvtxcl->at(i)   << endl; 
-    
-
-    // if (bvtxcl->at(i) > best_bvtxcl) {
-    //   best_bvtxcl = bvtxcl->at(i); 
-    //   best_idx = i; 
-    // }
-
-  
-  
+  // if (bvtxcl->at(i) < 0.09) continue; 
+  // double blxysig = blsbs->at(i)/blsbserr->at(i); 
+  // if (blxysig < 12 ) continue; 
+  // if (bcosalphabs->at(i) < 0.99) continue; 
+  // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
+  // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
+   
   return best_idx;
 }
 
 bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
-  //  for (vector<int>::size_type i = 0; i < mumpx->size(); i++) {
-  if  ( 
-       // soft muon 
+  if  ( // soft muon 
        mumisgoodmuon->at(i)
        && mupisgoodmuon->at(i) 
        && mumntrkhits->at(i) > 10 
@@ -239,30 +193,9 @@ bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
        && mupdxyvtx->at(i) < 3
        && mumdzvtx->at(i) < 30 
        && mupdzvtx->at(i) < 30 
-       
-	) return true; 
-  // }
+       	) return true; 
   return false; 
 }
-
-
-// void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
-//   TLorentzVector mup, mum, dimu; 
-//   mup.SetXYZM(muppx->at(i), muppy->at(i), muppz->at(i), MUON_MASS); 
-//   mum.SetXYZM(mumpx->at(i), mumpy->at(i), mumpz->at(i), MUON_MASS); 
-//   dimu = mup + mum; 
-//   Mumumass = dimu.M(); 
-// }
-
-
-// void SingleBuToKstarMuMuSelector::SaveKstar(int i){
-//   // TLorentzVector ks, pi, kstar; 
-//   // ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-//   // pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-//   // kstar = ks + pi; 
-//   Kstarmass = GetKstarMass(i);
-// }
-
 
 void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Bmass = bmass->at(i); 
@@ -282,14 +215,6 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Trkdcasigbs = fabs( trkdcabs->at(i)/trkdcabserr->at(i) ); 
   
 }
-
-// double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
-//   TLorentzVector ks, pi, kstar; 
-//   ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-//   pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-//   kstar = ks + pi; 
-//   return kstar.M();
-// }
 
 
 #ifndef __CINT__ 
