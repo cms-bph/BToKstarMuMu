@@ -53,19 +53,14 @@ def rootpath(datatype, label, test=False):
 
 def rootname(datatype, label, batch=False):
     if datatype == 'mc': 
-        if 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label:
-            name = 'BToKstarMuMu_merged_1'
-        else: 
-            raise NameError(label)
-
+        name = 'BToKstarMuMu_merged_1'
     else:
-        raise NameError(datatype)
+         name = 'BToKstarMuMu_merged_*'
         
     if batch :
         name = 'BToKstarMuMu_merged_${LSB_JOBINDEX}'
         
     return name
-
 
 
 def datasets(datatype, label, test=False):
@@ -169,4 +164,11 @@ def grid_path(label):
     return srcdir 
     
     
+num_rootfiles = {
+    'Run2011A_May10ReReco_v1_run2011v0_2' : 2, 
+    'Run2011A_PromptReco_v4_run2011v0_1' : 3, 
+    'Run2011A_PromptReco_v5_run2011v0': 1, 
+    'Run2011A_PromptReco_v6_run2011v0': 1, 
+    'Run2011B_PromptReco_v1_run2011v0': 3, 
+    }
 

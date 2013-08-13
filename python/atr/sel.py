@@ -69,19 +69,17 @@ def BuToKstarMuMu_7TeV_2p5E3_v1_10(datatype, label):
     return Run2011v10(datatype, label)
 
 
-def ntp_labels(label):
-    if 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label: 
+def ntp_labels(datatype, label):
+    if datatype == 'mc' and 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label: 
         ntp_labels = [ label ] 
 
-    elif 'Run2011v11.' in label: 
-        mainversion = '11'
-        subversion = label.replace('Run2011v11.', '')
+    elif datatype == 'data' and 'run2011v0' in label: 
         ntp_labels = [
-            '%s/May10ReReco_v1_%s.%s'    %(label, mainversion, subversion), 
-            '%s/PromptReco_v4_%s.%s'     %(label, mainversion, subversion), 
-            '%s/PromptReco_v5_%s.%s'     %(label, mainversion, subversion), 
-            '%s/PromptReco_v6_%s.%s'     %(label, mainversion, subversion), 
-            #'Run2011v10.%s/B_PromptReco_v1_10_1.%s' %(subversion, subversion), 
+            'Run2011A_May10ReReco_v1_run2011v0_2',
+            'Run2011A_PromptReco_v4_run2011v0_1', 
+            'Run2011A_PromptReco_v5_run2011v0', 
+            'Run2011A_PromptReco_v6_run2011v0', 
+            'Run2011B_PromptReco_v1_run2011v0'
         ]
 
     else:
@@ -89,42 +87,6 @@ def ntp_labels(label):
 
     return ntp_labels
 
-
-def njobs(label):
-    if 'Run2011v10.' in label and '/May10ReReco_v1.' in label:
-        njobs = 3
-
-    elif 'Run2011v10.' in label and '/PromptReco_v4_10.' in label: 
-        njobs = 10
-
-    elif 'Run2011v10.' in label and '/PromptReco_v5_10.' in label: 
-        njobs = 4
-
-    elif 'Run2011v10.' in label and '/PromptReco_v6_10.' in label: 
-        njobs = 5
-
-    elif 'Run2011v10.' in label and '/B_PromptReco_v1_10_1.' in label: 
-        njobs = 33
-    
-    if 'Run2011v11.' in label and '/May10ReReco_v1_11.' in label:
-        njobs = 20
-
-    elif 'Run2011v11.' in label and '/PromptReco_v4_11.' in label: 
-        njobs = 68
-
-    elif 'Run2011v11.' in label and '/PromptReco_v5_11.' in label: 
-        njobs = 25
-
-    elif 'Run2011v11.' in label and '/PromptReco_v6_11.' in label: 
-        njobs = 35
-
-    elif 'Run2011v11.' in label and '/B_PromptReco_v1_11_1.' in label: 
-        njobs = 0 
-    
-    else:
-        raise NameError(label)
-
-    return njobs
 
 def procdir(label):
     if 'run2011v0' in label: 

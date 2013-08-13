@@ -16,7 +16,7 @@ def main(args):
     label = args[1]
     cut = args[2]
 
-    ntp_labels = atr.sel.ntp_labels(label)
+    ntp_labels = atr.sel.ntp_labels(datatype, label)
 
     for ntp_label in ntp_labels:
         proc_ntuple(args, ntp_label, cut)
@@ -48,9 +48,12 @@ def proc_ntuple(args, label, cut):
     procdir = atr.sel.procdir(label)
     cmd = './sel %s %s %s %s' %(sel_datatype, cut, infile, outfile)
 
-    if option_exists(args, '-n'): 
+    if option_exists(args, '-n') : 
         nentries = get_option(args, '-n') 
         cmd = '%s -n %s' %(cmd, nentries)
+    else:
+        if test:
+            cmd = '%s -n 1000' % cmd
 
     if option_exists(args, '-j'): 
         nworkers = get_option(args, '-j')
@@ -62,17 +65,18 @@ def proc_ntuple(args, label, cut):
         afb = atr.get_afb_from_label(label)
         pre = 'setafb %s\n\ncd %s' % (afb, procdir) 
         bashfile = set_file(atr.bashpath, label, comname, '.sh', test=test)
+        
 	update_bashfile_cmd(bashfile, cmd, pre=pre, test=test)
         logfile = set_file(atr.logpath, label, comname, '.log', test=test)
 
         #jobname = 'selbu'
-        njobs = atr.sel.njobs(label)
+        njobs = atr.ntp.num_rootfiles[label]
         jobname = 'selb[1-%s]' %njobs  
         if option_exists(args, '-J'):
             jobname = get_option(args, '-J')
 
         bsub_jobs(logfile, jobname, bashfile,
-                  test=option_exists(args, '-btest'), queue='8nh')
+                  test=option_exists(args, '-btest'), queue='1nh')
         return
 
     output = proc_cmd(cmd, procdir=procdir, test=option_exists(args, '-ctest'))
