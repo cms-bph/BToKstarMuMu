@@ -74,9 +74,8 @@ string get_option_value(string option, string name){
 
 
 void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
-  
   t_begin_.Set(); 
-  printf("\n ---------- Begin of Job ---------- \n");
+  printf("\n ---------- Begin Job ---------- \n");
   t_begin_.Print();
 
   n_processed_ = 0;
@@ -84,7 +83,7 @@ void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
 }
 
 void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
-  printf("\n ---------- Begin of Slave Job ---------- \n");
+  // printf("\n ---------- Begin of Slave Job ---------- \n");
   TString option = GetOption();
   tree_ = new TTree("tree", "tree"); 
   
@@ -106,6 +105,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
 Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
   string option = GetOption();
+  string datatype = get_option_value(option, "datatype"); 
   string cut = get_option_value(option, "cut"); 
   
   GetEntry(entry); 
@@ -114,11 +114,17 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
   int i = SelectB(cut); 
   if ( i != -1) {
-    n_selected_ += 1; 
-
-    SaveB(i);     
-    SaveMuMu(i);
-    tree_->Fill();	   
+    
+    if ( datatype == "data" || 
+	 ( datatype == *decname && istruebu->at(i) ) ) {
+      // cout << "true Bu? :" << istruebu->at(i) 
+      // 	   << "  decname = " << *decname << endl; 
+      n_selected_ += 1; 
+      
+      SaveB(i);     
+      SaveMuMu(i);
+      tree_->Fill();	   
+    }
   }
 
   return kTRUE;
@@ -126,7 +132,7 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
 
 void SingleBuToKstarMuMuSelector::SlaveTerminate(){
-  printf ( "\n ---------- End of Slave Job ---------- \n" ) ;
+  // printf ( "\n ---------- End of Slave Job ---------- \n" ) ;
   // t_now_.Set() ; 
   // t_now_.Print() ;
   // printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
@@ -143,7 +149,7 @@ void SingleBuToKstarMuMuSelector::Terminate(){
   fOutput->Write();
   
   t_now_.Set(); 
-  printf(" \n ---------- End of Job ---------- \n" ) ;
+  printf(" \n ---------- End Job ---------- \n" ) ;
   t_now_.Print();  
   printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
 	 n_processed_, n_selected_, 
@@ -153,7 +159,6 @@ void SingleBuToKstarMuMuSelector::Terminate(){
 
 
 int SingleBuToKstarMuMuSelector::SelectB(string cut){
-  // cout << "Selecting B with label - " << label << endl; 
 
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
@@ -167,6 +172,9 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut){
       }
     }
   }
+
+
+
 
   // if ( ! HasGoodDimuon() ) return -1; 
 
@@ -305,16 +313,19 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString cut = argv[1]; 
-  TString infile = argv[2]; 
-  TString outfile = argv[3]; 
+  TString datatype = argv[1]; 
+  TString cut = argv[2]; 
+  TString infile = argv[3]; 
+  TString outfile = argv[4]; 
   
+  Printf("datatype: '%s'", datatype.Data());
   Printf("cut: '%s'", cut.Data());
   Printf("input file: '%s'", infile.Data());
   Printf("output file: '%s'", outfile.Data());
  
   TString option; 
-  option.Form("cut=%s;outfile=%s", cut.Data(), outfile.Data()); 
+  option.Form("datatype=%s;cut=%s;outfile=%s", datatype.Data(), 
+	      cut.Data(), outfile.Data()); 
 
   TChain *ch = new TChain("tree"); 
   ch->Add(infile.Data()); 
