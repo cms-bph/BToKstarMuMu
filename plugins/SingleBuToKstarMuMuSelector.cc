@@ -160,6 +160,8 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut){
 
   if (cut == "cut0") {
     for (int i = 0; i < nb; i++) {
+      
+      if ( ! HasGoodDimuon(i) ) continue; 
 
       if (bvtxcl->at(i) > best_bvtxcl) {
 	best_bvtxcl = bvtxcl->at(i); 
@@ -168,7 +170,6 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut){
     }
   }
 
-  // if ( ! HasGoodDimuon() ) return -1; 
   // if (bvtxcl->at(i) < 0.09) continue; 
   // double blxysig = blsbs->at(i)/blsbserr->at(i); 
   // if (blxysig < 12 ) continue; 
