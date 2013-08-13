@@ -312,9 +312,6 @@ public :
    int SelectB(string); 
    bool HasGoodDimuon(int); 
    void SaveEvent(int); 
-   // void SaveKstar(int); 
-   // void SaveB(int); 
-   // double GetKstarMass(int); 
 };
 
 #endif
