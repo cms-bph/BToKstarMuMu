@@ -4,16 +4,16 @@ ROOTFLAGS=`root-config --cflags --libs`
 SELECTORFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lProof
 FIGURESFLAGS=$(GCCFLAGS) $(ROOTFLAGS) 
 
-all: SingleBuToKstarMuMuSelector SingleBuToKstarMuMuFigures draw_preselvars
+all: sel fig presel
 	@echo "Full build successful."
 
-SingleBuToKstarMuMuSelector: SingleBuToKstarMuMuSelector.cc 
+sel: SingleBuToKstarMuMuSelector.cc 
 	g++ $(SELECTORFLAGS) $< -o $@
 
-SingleBuToKstarMuMuFigures: SingleBuToKstarMuMuFigures.cc 
+fig: SingleBuToKstarMuMuFigures.cc 
 	g++ $(FIGURESFLAGS) $< -o $@
 
-draw_preselvars: draw_preselvars.cc 
+presel: draw_preselvars.cc 
 	g++ $(FIGURESFLAGS) $< -o $@
 
 clean:

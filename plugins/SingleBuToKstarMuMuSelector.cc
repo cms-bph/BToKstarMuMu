@@ -27,13 +27,15 @@ int n_processed_, n_selected_;
 TTree *tree_; 
 
 // Branch variables for new tree
-int Nb = 0;
+int    Nb = 0;
 double Mumumass = 0; 
 double Kstarmass = 0; 
+double Trkpt = 0; 
+double Trkdcasigbs = 0; 
 
 double Bmass = 0; 
 double Bpt = 0; 
-int Bchg = 0; 
+int    Bchg = 0; 
 double Bvtxcl = 0; 
 double Blxysig = 0; 
 double Bcosalphabs = 0; 
@@ -74,9 +76,8 @@ string get_option_value(string option, string name){
 
 
 void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/){
-  
   t_begin_.Set(); 
-  printf(" ---------- Begin of Job ---------- ");
+  printf("\n ---------- Begin Job ---------- \n");
   t_begin_.Print();
 
   n_processed_ = 0;
@@ -89,6 +90,9 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
   
   tree_->Branch("Mumumass", &Mumumass, "Mumumass/D");
   tree_->Branch("Kstarmass", &Kstarmass, "Kstarmass/D");
+  tree_->Branch("Trkpt", &Trkpt, "Trkpt/D");
+  tree_->Branch("Trkdcasigbs", &Trkdcasigbs, "Trkdcasigbs/D");
+
   tree_->Branch("Bmass", &Bmass, "Bmass/D");
   tree_->Branch("Bpt", &Bpt, "Bpt/D");
   tree_->Branch("Bchg", &Bchg, "Bchg/I");
@@ -105,105 +109,79 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
 Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
 
   string option = GetOption();
-  string label = get_option_value(option, "label"); 
+  string datatype = get_option_value(option, "datatype"); 
+  string cut = get_option_value(option, "cut"); 
   
-  // cout << "label: " << label << endl; 
-
   GetEntry(entry); 
   n_processed_ += 1; 
-  Nb = bmass->size(); 
-  
-  int i = SelectB(label); 
+  Nb = nb; 
+
+  int i = SelectB(cut); 
   if ( i != -1) {
-    n_selected_ += 1; 
-
-    SaveB(i);     
-    SaveMuMu(i);
-    // SaveKstar(i); 
     
-    tree_->Fill();	   
-  }
+    if ( datatype == "data" || 
+	 ( datatype == *decname && istruebu->at(i) ) ) {
 
+      n_selected_ += 1; 
+      SaveEvent(i);     
+      tree_->Fill();	   
+    }
+  }
   return kTRUE;
 }
 
 
 void SingleBuToKstarMuMuSelector::SlaveTerminate(){
-  printf ( "\n ---------- End of Slave Job ---------- " ) ;
-  // t_now_.Set() ; 
-  // t_now_.Print() ;
-  // printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
-  // 	 n_processed_, n_selected_, 
-  // 	 t_now_.Convert() - t_begin_.Convert(), 
-  // 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
+
 
 void SingleBuToKstarMuMuSelector::Terminate(){
   string option = GetOption();
   TString outfile = get_option_value(option, "outfile"); 
   
-  // if (option.BeginsWith("outfile=")) {
-  //   option.ReplaceAll("outfile=","");
-  //   if (!(option.IsNull())) outfile = option;
-  // }
-
   TFile file(outfile.Data(), "recreate"); 
   fOutput->Write();
   
   t_now_.Set(); 
-  printf(" ---------- End of Job ---------- " ) ;
+  printf(" \n ---------- End Job ---------- \n" ) ;
   t_now_.Print();  
-  printf(" processed: %i \n selected: %i \n duration: %i sec \n rate: %g evts/sec\n",
+  printf(" processed: %i \n selected: %i \n \
+ duration: %i sec \n rate: %g evts/sec\n",
 	 n_processed_, n_selected_, 
 	 t_now_.Convert() - t_begin_.Convert(), 
 	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
 }
 
 
-int SingleBuToKstarMuMuSelector::SelectB(string label){
-  // if ( label != "Run2011v11.1" ) return -1;  
+int SingleBuToKstarMuMuSelector::SelectB(string cut){
 
   int best_idx = -1; 
   double best_bvtxcl = 0.0; 
 
-  // if ( ! HasGoodDimuon() ) return -1; 
-
-  for (vector<int>::size_type i = 0; i < bmass->size(); i++) {
-    if ( ! HasGoodDimuon(i) ) continue;  
-    
-    cout << "passed dimuon cut" << endl; 
-
-    if (bvtxcl->at(i) < 0.09) continue; 
-    double blxysig = blsbs->at(i)/blsbserr->at(i); 
-    if (blxysig < 12 ) continue; 
-    if (bcosalphabs->at(i) < 0.99) continue; 
-    
-    if ( label == "Run2011v10.1" ) 
-      if (bctau->at(i) < 0.03) continue; 
-
-    // Kstarmass = GetKstarMass(i);
-    Kstarmass = ksmass->at(i);
-    float kstar_mass_delta; 
-    // if ( label == "Run2011v11.1" ) 
-    kstar_mass_delta = 0.06; 
+  if (cut == "cut0") {
+    for (int i = 0; i < nb; i++) {
       
-    if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
-	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
-      continue; 
+      if ( ! HasGoodDimuon(i) ) continue; 
 
-    if (bvtxcl->at(i) > best_bvtxcl) {
-      best_bvtxcl = bvtxcl->at(i); 
-      best_idx = i; 
+      if (bvtxcl->at(i) > best_bvtxcl) {
+	best_bvtxcl = bvtxcl->at(i); 
+	best_idx = i; 
+      }
     }
   }
-  
+
+  // if (bvtxcl->at(i) < 0.09) continue; 
+  // double blxysig = blsbs->at(i)/blsbserr->at(i); 
+  // if (blxysig < 12 ) continue; 
+  // if (bcosalphabs->at(i) < 0.99) continue; 
+  // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
+  // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
+   
   return best_idx;
 }
 
 bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
-  //  for (vector<int>::size_type i = 0; i < mumpx->size(); i++) {
-  if  ( 
-       // soft muon 
+  if  ( // soft muon 
        mumisgoodmuon->at(i)
        && mupisgoodmuon->at(i) 
        && mumntrkhits->at(i) > 10 
@@ -216,32 +194,11 @@ bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
        && mupdxyvtx->at(i) < 3
        && mumdzvtx->at(i) < 30 
        && mupdzvtx->at(i) < 30 
-       
-	) return true; 
-  // }
+       	) return true; 
   return false; 
 }
 
-
-void SingleBuToKstarMuMuSelector::SaveMuMu(int i){
-  TLorentzVector mup, mum, dimu; 
-  mup.SetXYZM(muppx->at(i), muppy->at(i), muppz->at(i), MUON_MASS); 
-  mum.SetXYZM(mumpx->at(i), mumpy->at(i), mumpz->at(i), MUON_MASS); 
-  dimu = mup + mum; 
-  Mumumass = dimu.M(); 
-}
-
-
-// void SingleBuToKstarMuMuSelector::SaveKstar(int i){
-//   // TLorentzVector ks, pi, kstar; 
-//   // ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-//   // pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-//   // kstar = ks + pi; 
-//   Kstarmass = GetKstarMass(i);
-// }
-
-
-void SingleBuToKstarMuMuSelector::SaveB(int i){
+void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Bmass = bmass->at(i); 
   Bchg = bchg->at(i); 
   Bvtxcl = bvtxcl->at(i); 
@@ -253,15 +210,12 @@ void SingleBuToKstarMuMuSelector::SaveB(int i){
   b.SetXYZM(bpx->at(i), bpy->at(i), bpz->at(i), bmass->at(i)); 
   Bpt = b.Pt(); 
 
+  Mumumass = mumumass->at(i); 
+  Kstarmass = kstarmass->at(i); 
+  Trkpt = trkpt->at(i); 
+  Trkdcasigbs = fabs( trkdcabs->at(i)/trkdcabserr->at(i) ); 
+  
 }
-
-// double SingleBuToKstarMuMuSelector::GetKstarMass(int i){
-//   TLorentzVector ks, pi, kstar; 
-//   ks.SetXYZM(bkspx->at(i), bkspy->at(i), bkspz->at(i), KSHORT_MASS); 
-//   pi.SetXYZM(bpi1px->at(i), bpi1py->at(i), bpi1pz->at(i), PION_MASS); 
-//   kstar = ks + pi; 
-//   return kstar.M();
-// }
 
 
 #ifndef __CINT__ 
@@ -295,16 +249,19 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString label = argv[1]; 
-  TString infile = argv[2]; 
-  TString outfile = argv[3]; 
+  TString datatype = argv[1]; 
+  TString cut = argv[2]; 
+  TString infile = argv[3]; 
+  TString outfile = argv[4]; 
   
-  Printf("label: '%s'", label.Data());
+  Printf("datatype: '%s'", datatype.Data());
+  Printf("cut: '%s'", cut.Data());
   Printf("input file: '%s'", infile.Data());
   Printf("output file: '%s'", outfile.Data());
  
   TString option; 
-  option.Form("label=%s;outfile=%s", label.Data(), outfile.Data()); 
+  option.Form("datatype=%s;cut=%s;outfile=%s", datatype.Data(), 
+	      cut.Data(), outfile.Data()); 
 
   TChain *ch = new TChain("tree"); 
   ch->Add(infile.Data()); 

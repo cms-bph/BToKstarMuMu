@@ -77,9 +77,21 @@ using namespace std;
 
 const int MUONMINUS_PDG_ID = 13; 
 const int PIONPLUS_PDG_ID = 211; 
+const int KLONGZERO_PDG_ID = 130; 
 const int KSHORTZERO_PDG_ID = 310; 
+const int KZERO_PDG_ID = 311; 
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
+const int JPSI_PDG_ID = 443; 
+const int PSI2S_PDG_ID = 10443; 
+
+const int ETA_PDG_ID = 221; 
+const int DZERO_PDG_ID = 421; 
+const int DSTAR2007_PDG_ID = 423; 
+const int DSPLUS_PDG_ID = 431; 
+const int DS1PLUS2460_PDG_ID = 20433; 
+const int SIGMACSTARPLUSPLUS_PDG_ID = 4224; 
+const int DELTAPLUS_PDG_ID = 2224; 
 const double PI = 3.141592653589793;
 
 // Structures 
@@ -92,26 +104,24 @@ struct HistArgs{
 };
 
 enum HistName{
-  h_nevents, 
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
-  h_mupdcabs, 
-
   h_mumutrkr, 
   h_mumutrkz, 
+
   h_mumudca, 
   h_mumuvtxcl, 
   h_mumupt, 
-
   h_mumumass,
   h_mumulxybs, 
-  h_mumucosalphabs, 
-  h_dimuksmass, 
-  h_trkpt, 
 
+  h_mumucosalphabs, 
+  h_trkpt, 
+  h_trkdcasigbs,
   h_bvtxchisq, 
-  h_kshortmass,
+  h_bvtxcl, 
+
   h_kstarmass, 
   h_bmass, 
 
@@ -122,35 +132,34 @@ enum HistName{
 
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
-  {"h_nevents", "Total number of processed events", 100, 0, 1000000},
-  {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
-  {"h_mueta", "Muon eta", 100, 0, 10},
-  {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
-  {"h_mupdcabs", "#mu^{+} DCA beam spot; DCA [cm]", 100, 0, 10},
 
+  {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
+  {"h_mueta", "Muon eta", 100, 0, 3},
+  {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
   {"h_mumutrkr", "#mu^{+}#mu^{-} distance in phi-eta; [cm]", 100, 0, 50},
   {"h_mumutrkz", "#mu^{+}#mu^{-} distance in Z; [cm]", 100, 0, 100},
-  {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
-  {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 10},
-  {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
 
-  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV]", 
+  {"h_mumudca",  "#mu^{+}#mu^{-} DCA; [cm]", 100, 0, 20},
+  {"h_mumuvtxcl",  "#mu^{+}#mu^{-} vertex CL", 100, 0, 1},
+  {"h_mumupt",    "#mu^{+}#mu^{-} pT ; pT [GeV]", 100, 0, 50},
+  {"h_mumumass", "#mu^{+}#mu^{-} invariant mass; M(#mu^{+}#mu^{-}) [GeV/c^{2}]", 
    100, 2, 20},
   {"h_mumulxybs", "#mu^{+}#mu^{-} Lxy #sigma beam spot", 100, 0, 100},
+
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
-  {"h_dimuksmass", "Dimu Kshort mass; M(Dimu Kshort) [GeV]", 100, 0, 20},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
-
+  {"h_trkdcabssig", "Pion track DCA/#sigma beam spot; DCA/#sigma", 100, 0, 10},
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
+  {"h_bvtxcl", "B decay vertex CL", 100, 0, 1},
 
-  {"h_kshortmass", "Kshort mass; M(Kshort) [GeV]", 100, 0.2, 0.8},
-  {"h_kstarmass", "Kstar mass; M(Kstar) [GeV]", 100, 0, 20},
+  {"h_kstarmass", "Kstar mass; M(K*) [GeV/^{2}]", 100, 0, 20},
+
   {"h_bmass", "B mass; M(B) [GeV]", 100, 0, 20},
 
 };
 
 // Define histograms 
-TH1F *BToKstarMuMuFigures[kHistNameSize];
+TH1F *histos[kHistNameSize];
 
 //
 // class declaration
@@ -206,8 +215,7 @@ private:
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>,
 			      RefCountedKinematicTree &); 
 
-  bool hasGoodDimuonKshortMass(const reco::TrackRef, const reco::TrackRef, 
-			       const reco::VertexCompositeCandidate, double &); 
+  bool hasGoodMuonDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaPoint (const reco::TransientTrack, const GlobalPoint, 
 			     double, double &, double &);
@@ -218,13 +226,13 @@ private:
 
   bool hasGoodBuVertex(const reco::TrackRef, const reco::TrackRef, 
 		       const vector<reco::TrackRef>, const reco::TrackRef, 
-		       double &, 
+		       double &, double &, 
 		       RefCountedKinematicTree &, RefCountedKinematicTree &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
 			  double &, double &, double &, double &, double &,
-			  double &, double &);
+			  double &, double &, double &);
 
   bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle, double &);
 
@@ -248,35 +256,53 @@ private:
   void saveBuCtau(RefCountedKinematicTree); 
 
   void saveGenInfo(const edm::Event&); 
-  void saveKshortVariables(RefCountedKinematicTree); 
+  void saveKshortVariables(RefCountedKinematicTree, 
+			   reco::VertexCompositeCandidate); 
 
   void saveSoftMuonVariables(pat::Muon, pat::Muon, reco::TrackRef, reco::TrackRef); 
-  void saveDimuVariables(double, double, double, double, double, double, double,
-			 double, double, double, double, double, double);
+  void saveDimuVariables(double, double, double, double, double, double, 
+			 double, double, double, double, double, double,
+			 double, double);
   void saveMuonTriggerMatches(const pat::Muon, const pat::Muon); 
   void saveTruthMatch(const edm::Event& iEvent); 
 
   // ----------member data ---------------------------
 
-  // --- input from python file --- 
-  string FileName_; 
-  bool SaveGenInfo_; 
+  // --- begin input from python file --- 
+  string OutputFileName_; 
+
+  // particle properties 
+  ParticleMass MuonMass_; 
+  float MuonMassErr_; 
+  ParticleMass PionMass_; 
+  float PionMassErr_; 
+  ParticleMass KshortMass_; 
+  float KshortMassErr_; 
+  double BuMass_; 
+
+  // labels 
   edm::InputTag GenParticlesLabel_;
+  edm::InputTag TriggerResultsLabel_;
+  edm::InputTag BeamSpotLabel_;
+  edm::InputTag VertexLabel_;
+  edm::InputTag MuonLabel_;
+  edm::InputTag KshortLabel_;
+  edm::InputTag TrackLabel_;
+  vector<string> TriggerNames_; 
+  vector<string> LastFilterNames_;
+
+  // gen particle 
+  bool   IsMonteCarlo_; 
   double TruthMatchMuonMaxR_; 
   double TruthMatchPionMaxR_; 
   double TruthMatchKsMaxVtx_; 
 
-  edm::InputTag TriggerResultsLabel_;
-  vector<string> TriggerNames_, LastFilterNames_;
-  map<string, string> mapTriggerToLastFilter_;
-  edm::InputTag BeamSpotLabel_;
-  edm::InputTag VertexLabel_;
-
-  // Muon 
-  edm::InputTag MuonLabel_;
+  // pre-selection cuts
   double MuonMinPt_; 
   double MuonMaxEta_; 
-  double TrkMaxDcaBs_; 
+  double MuonMaxDcaBs_; 
+  double TrkMinPt_; 
+  double TrkMaxDcaSigBs_; 
   double TrkMaxR_;
   double TrkMaxZ_; 
   double MuMuMaxDca_; 
@@ -286,56 +312,42 @@ private:
   double MuMuMaxInvMass_; 
   double MuMuMinLxySigmaBs_; 
   double MuMuMinCosAlphaBs_; 
-  ParticleMass MuonMass_; 
-  float MuonMassErr_; 
-
-  // Kshort 
-  edm::InputTag KshortLabel_;
-  edm::InputTag TrackLabel_;
-  ParticleMass PionMass_; 
-  float PionMassErr_; 
-  ParticleMass KshortMass_; 
-  float KshortMassErr_; 
-
-  double DimukshortMinMass_, DimukshortMaxMass_; 
-  
-  // Kstar
-  double KstarChargedTrackMinPt_; 
-  double KstarMinMass_, KstarMaxMass_; 
-
-  // B meson
+  double KstarMinMass_; 
+  double KstarMaxMass_; 
+  double BMinVtxCl_; 
+  double BMinMass_; 
   double BMaxMass_; 
-  double BuMass_; 
-  
 
+
+  // --- end input from python file --- 
+
+ 
   // Across the event 
+  map<string, string> mapTriggerToLastFilter_;
   reco::BeamSpot beamSpot_;  
   edm::ESHandle<MagneticField> bFieldHandle_;
   reco::Vertex primaryVertex_;
-
 
   // ---- Root Variables ---- 
   TFile* fout_;
   TTree* tree_;
   
-  unsigned int nevents; 
   unsigned int run, event, lumiblock, nprivtx; 
   vector<string> *triggernames;
   vector<int> *triggerprescales;
   
   // dimuon 
   vector<double> *mumdcabs, *mumdcabserr, *mumpx, *mumpy, *mumpz; 
-  vector<double> *mummass, *mummasserr; 
   vector<double> *mupdcabs, *mupdcabserr, *muppx, *muppy, *muppz; 
-  vector<double> *mupmass, *mupmasserr; 
   vector<double> *mumutrkr, *mumutrkz , *mumudca; 
   vector<double> *mumuvtxcl, *mumulsbs, *mumulsbserr;  
   vector<double> *mumucosalphabs, *mumucosalphabserr; 
+  vector<double> *mumumass, *mumumasserr; 
 
   // soft muon variables 
-  vector<bool> *mumisgoodmuon, *mupisgoodmuon ; 
-  vector<int> *mumnpixhits, *mupnpixhits, *mumnpixlayers, *mupnpixlayers; 
-  vector<int> *mumntrkhits, *mupntrkhits, *mumntrklayers, *mupntrklayers; 
+  vector<bool>   *mumisgoodmuon, *mupisgoodmuon ; 
+  vector<int>    *mumnpixhits, *mupnpixhits, *mumnpixlayers, *mupnpixlayers; 
+  vector<int>    *mumntrkhits, *mupntrkhits, *mumntrklayers, *mupntrklayers; 
   vector<double> *mumnormchi2, *mupnormchi2; 
   vector<double> *mumdxyvtx, *mupdxyvtx, *mumdzvtx, *mupdzvtx; 
   vector<string> *mumtriglastfilter, *muptriglastfilter; 
@@ -343,23 +355,24 @@ private:
   
   // pion track 
   vector<int> *trkchg; // +1 for pi+, -1 for pi-
-  vector<double> *trkpx, *trkpy, *trkpz, *trkmass, *trkmasserr, *trkpt; 
+  vector<double> *trkpx, *trkpy, *trkpz, *trkpt; 
+  vector<double> *trkdcabs, *trkdcabserr; 
 
 
   // kshort 
-  vector<double> *pimpx, *pimpy, *pimpz, *pimmass, *pimd0, *pimd0err; 
-  vector<double> *pippx, *pippy, *pippz, *pipmass, *pipd0, *pipd0err; 
-  vector<double> *kspx, *kspy, *kspz, *ksmass, *ksmasserr; 
+  vector<double> *pimpx, *pimpy, *pimpz, *pimd0, *pimd0err; 
+  vector<double> *pippx, *pippy, *pippz, *pipd0, *pipd0err; 
+  vector<double> *kspx, *kspy, *kspz; 
   vector<double> *ksvtxx, *ksvtxy, *ksvtxz, *ksvtxcl, *kslsbs, *kslsbserr; 
-  vector<double> *dimuksmass, *kstarmass; 
+  vector<double> *kstarmass; 
 
   // B+ and B- 
+  int nb; 
   vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
   vector<double> *bcosalphabs, *bcosalphabserr, *blsbs, *blsbserr, *bctau, *bctauerr; 
   
-
   // For MC
   int genbchg; // +1 for b+, -1 for b-
   double genbpx, genbpy, genbpz;
@@ -373,6 +386,8 @@ private:
   double genmuppx, genmuppy, genmuppz;
   double genpippx, genpippy, genpippz;
   double genpimpx, genpimpy, genpimpz;
+  
+  string decname; 
 
   vector<bool> *istruemum, *istruemup, *istrueks, *istruetrk, *istruebu;  
 };
@@ -389,23 +404,44 @@ private:
 // constructors and destructor
 //
 BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
-  FileName_(iConfig.getParameter<string>("FileName")),
-  SaveGenInfo_(iConfig.getUntrackedParameter<bool>("SaveGenInfo")),
+  OutputFileName_(iConfig.getParameter<string>("OutputFileName")),
+
+  // particle properties 
+  MuonMass_(iConfig.getUntrackedParameter<double>("MuonMass")),
+  MuonMassErr_(iConfig.getUntrackedParameter<double>("MuonMassErr")),
+  PionMass_(iConfig.getUntrackedParameter<double>("PionMass")),
+  PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
+  KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
+  KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
+  BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
+
+  // labels 
   GenParticlesLabel_(iConfig.getParameter<edm::InputTag>("GenParticlesLabel")),
-  TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
-  TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
-  TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
   TriggerResultsLabel_(iConfig.getParameter<edm::InputTag>("TriggerResultsLabel")),
-  TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
-  LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
   BeamSpotLabel_(iConfig.getParameter<edm::InputTag>("BeamSpotLabel")),
   VertexLabel_(iConfig.getParameter<edm::InputTag>("VertexLabel")),
   MuonLabel_(iConfig.getParameter<edm::InputTag>("MuonLabel")),
+  KshortLabel_(iConfig.getParameter<edm::InputTag>("KshortLabel")),
+  TrackLabel_(iConfig.getParameter<edm::InputTag>("TrackLabel")),
+  TriggerNames_(iConfig.getParameter< vector<string> >("TriggerNames")),
+  LastFilterNames_(iConfig.getParameter< vector<string> >("LastFilterNames")),
+  
+  // gen particle
+  IsMonteCarlo_(iConfig.getUntrackedParameter<bool>("IsMonteCarlo")),
+  TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
+  TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
+  TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
+
+  // pre-selection cuts 
   MuonMinPt_(iConfig.getUntrackedParameter<double>("MuonMinPt")),
   MuonMaxEta_(iConfig.getUntrackedParameter<double>("MuonMaxEta")),
-  TrkMaxDcaBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaBs")),
+  MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
+
+  TrkMinPt_(iConfig.getUntrackedParameter<double>("TrkMinPt")),
+  TrkMaxDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaSigBs")),
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
+
   MuMuMaxDca_(iConfig.getUntrackedParameter<double>("MuMuMaxDca")),
   MuMuMinVtxCl_(iConfig.getUntrackedParameter<double>("MuMuMinVtxCl")),
   MuMuMinPt_(iConfig.getUntrackedParameter<double>("MuMuMinPt")),
@@ -413,47 +449,38 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuMuMaxInvMass_(iConfig.getUntrackedParameter<double>("MuMuMaxInvMass")),
   MuMuMinLxySigmaBs_(iConfig.getUntrackedParameter<double>("MuMuMinLxySigmaBs")), 
   MuMuMinCosAlphaBs_(iConfig.getUntrackedParameter<double>("MuMuMinCosAlphaBs")), 
-  MuonMass_(iConfig.getUntrackedParameter<double>("MuonMass")),
-  MuonMassErr_(iConfig.getUntrackedParameter<double>("MuonMassErr")),
-  KshortLabel_(iConfig.getParameter<edm::InputTag>("KshortLabel")),
-  TrackLabel_(iConfig.getParameter<edm::InputTag>("TrackLabel")),
-  PionMass_(iConfig.getUntrackedParameter<double>("PionMass")),
-  PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
-  KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
-  KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
-  DimukshortMinMass_(iConfig.getUntrackedParameter<double>("DimukshortMinMass")),
-  DimukshortMaxMass_(iConfig.getUntrackedParameter<double>("DimukshortMaxMass")),
 
-  KstarChargedTrackMinPt_(iConfig.getUntrackedParameter<double>("KstarChargedTrackMinPt")),
   KstarMinMass_(iConfig.getUntrackedParameter<double>("KstarMinMass")),
   KstarMaxMass_(iConfig.getUntrackedParameter<double>("KstarMaxMass")),
+  BMinVtxCl_(iConfig.getUntrackedParameter<double>("BMinVtxCl")),
+  BMinMass_(iConfig.getUntrackedParameter<double>("BMinMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
-  BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
-  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), mummass(0), 
-  mummasserr(0), 
-  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0),  muppz(0), mupmass(0),
-  mupmasserr(0), mumutrkr(0), mumutrkz(0), 
-  mumudca(0),  mumuvtxcl(0),  mumulsbs(0),  mumulsbserr(0), 
-  mumucosalphabs(0),  mumucosalphabserr(0), 
+  mumdcabs(0), mumdcabserr(0), mumpx(0), mumpy(0), mumpz(0), 
+  mupdcabs(0),  mupdcabserr(0), muppx(0),  muppy(0), muppz(0), 
+  mumutrkr(0), mumutrkz(0), mumudca(0),  mumuvtxcl(0),  mumulsbs(0), 
+  mumulsbserr(0), mumucosalphabs(0),  mumucosalphabserr(0), 
+  mumumass(0), mumumasserr(0), 
   mumisgoodmuon(0), mupisgoodmuon(0), 
   mumnpixhits(0), mupnpixhits(0), mumnpixlayers(0), mupnpixlayers(0), 
   mumntrkhits(0), mupntrkhits(0), mumntrklayers(0), mupntrklayers(0), 
-  mumnormchi2(0), mupnormchi2(0), mumdxyvtx(0), mupdxyvtx(0), mumdzvtx(0), mupdzvtx(0), 
-  mumtriglastfilter(0), muptriglastfilter(0), 
+  mumnormchi2(0), mupnormchi2(0), mumdxyvtx(0), mupdxyvtx(0),
+  mumdzvtx(0), mupdzvtx(0), mumtriglastfilter(0), muptriglastfilter(0), 
   mumpt(0), muppt(0), mumeta(0), mupeta(0), 
 
-  trkchg(0), 
-  trkpx(0), trkpy(0), trkpz(0), trkmass(0), trkmasserr(0), trkpt(0),  
+  trkchg(0), trkpx(0), trkpy(0), trkpz(0), trkpt(0),  
+  trkdcabs(0), trkdcabserr(0), 
 
-  pimpx(0), pimpy(0), pimpz(0), pimmass(0), pimd0(0), pimd0err(0), 
-  pippx(0), pippy(0), pippz(0), pipmass(0), pipd0(0), pipd0err(0), 
-  kspx(0), kspy(0), kspz(0), ksmass(0), ksmasserr(0), 
+  pimpx(0), pimpy(0), pimpz(0), pimd0(0), pimd0err(0), 
+  pippx(0), pippy(0), pippz(0), pipd0(0), pipd0err(0), 
+  kspx(0), kspy(0), kspz(0), 
   ksvtxx(0), ksvtxy(0), ksvtxz(0), ksvtxcl(0), kslsbs(0), kslsbserr(0), 
-  dimuksmass(0), kstarmass(0),  
-  bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0), bmass(0), bmasserr(0), 
+  kstarmass(0),
+  
+  nb(0), bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0),
+  bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
 
@@ -468,6 +495,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   genmuppx(0), genmuppy(0), genmuppz(0), 
   genpippx(0), genpippy(0), genpippz(0), 
   genpimpx(0), genpimpy(0), genpimpz(0), 
+  decname(""), 
   istruemum(0), istruemup(0), istrueks(0), istruetrk(0), istruebu(0) 
   
 { 
@@ -497,14 +525,13 @@ BToKstarMuMu::~BToKstarMuMu()
 void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  nevents += 1; 
-  BToKstarMuMuFigures[h_nevents]->Fill(nevents); 
-
   clearVariables(); 
 
   run = iEvent.id().run() ;
   event = iEvent.id().event() ;
   lumiblock = iEvent.luminosityBlock(); 
+
+  if (IsMonteCarlo_) saveGenInfo(iEvent);
 
   hltReport(iEvent);
 
@@ -515,31 +542,25 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       buildBuToKstarMuMu(iEvent) ;  
 
-      if (SaveGenInfo_) {
-	saveGenInfo(iEvent);
-	saveTruthMatch(iEvent);
-      }
+      if (IsMonteCarlo_) saveTruthMatch(iEvent);
       
       tree_->Fill();
     }
-
   }
   
   clearVariables(); 
 }
 
 
-// ------------ method called once each job just before starting event loop  ------------
+// -- method called once each job just before starting event loop -------
 void 
 BToKstarMuMu::beginJob()
 {
-  fout_ = new TFile(FileName_.c_str(), "RECREATE");
+  fout_ = new TFile(OutputFileName_.c_str(), "RECREATE");
   fout_->cd();
 
-  nevents = 0; 
-
   for(int i=0; i<kHistNameSize; i++) {
-    BToKstarMuMuFigures[i] = new TH1F(hist_args[i].name, hist_args[i].title,
+    histos[i] = new TH1F(hist_args[i].name, hist_args[i].title,
 				      hist_args[i].n_bins,
 				      hist_args[i].x_min, hist_args[i].x_max);
   }
@@ -559,15 +580,11 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumpx", &mumpx);
   tree_->Branch("mumpy", &mumpy);
   tree_->Branch("mumpz", &mumpz);
-  tree_->Branch("mummass", &mummass); 
-  tree_->Branch("mummasserr", &mummasserr); 
   tree_->Branch("mupdcabs", &mupdcabs);
   tree_->Branch("mupdcabserr", &mupdcabserr);
   tree_->Branch("muppx", &muppx);
   tree_->Branch("muppy", &muppy);
   tree_->Branch("muppz", &muppz);
-  tree_->Branch("mupmass", &mupmass); 
-  tree_->Branch("mupmasserr", &mupmasserr); 
   tree_->Branch("mumutrkr", &mumutrkr);
   tree_->Branch("mumutrkz", &mumutrkz);
   tree_->Branch("mumudca", &mumudca);
@@ -576,6 +593,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("mumulsbserr", &mumulsbserr);
   tree_->Branch("mumucosalphabs", &mumucosalphabs);
   tree_->Branch("mumucosalphabserr", &mumucosalphabserr);
+  tree_->Branch("mumumass", &mumumass);
+  tree_->Branch("mumumasserr", &mumumasserr);
   tree_->Branch("mumisgoodmuon", &mumisgoodmuon);
   tree_->Branch("mupisgoodmuon", &mupisgoodmuon);
   tree_->Branch("mumnpixhits", &mumnpixhits);
@@ -603,36 +622,32 @@ BToKstarMuMu::beginJob()
   tree_->Branch("trkpx", &trkpx);
   tree_->Branch("trkpy", &trkpy);
   tree_->Branch("trkpz", &trkpz);
-  tree_->Branch("trkmass", &trkmass);
-  tree_->Branch("trkmasserr", &trkmasserr);
   tree_->Branch("trkpt", &trkpt);
+  tree_->Branch("trkdcabs", &trkdcabs);
+  tree_->Branch("trkdcabserr", &trkdcabserr);
 
   tree_->Branch("pimpx", &pimpx);
   tree_->Branch("pimpy", &pimpy);
   tree_->Branch("pimpz", &pimpz);
-  tree_->Branch("pimmass", &pimmass);
   tree_->Branch("pimd0", &pimd0);
   tree_->Branch("pimd0err", &pimd0err);
   tree_->Branch("pippx", &pippx);
   tree_->Branch("pippy", &pippy);
   tree_->Branch("pippz", &pippz);
-  tree_->Branch("pipmass", &pipmass);
   tree_->Branch("pipd0", &pipd0);
   tree_->Branch("pipd0err", &pipd0err);
   tree_->Branch("kspx", &kspx);
   tree_->Branch("kspy", &kspy);
   tree_->Branch("kspz", &kspz);
-  tree_->Branch("ksmass", &ksmass);
-  tree_->Branch("ksmasserr", &ksmasserr);
   tree_->Branch("ksvtxx", &ksvtxx);
   tree_->Branch("ksvtxy", &ksvtxy);
   tree_->Branch("ksvtxz", &ksvtxz);
   tree_->Branch("ksvtxcl", &ksvtxcl);
   tree_->Branch("kslsbs", &kslsbs);
   tree_->Branch("kslsbserr", &kslsbserr);
-  tree_->Branch("dimuksmass", &dimuksmass);
   tree_->Branch("kstarmass", &kstarmass);
     
+  tree_->Branch("nb", &nb, "nb/I");
   tree_->Branch("bchg", &bchg);
   tree_->Branch("bpx", &bpx);
   tree_->Branch("bpxerr", &bpxerr);
@@ -657,7 +672,7 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bctauerr", &bctauerr);
 
 
-  if (SaveGenInfo_) {
+  if (IsMonteCarlo_) {
     tree_->Branch("genbchg",     &genbchg    , "genbchg/I"   );
     tree_->Branch("genbpx",      &genbpx     , "genbpx/D"    );
     tree_->Branch("genbpy",      &genbpy     , "genbpy/D"    );
@@ -687,6 +702,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("genpimpx",  &genpimpx , "genpimpx/D");
     tree_->Branch("genpimpy",  &genpimpy , "genpimpy/D");
     tree_->Branch("genpimpz",  &genpimpz , "genpimpz/D");
+    tree_->Branch("decname",  &decname);
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
     tree_->Branch("istrueks",   &istrueks  );
@@ -698,7 +714,7 @@ BToKstarMuMu::beginJob()
 
 }
 
-// ------------ method called once each job just after ending the event loop  ------------
+// - method called once each job just after ending the event loop  --------
 void 
 BToKstarMuMu::endJob() 
 {
@@ -706,37 +722,38 @@ BToKstarMuMu::endJob()
   tree_->Write();
   
   for(int i = 0; i < kHistNameSize; i++) {
-    BToKstarMuMuFigures[i]->Write();
-    BToKstarMuMuFigures[i]->Delete();
+    histos[i]->Write();
+    histos[i]->Delete();
   }
   fout_->Close();
 }
 
-// ------------ method called when starting to processes a run  ------------
+// method called when starting to processes a run  ------------
 void 
 BToKstarMuMu::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
-// ------------ method called when ending the processing of a run  ------------
+// method called when ending the processing of a run  ------------
 void 
 BToKstarMuMu::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
-// ------------ method called when starting to processes a luminosity block  ------------
+// method called when starting to processes a luminosity block  ------------
 void 
-BToKstarMuMu::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+BToKstarMuMu::beginLuminosityBlock(edm::LuminosityBlock const&, 
+				   edm::EventSetup const&)
 {
 }
 
-// ------------ method called when ending the processing of a luminosity block  ------------
+// method called when ending the processing of a luminosity block  ------------
 void 
 BToKstarMuMu::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+// method fills 'descriptions' with the allowed parameters for the module ---
 void
 BToKstarMuMu::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
@@ -758,37 +775,45 @@ BToKstarMuMu::clearVariables(){
   triggerprescales->clear();
   mumdcabs->clear();  mumdcabserr->clear();  mumpx->clear();   mumpy->clear();  
   mumpz->clear(); 
-  mummass->clear(); mummasserr->clear(); 
   mupdcabs->clear();  mupdcabserr->clear();  muppx->clear();   muppy->clear(); 
   muppz->clear(); 
-  mupmass->clear(); mupmasserr->clear(); mumutrkr->clear(); mumutrkz->clear(); 
+  mumutrkr->clear(); mumutrkz->clear(); 
   mumudca->clear();  mumuvtxcl->clear();   mumulsbs->clear();  mumulsbserr->clear(); 
-  mumucosalphabs->clear();  mumucosalphabserr->clear();  
+  mumucosalphabs->clear();  mumucosalphabserr->clear();
+  mumumass->clear(); mumumasserr->clear(); 
   mumisgoodmuon->clear();  mupisgoodmuon->clear(); 
-  mumnpixhits->clear();  mupnpixhits->clear();  mumnpixlayers->clear();  mupnpixlayers->clear(); 
-  mumntrkhits->clear();  mupntrkhits->clear();  mumntrklayers->clear();  mupntrklayers->clear(); 
+  mumnpixhits->clear();  mupnpixhits->clear();  mumnpixlayers->clear(); 
+  mupnpixlayers->clear(); 
+  mumntrkhits->clear();  mupntrkhits->clear();  mumntrklayers->clear();
+  mupntrklayers->clear(); 
   mumnormchi2->clear(); mupnormchi2->clear(); mumdxyvtx->clear(); mupdxyvtx->clear(); 
-  mumdzvtx->clear(); mupdzvtx->clear();  mumtriglastfilter->clear(); muptriglastfilter->clear(); 
+  mumdzvtx->clear(); mupdzvtx->clear();  mumtriglastfilter->clear();
+  muptriglastfilter->clear(); 
   mumpt->clear(); muppt->clear(); 
   mumeta->clear(); mupeta->clear(); 
 
   trkchg->clear(); trkpx->clear(); trkpy->clear(); trkpz->clear(); 
-  trkmass->clear(); trkmasserr->clear(); trkpt->clear(); 
+  trkpt->clear();
+  trkdcabs->clear(); trkdcabserr->clear(); 
 
-  pimpx->clear(); pimpy->clear(); pimpz->clear(); pimmass->clear(); pimd0->clear(); pimd0err->clear();
-  pippx->clear(); pippy->clear(); pippz->clear(); pipmass->clear(); pipd0->clear(); pipd0err->clear();
-  kspx->clear(); kspy->clear(); kspz->clear(); ksmass->clear(); ksmasserr->clear(); 
+  pimpx->clear(); pimpy->clear(); pimpz->clear();
+  pimd0->clear(); pimd0err->clear();
+  pippx->clear(); pippy->clear(); pippz->clear();
+  pipd0->clear(); pipd0err->clear();
+  kspx->clear(); kspy->clear(); kspz->clear(); 
   ksvtxx->clear(); ksvtxy->clear(); ksvtxz->clear(); ksvtxcl->clear();
-  kslsbs->clear(); kslsbserr->clear(); dimuksmass->clear(); 
+  kslsbs->clear(); kslsbserr->clear(); 
   kstarmass->clear();  
 
-  bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear(); bpz->clear(); bpzerr->clear(); 
+  bpx->clear(); bpxerr->clear(); bpy->clear();  bpyerr->clear();
+  bpz->clear(); bpzerr->clear(); nb = 0; 
   bchg->clear(); bmass->clear(); bmasserr->clear(); 
-  bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear(); bvtxyerr->clear();
+  bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear();
+  bvtxyerr->clear();
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
 
-  if (SaveGenInfo_) {
+  if (IsMonteCarlo_) {
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
     genkspx = 0;   genkspy = 0;   genkspz = 0; 
@@ -798,7 +823,7 @@ BToKstarMuMu::clearVariables(){
     genmuppx = 0;  genmuppy = 0;  genmuppz = 0; 
     genpippx = 0;  genpippy = 0;  genpippz = 0; 
     genpimpx = 0;  genpimpy = 0;  genpimpz = 0; 
-
+    decname = ""; 
     istruemum->clear(); istruemup->clear(); istrueks->clear();
     istruetrk->clear(); istruebu->clear(); 
   }
@@ -811,9 +836,9 @@ BToKstarMuMu::hltReport(const edm::Event& iEvent)
 {
   edm::Handle<edm::TriggerResults> hltTriggerResults;
   try {iEvent.getByLabel( TriggerResultsLabel_, hltTriggerResults ); }
-  catch ( ... ) { edm::LogInfo("myHLT") << __LINE__ << " : couldn't get handle on HLT Trigger" ; }
+  catch ( ... ) { edm::LogInfo("myHLT") 
+      << __LINE__ << " : couldn't get handle on HLT Trigger" ; }
   
-  // Save trigger info
   HLTConfigProvider hltConfig_;
   if (hltTriggerResults.isValid()) {
     const edm::TriggerNames& triggerNames_ = iEvent.triggerNames(*hltTriggerResults);
@@ -828,9 +853,7 @@ BToKstarMuMu::hltReport(const edm::Event& iEvent)
 
 	// Loop over our interested HLT trigger names to find if this event contains. 
 	for (unsigned int it=0; it<TriggerNames_.size(); it++){
-	  //if (TriggerNames_[it] == triggername)	{
 	  if (triggername.find(TriggerNames_[it]) != string::npos) {
-	    // triggernames->push_back(triggername); 
 	    // save the no versioned case 
 	    triggernames->push_back(TriggerNames_[it]); 
 	    triggerprescales->push_back(triggerprescale); 
@@ -892,12 +915,7 @@ BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent,
    // check the track kinematics
    pion_trk_pt = theTrackRef->pt(); 
 
-   if ( theTrackRef->pt() < KstarChargedTrackMinPt_ ) return false; 
-
-   // compute track DCA to beam spot 
-   const reco::TransientTrack theTrackTT(theTrackRef, &(*bFieldHandle_));   
-   double DCAKstTrkBS, DCAKstTrkBSErr; 
-   if ( ! hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr)) return false; 
+   if ( theTrackRef->pt() < TrkMinPt_ ) return false; 
 
    return true;
 }
@@ -920,14 +938,15 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
 
   bool passed; 
-  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr, mumutrk_R, mumutrk_Z, DCAmumu; 
+  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr;
+  double mumutrk_R, mumutrk_Z, DCAmumu; 
   reco::TransientTrack refitMupTT, refitMumTT; 
-  double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, MuMuLSBS, MuMuLSBSErr; 
-  double  MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-  double dimu_ks_mass, pion_trk_pt, kstar_mass, b_vtx_chisq, b_mass; 
-
+  double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
+  double MuMuLSBS, MuMuLSBSErr; 
+  double MuMuCosAlphaBS, MuMuCosAlphaBSErr;
+  double pion_trk_pt, kstar_mass, b_vtx_chisq, b_vtx_cl, b_mass; 
+  double DCAKstTrkBS, DCAKstTrkBSErr; 
   vector<reco::TrackRef> kshortDaughterTracks;
-  int nBu = 0; 
   RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
 
 
@@ -938,11 +957,10 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
        iMuonM != patMuonHandle->end(); iMuonM++){
     
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
-   
     if ( muTrackm.isNull() ) continue; 
 
-    BToKstarMuMuFigures[h_mupt]->Fill(muTrackm->pt()); 
-    BToKstarMuMuFigures[h_mueta]->Fill(muTrackm->eta()); 
+    histos[h_mupt]->Fill(muTrackm->pt()); 
+    histos[h_mueta]->Fill(muTrackm->eta()); 
 
     if ( (muTrackm->charge() != -1) ||
 	 (muTrackm->pt() < MuonMinPt_) ||
@@ -950,10 +968,8 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     
     // check mu- DCA to beam spot 
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
-    passed = hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
-    BToKstarMuMuFigures[h_mumdcabs]->Fill(DCAmumBS); 
-    
-    // if ( ! hasGoodTrackDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr)) continue; 
+    passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
+    histos[h_mumdcabs]->Fill(DCAmumBS); 
     if ( ! passed ) continue; 
 
     // ---------------------------------
@@ -970,42 +986,30 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       
       // check mu+ DCA to beam spot 
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
-      passed = hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
-      BToKstarMuMuFigures[h_mupdcabs]->Fill(DCAmupBS); 
-      
-      // if ( ! hasGoodTrackDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr)) continue; 
+      passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
       passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
 					    mumutrk_R, mumutrk_Z, DCAmumu); 
-      BToKstarMuMuFigures[h_mumutrkr]->Fill(mumutrk_R); 
-      // cout << ">>> mumutrk_R = " << mumutrk_R << endl; 
-
-      BToKstarMuMuFigures[h_mumutrkz]->Fill(mumutrk_Z); 
-
-      // cout << ">>> mumutrk_Z = " << mumutrk_Z << endl; 
-
-      BToKstarMuMuFigures[h_mumudca]->Fill(DCAmumu); 
-
+      histos[h_mumutrkr]->Fill(mumutrk_R); 
+      histos[h_mumutrkz]->Fill(mumutrk_Z); 
+      histos[h_mumudca]->Fill(DCAmumu); 
       if ( !passed ) continue; 
 
       // check dimuon vertex 
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
-				 mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, 
+				 mu_mu_vtx_cl, mu_mu_pt, 
+				 mu_mu_mass, mu_mu_mass_err, 
 				 MuMuLSBS, MuMuLSBSErr,
 				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
       
-      BToKstarMuMuFigures[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
-      BToKstarMuMuFigures[h_mumupt]->Fill(mu_mu_pt); 
-      BToKstarMuMuFigures[h_mumumass]->Fill(mu_mu_mass); 
-      BToKstarMuMuFigures[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
-      BToKstarMuMuFigures[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
-
+      histos[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
+      histos[h_mumupt]->Fill(mu_mu_pt); 
+      histos[h_mumumass]->Fill(mu_mu_mass); 
+      histos[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
+      histos[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
       if ( !passed) continue; 
-      // if ( !hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
-      // 			      mu_mu_vtx_cl,MuMuLSBS, MuMuLSBSErr,
-      // 			      MuMuCosAlphaBS, MuMuCosAlphaBSErr) ) continue; 
       
       // ---------------------------------
       // loop 3: kshort 
@@ -1013,13 +1017,6 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       for ( reco::VertexCompositeCandidateCollection::const_iterator iKshort 
 	      = theKshorts->begin(); iKshort != theKshorts->end(); ++iKshort) {
 	
-	// check dimuon + kshort mass 
-	passed = hasGoodDimuonKshortMass(muTrackm, muTrackp, *iKshort, dimu_ks_mass); 
-	BToKstarMuMuFigures[h_dimuksmass]->Fill(dimu_ks_mass); 
-	  
-	if (!passed) continue; 
-
-	// check the daughter pions from Kshort is overlap with muons
 	kshortDaughterTracks.push_back((dynamic_cast<const
 					reco::RecoChargedCandidate *>
 					(iKshort->daughter(0)))->track()); 
@@ -1035,41 +1032,53 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 		= thePATTrackHandle->begin();
 	      iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
-	  passed =  hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
-	  BToKstarMuMuFigures[h_trkpt]->Fill(pion_trk_pt); 
+	  passed = hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
+	  histos[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
+
+	  // compute track DCA to beam spot 
 	  reco::TrackRef pionTrack = iTrack->track(); 
+	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
+	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
+	  histos[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
+	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuVertex(muTrackm, muTrackp, kshortDaughterTracks, 
-				   pionTrack, b_vtx_chisq, 
+				   pionTrack, b_vtx_chisq, b_vtx_cl, 
 				   vertexFitTree, ksVertexFitTree); 
-	  BToKstarMuMuFigures[h_bvtxchisq]->Fill(b_vtx_chisq); 
+	  histos[h_bvtxchisq]->Fill(b_vtx_chisq); 
+	  histos[h_bvtxcl]->Fill(b_vtx_cl); 
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodKstarChargedMass(vertexFitTree, kstar_mass); 
-	  BToKstarMuMuFigures[h_kstarmass]->Fill(kstar_mass); 
+	  histos[h_kstarmass]->Fill(kstar_mass); 
 	  if (!passed) continue; 
 	  
 	  passed = hasGoodBuMass(vertexFitTree, b_mass); 
-	  BToKstarMuMuFigures[h_bmass]->Fill(b_mass); 
-	  
+	  histos[h_bmass]->Fill(b_mass); 
 	  if (!passed) continue; 
 
-	  nBu++; 
+	  nb++; 
 	  // save the tree variables 
 	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
-			    mumutrk_R, mumutrk_Z, DCAmumu,  mu_mu_vtx_cl, 
+			    mumutrk_R, mumutrk_Z, DCAmumu, mu_mu_vtx_cl, 
 			    MuMuLSBS, MuMuLSBSErr, 
-			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, dimu_ks_mass); 
+			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, 
+			    mu_mu_mass, mu_mu_mass_err); 
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
 
-	  saveKshortVariables(ksVertexFitTree); 
+	  saveKshortVariables(ksVertexFitTree, *iKshort); 
 
 	  trkpt->push_back(pion_trk_pt); 
+	  trkdcabs->push_back(DCAKstTrkBS); 
+	  trkdcabserr->push_back(DCAKstTrkBSErr); 
 	  kstarmass->push_back(kstar_mass); 
 	  bchg->push_back(iTrack->charge()); 
+	  bvtxcl->push_back(b_vtx_cl); 
+	  
+
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
 	  saveBuCosAlpha(vertexFitTree); 
@@ -1081,7 +1090,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     } // close mu+ loop
   } // close mu- loop 
 
-  if ( nBu > 0) edm::LogInfo("myBu") << "Found " << nBu  << " Bu -> K* mu mu."; 
+  if ( nb > 0) edm::LogInfo("myBu") << "Found " << nb << " Bu -> K* mu mu."; 
     
 }
 
@@ -1131,13 +1140,14 @@ BToKstarMuMu::computeCosAlpha (double Vx, double Vy, double Vz,
   
   if ((Vnorm > 0.) && (Wnorm > 0.)) {
       *cosAlpha = VdotW / (Vnorm * Wnorm);
-      *cosAlphaErr = sqrt( ((Vx*Wnorm - VdotW*Wx) * (Vx*Wnorm - VdotW*Wx) * WxErr2 +
-			    (Vy*Wnorm - VdotW*Wy) * (Vy*Wnorm - VdotW*Wy) * WyErr2 +
-			    (Vz*Wnorm - VdotW*Wz) * (Vz*Wnorm - VdotW*Wz) * WzErr2 +
-			   
-			    (Vx*Wnorm - VdotW*Wx) * (Vy*Wnorm - VdotW*Wy) * 2.*WxyCov +
-			    (Vx*Wnorm - VdotW*Wx) * (Vz*Wnorm - VdotW*Wz) * 2.*WxzCov +
-			    (Vy*Wnorm - VdotW*Wy) * (Vz*Wnorm - VdotW*Wz) * 2.*WyzCov) /
+      *cosAlphaErr = sqrt( (
+       (Vx*Wnorm - VdotW*Wx) * (Vx*Wnorm - VdotW*Wx) * WxErr2 +
+       (Vy*Wnorm - VdotW*Wy) * (Vy*Wnorm - VdotW*Wy) * WyErr2 +
+       (Vz*Wnorm - VdotW*Wz) * (Vz*Wnorm - VdotW*Wz) * WzErr2 +
+       
+       (Vx*Wnorm - VdotW*Wx) * (Vy*Wnorm - VdotW*Wy) * 2.*WxyCov +
+       (Vx*Wnorm - VdotW*Wx) * (Vz*Wnorm - VdotW*Wz) * 2.*WxzCov +
+       (Vy*Wnorm - VdotW*Wy) * (Vz*Wnorm - VdotW*Wz) * 2.*WyzCov) /
 			   (Wnorm*Wnorm*Wnorm*Wnorm) +
 			   
 			   ((Wx*Vnorm - VdotW*Vx) * (Wx*Vnorm - VdotW*Vx) * VxErr2 +
@@ -1148,30 +1158,51 @@ BToKstarMuMu::computeCosAlpha (double Vx, double Vy, double Vz,
 			    (Wx*Vnorm - VdotW*Vx) * (Wz*Vnorm - VdotW*Vz) * 2.*VxzCov +
 			    (Wy*Vnorm - VdotW*Vy) * (Wz*Vnorm - VdotW*Vz) * 2.*VyzCov) /
 			   (Vnorm*Vnorm*Vnorm*Vnorm) ) / (Wnorm*Vnorm);
-    }  else {
-      *cosAlpha = 0.;
-      *cosAlphaErr = 0.;
-    }
+  }  else {
+    *cosAlpha = 0.;
+    *cosAlphaErr = 0.;
+  }
 }
 
 
 bool 
-BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack muTrackTT, 
-				 double &muDcaBs, double &muDcaBsErr)
+BToKstarMuMu::hasGoodMuonDcaBs (const reco::TransientTrack muTrackTT, 
+				double &muDcaBs, double &muDcaBsErr)
 {
-  TrajectoryStateClosestToPoint theDCAXBS = muTrackTT.trajectoryStateClosestToPoint(GlobalPoint(beamSpot_.position().x(),beamSpot_.position().y(),beamSpot_.position().z()));
+  TrajectoryStateClosestToPoint theDCAXBS = 
+    muTrackTT.trajectoryStateClosestToPoint(
+     GlobalPoint(beamSpot_.position().x(),
+		 beamSpot_.position().y(),beamSpot_.position().z()));
   
   if ( !theDCAXBS.isValid() )  return false; 
-
+  
   muDcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   muDcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( muDcaBs > TrkMaxDcaBs_ )   return false; 
+  if ( muDcaBs > MuonMaxDcaBs_ )   return false; 
+  return true; 
+}
+
+bool 
+BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack TrackTT, 
+				 double &DcaBs, double &DcaBsErr)
+{
+  TrajectoryStateClosestToPoint theDCAXBS = 
+    TrackTT.trajectoryStateClosestToPoint(
+     GlobalPoint(beamSpot_.position().x(),
+		 beamSpot_.position().y(),beamSpot_.position().z()));
+  
+  if ( !theDCAXBS.isValid() )  return false; 
+  
+  DcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
+  DcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
+  if ( DcaBs/DcaBsErr > TrkMaxDcaSigBs_ )   return false; 
   return true; 
 }
 
 
 bool 
-BToKstarMuMu::hasGoodTrackDcaPoint (const reco::TransientTrack track, const GlobalPoint p, 
+BToKstarMuMu::hasGoodTrackDcaPoint (const reco::TransientTrack track, 
+				    const GlobalPoint p, 
 				    double maxdca, double &dca, double &dcaerr)
 {
   TrajectoryStateClosestToPoint theDCAX = track.trajectoryStateClosestToPoint(p); 
@@ -1193,7 +1224,8 @@ BToKstarMuMu::hasGoodClosestApproachTracks (const reco::TransientTrack muTrackpT
 					    double & DCAmumu)
 {
   ClosestApproachInRPhi ClosestApp; 
-  ClosestApp.calculate(muTrackpTT.initialFreeState(),muTrackmTT.initialFreeState());
+  ClosestApp.calculate(muTrackpTT.initialFreeState(),
+		       muTrackmTT.initialFreeState());
   if (! ClosestApp.status())  return false;
   
   GlobalPoint XingPoint = ClosestApp.crossingPoint();
@@ -1217,9 +1249,10 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 				 reco::TransientTrack &refitMupTT, 
 				 reco::TransientTrack &refitMumTT, 
 				 double & mu_mu_vtx_cl, double & mu_mu_pt, 
-				 double & mu_mu_mass, 
+				 double & mu_mu_mass, double & mu_mu_mass_err, 
 				 double & MuMuLSBS, double & MuMuLSBSErr, 
-				 double & MuMuCosAlphaBS, double & MuMuCosAlphaBSErr)
+				 double & MuMuCosAlphaBS,
+				 double & MuMuCosAlphaBSErr)
 {
   KinematicParticleFactoryFromTransientTrack partFactory;
   KinematicParticleVertexFitter PartVtxFitter;   
@@ -1227,31 +1260,26 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   vector<RefCountedKinematicParticle> muonParticles;
   double chi = 0.;
   double ndf = 0.;
-  muonParticles.push_back(partFactory.particle(muTrackmTT, MuonMass_,chi,ndf,MuonMassErr_));
-  muonParticles.push_back(partFactory.particle(muTrackpTT,MuonMass_,chi,ndf,MuonMassErr_));
+  muonParticles.push_back(partFactory.particle(muTrackmTT, 
+					       MuonMass_,chi,ndf,MuonMassErr_));
+  muonParticles.push_back(partFactory.particle(muTrackpTT,
+					       MuonMass_,chi,ndf,MuonMassErr_));
   
   RefCountedKinematicTree mumuVertexFitTree = PartVtxFitter.fit(muonParticles);
   
-  if ( !mumuVertexFitTree->isValid())  {
-    // edm::LogInfo("myDimuon") << "Invalid vertex from the mu+ mu- vertex fit"; 
-    return false;
-  }
+  if ( !mumuVertexFitTree->isValid())  return false;
   
   mumuVertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle mumu_KP = mumuVertexFitTree->currentParticle();
   RefCountedKinematicVertex mumu_KV = mumuVertexFitTree->currentDecayVertex();
   
-  if ( !mumu_KV->vertexIsValid()) {
-    // edm::LogInfo("myDimuon") << "Invalid vertex from the mu+ mu- vertex fit";
-    return false;
-  }
+  if ( !mumu_KV->vertexIsValid()) return false;
   
-  mu_mu_vtx_cl = TMath::Prob((double)mumu_KV->chiSquared(), int(rint(mumu_KV->degreesOfFreedom())));
+  mu_mu_vtx_cl = TMath::Prob((double)mumu_KV->chiSquared(),
+			     int(rint(mumu_KV->degreesOfFreedom())));
   
-  if (mu_mu_vtx_cl < MuMuMinVtxCl_)   {
-    // edm::LogInfo("myDimuon") << "Bad vtx CL from mu+ mu- fit: " << mu_mu_vtx_cl; 
-    return false;
-  }
+  if (mu_mu_vtx_cl < MuMuMinVtxCl_)  return false;
+
   // extract the re-fitted tracks
   mumuVertexFitTree->movePointerToTheTop();
   
@@ -1265,20 +1293,24 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
   
   TLorentzVector mymum, mymup, mydimu; 
   
-  mymum.SetXYZM(refitMumTT.track().momentum().x(), refitMumTT.track().momentum().y(),
+  mymum.SetXYZM(refitMumTT.track().momentum().x(), 
+		refitMumTT.track().momentum().y(),
 		refitMumTT.track().momentum().z(), MuonMass_); 
-  mymup.SetXYZM(refitMupTT.track().momentum().x(), refitMupTT.track().momentum().y(),
+
+  mymup.SetXYZM(refitMupTT.track().momentum().x(),
+		refitMupTT.track().momentum().y(),
 		refitMupTT.track().momentum().z(), MuonMass_); 
   
   mydimu = mymum + mymup; 
   mu_mu_pt = mydimu.Perp(); 
-  mu_mu_mass = mydimu.M(); 
+ 
+  mu_mu_mass = mumu_KP->currentState().mass(); 
+  mu_mu_mass_err = sqrt(mumu_KP->currentState().kinematicParametersError().
+			matrix()(6,6));
 
-  if ((mydimu.Perp() < MuMuMinPt_) || 
-      (mydimu.M() < MuMuMinInvMass_) ||
-      (mydimu.M() > MuMuMaxInvMass_)) {
-    return false;
-  }
+  if ((mu_mu_pt < MuMuMinPt_) || (mu_mu_mass < MuMuMinInvMass_) ||
+      (mu_mu_mass > MuMuMaxInvMass_))  return false;
+
   // compute the distance between mumu vtx and beam spot 
   computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
 	     beamSpot_.position().x(),beamSpot_.position().y(),0.0,
@@ -1311,12 +1343,11 @@ BToKstarMuMu::hasGoodMuMuVertex (const reco::TransientTrack muTrackpTT,
 		  &MuMuCosAlphaBS,&MuMuCosAlphaBSErr);	  
   
   if (MuMuCosAlphaBS < MuMuMinCosAlphaBs_)  return false;
-  
+
   return true; 
 }
 
 
-  
 bool
 BToKstarMuMu::matchMuonTrack (const edm::Event& iEvent, 
 			      const reco::TrackRef theTrackRef)
@@ -1381,7 +1412,8 @@ BToKstarMuMu::hasGoodKshortVertexMKC(const vector<reco::TrackRef> theDaughterTra
 {
   if ( !hasGoodKshortVertex(theDaughterTracks, ksVertexFitTree) ) return false; 
   KinematicParticleFitter csFitterKs; 
-  KinematicConstraint * ks_c = new MassKinematicConstraint(KshortMass_, KshortMassErr_);
+  KinematicConstraint * ks_c = new MassKinematicConstraint(KshortMass_,
+							   KshortMassErr_);
   ksVertexFitTree = csFitterKs.fit(ks_c,ksVertexFitTree);
   
   delete ks_c; 
@@ -1394,10 +1426,7 @@ bool
 BToKstarMuMu::matchKshortTrack (const edm::Event& iEvent, 
 				const reco::TrackRef theTrackRef)
 {
-  if ( theTrackRef.isNull() ) {
-    // edm::LogInfo("myKshortMatch") << "Null track ref!"; 
-    return false;
-  }
+  if ( theTrackRef.isNull() ) return false;
 
   edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
   iEvent.getByLabel(KshortLabel_, theKshorts);
@@ -1451,8 +1480,8 @@ BToKstarMuMu::hasGoodKstarChargedMass(RefCountedKinematicTree vertexFitTree,
  
   mykstar = myks + mypi; 
   kstar_mass = mykstar.M(); 
-  if ( mykstar.M() < KstarMinMass_  
-       ||  mykstar.M() > KstarMaxMass_ )  return false; 
+  if ( kstar_mass < KstarMinMass_  || kstar_mass > KstarMaxMass_ ) 
+    return false; 
 
   return true; 
 }
@@ -1465,7 +1494,7 @@ BToKstarMuMu::hasGoodBuMass(RefCountedKinematicTree vertexFitTree,
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
   b_mass = b_KP->currentState().mass(); 
-  if ( b_KP->currentState().mass() > BMaxMass_ ) return false;  
+  if ( b_mass < BMinMass_ || b_mass > BMaxMass_ ) return false;  
   return true; 
 }
 
@@ -1475,11 +1504,12 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
 			      const reco::TrackRef mu2Track,
 			      const vector<reco::TrackRef> kshortDaughterTracks, 
 			      const reco::TrackRef pionTrack, 
-			      double & bvtxchisq, 
+			      double & b_vtx_chisq, double & b_vtx_cl, 
 			      RefCountedKinematicTree &vertexFitTree, 
 			      RefCountedKinematicTree &ksVertexFitTree)
 {
-  if ( ! hasGoodKshortVertexMKC(kshortDaughterTracks, ksVertexFitTree) ) return false; 
+  if ( ! hasGoodKshortVertexMKC(kshortDaughterTracks, ksVertexFitTree) ) 
+    return false; 
 
   ksVertexFitTree->movePointerToTheTop();
   RefCountedKinematicParticle ks_KP = ksVertexFitTree->currentParticle();
@@ -1493,8 +1523,10 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   float chi = 0.;
   float ndf = 0.;
   vector<RefCountedKinematicParticle> vFitMCParticles;
-  vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,chi,ndf,MuonMassErr_));
-  vFitMCParticles.push_back(pFactory.particle(mu2TT,MuonMass_,chi,ndf,MuonMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,
+					      chi,ndf,MuonMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(mu2TT,MuonMass_,
+					      chi,ndf,MuonMassErr_));
   vFitMCParticles.push_back(pFactory.particle(pionTT, PionMass_, chi, 
 					      ndf, PionMassErr_));
   vFitMCParticles.push_back(ks_KP);
@@ -1508,39 +1540,18 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   if ( !bDecayVertexMC->vertexIsValid()) return false; 
  
 
-  bvtxchisq = bDecayVertexMC->chiSquared(); 
+  b_vtx_chisq = bDecayVertexMC->chiSquared(); 
   if ( bDecayVertexMC->chiSquared()<0
        || bDecayVertexMC->chiSquared()>1000 ) return false; 
 
+  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+  b_vtx_cl = ChiSquaredProbability((double)(b_KV->chiSquared()),
+				   (double)(b_KV->degreesOfFreedom()));
+
+  if ( b_vtx_cl < BMinVtxCl_ ) return false; 
+  
   return true; 
 }
-
-bool
-BToKstarMuMu::hasGoodDimuonKshortMass(const reco::TrackRef muTrackm, 
-				      const reco::TrackRef muTrackp, 
-				      const reco::VertexCompositeCandidate iKshort, 
-				      double &dimu_ks_mass)
-{
-  // book the mumu mass histogram 
-  TLorentzVector mu1, mu2, dimu; 
-  mu1.SetXYZM(muTrackm->px(), muTrackm->py(), muTrackm->pz(), MuonMass_); 
-  mu2.SetXYZM(muTrackp->px(), muTrackp->py(), muTrackp->pz(), MuonMass_); 
-  dimu = mu1 + mu2; 
-  // BToKstarMuMuFigures[h_mumumass]->Fill(dimu.M()); 
-  
-  BToKstarMuMuFigures[h_kshortmass]->Fill(iKshort.mass()); 
-  
-  TLorentzVector kshort, dimukshort; 
-  kshort.SetXYZM(iKshort.px(), iKshort.py(), iKshort.pz(), KshortMass_); 
-  dimukshort = dimu + kshort; 
-
-  dimu_ks_mass = dimukshort.M(); 
-
-  if ( dimukshort.M() > DimukshortMinMass_ 
-       && dimukshort.M() < DimukshortMaxMass_ ) return true; 
-  return false; 
-}
-
 
 void 
 BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
@@ -1573,14 +1584,10 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   muppx->push_back(mup_KP->currentState().globalMomentum().x());
   muppy->push_back(mup_KP->currentState().globalMomentum().y());
   muppz->push_back(mup_KP->currentState().globalMomentum().z());
-  mupmass->push_back(mup_KP->currentState().mass());
-  mupmasserr->push_back(mup_KP->currentState().kinematicParametersError().matrix()(6,6));
   
   mumpx->push_back(mum_KP->currentState().globalMomentum().x());
   mumpy->push_back(mum_KP->currentState().globalMomentum().y());
   mumpz->push_back(mum_KP->currentState().globalMomentum().z());
-  mummass->push_back(mum_KP->currentState().mass());
-  mummasserr->push_back(mum_KP->currentState().kinematicParametersError().matrix()(6,6));
 
 
   vertexFitTree->movePointerToTheNextChild();  // pion track 
@@ -1589,16 +1596,14 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   trkpx->push_back(pi1_KP->currentState().globalMomentum().x());
   trkpy->push_back(pi1_KP->currentState().globalMomentum().y());
   trkpz->push_back(pi1_KP->currentState().globalMomentum().z());
-  trkmass->push_back(pi1_KP->currentState().mass());
-  trkmasserr->push_back(pi1_KP->currentState().kinematicParametersError().matrix()(6,6));
 
   vertexFitTree->movePointerToTheNextChild();  // ks 
   RefCountedKinematicParticle ks_KP = vertexFitTree->currentParticle();
   kspx->push_back(ks_KP->currentState().globalMomentum().x());
   kspy->push_back(ks_KP->currentState().globalMomentum().y());
   kspz->push_back(ks_KP->currentState().globalMomentum().z());
-  ksmass->push_back(ks_KP->currentState().mass());
-  ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
+  // ksmass->push_back(ks_KP->currentState().mass());
+  // ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
 
 }
 
@@ -1607,9 +1612,6 @@ void
 BToKstarMuMu::saveBuVertex(RefCountedKinematicTree vertexFitTree){
   vertexFitTree->movePointerToTheTop();
   RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
-  bvtxcl->push_back( ChiSquaredProbability((double)(b_KV->chiSquared()),
-					   (double)(b_KV->degreesOfFreedom())) );
-
   bvtxx->push_back((*b_KV).position().x());  
   bvtxxerr->push_back(sqrt( abs(b_KV->error().cxx()) ));
   bvtxy->push_back((*b_KV).position().y());  
@@ -1662,7 +1664,8 @@ bool
 BToKstarMuMu::matchPrimaryVertexTracks () 
 {
   vector<reco::TransientTrack> vertexTracks;
-  for (vector<reco::TrackBaseRef>::const_iterator iTrack = primaryVertex_.tracks_begin(); 
+  for (vector<reco::TrackBaseRef>::const_iterator iTrack = 
+	 primaryVertex_.tracks_begin(); 
        iTrack != primaryVertex_.tracks_end(); iTrack++){
     reco::TrackRef trackRef = iTrack->castTo<reco::TrackRef>();
   }
@@ -1715,8 +1718,8 @@ BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree,
   GlobalError BVE = b_KV->error();
   GlobalError PVE = GlobalError( primaryVertex_.error() );
   VertexDistance3D theVertexDistance3D; 
-  Measurement1D TheMeasurement = theVertexDistance3D.distance( VertexState(BVP, BVE), 
-							       VertexState(PVP, PVE) );
+  Measurement1D TheMeasurement = theVertexDistance3D.distance(
+     VertexState(BVP, BVE), VertexState(PVP, PVE) );
   double myError = TheMeasurement.error();	 
   
   //  ctau is defined by the portion of the flight distance along
@@ -1730,18 +1733,14 @@ BToKstarMuMu::computeCtau(RefCountedKinematicTree vertexFitTree,
 }
 
 double 
-BToKstarMuMu::computeEta (double Px,
-			  double Py,
-			  double Pz)
+BToKstarMuMu::computeEta (double Px, double Py, double Pz)
 {
   double P = sqrt(Px*Px + Py*Py + Pz*Pz);
   return 0.5*log((P + Pz) / (P - Pz));
 }
 
 double 
-BToKstarMuMu::computePhi (double Px,
-			  double Py,
-			  double Pz)
+BToKstarMuMu::computePhi (double Px, double Py, double Pz)
 {
   double phi = atan(Py / Px);
   if (Px < 0 && Py < 0) phi = phi - PI;
@@ -1750,12 +1749,8 @@ BToKstarMuMu::computePhi (double Px,
 }
 
 double
-BToKstarMuMu::computeEtaPhiDistance (double Px1,
-				     double Py1,
-				     double Pz1,
-				     double Px2,
-				     double Py2,
-				     double Pz2)
+BToKstarMuMu::computeEtaPhiDistance (double Px1, double Py1, double Pz1,
+				     double Px2, double Py2, double Pz2)
 {
   double phi1 = computePhi (Px1,Py1,Pz1);
   double eta1 = computeEta (Px1,Py1,Pz1);
@@ -1787,66 +1782,122 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     if ( abs(b.pdgId()) != BPLUS_PDG_ID ) continue; 
     
     int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1), ipip(-1), ipim(-1); 
-
+    int ijpsi(-1), ipsi2s(-1), ikz(-1); 
+    
     // loop over all B+/- daughters 
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(b.daughter(j));
+     
       if (dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
       if (dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
       if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;  
+      if (dau.pdgId() == JPSI_PDG_ID ) ijpsi = j; 
+      if (dau.pdgId() == PSI2S_PDG_ID ) ipsi2s = j; 
     }
 
-    if (ikst == -1 || imum == -1 || imup == -1) continue; 
-
+    if ( ikst == -1 ) continue; 
     const reco::Candidate & kst = *(b.daughter(ikst));
     
     for ( size_t j = 0; j < kst.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(kst.daughter(j));
-      if (abs(dau.pdgId()) == KSHORTZERO_PDG_ID) iks = j; 
+      if (dau.pdgId() == KSHORTZERO_PDG_ID) iks = j; 
       if (abs(dau.pdgId()) == PIONPLUS_PDG_ID) ipi = j; 
+      if (dau.pdgId() == KZERO_PDG_ID) ikz = j; 
     }
 
-    if (iks == -1 || ipi == -1) continue; 
-   
-    const reco::Candidate & ks = *(kst.daughter(iks));
-    for ( size_t j = 0; j < ks.numberOfDaughters(); ++j){
-      const reco::Candidate  &dau = *(ks.daughter(j));
+    // get the Kshort 
+    const reco::Candidate *ks = NULL; 
+
+    // case 1: K*+ -> Ks0 pi+ 
+    if (iks != -1 ) ks = kst.daughter(iks);
+
+    // case 2: K*+ -> K0 pi+ -> KS0 pi+ 
+    else if (ikz != -1 && ipi != -1) { 
+      const reco::Candidate & kz = *(kst.daughter(ikz));
+      for ( size_t j = 0; j < kz.numberOfDaughters(); ++j){
+	const reco::Candidate  &dau = *(kz.daughter(j));
+	if (dau.pdgId() == KSHORTZERO_PDG_ID) iks = j; 
+      }
+       if (iks != -1 ) ks = kz.daughter(iks);
+    }
+    
+    if (  ks == NULL || iks == -1 || ipi == -1 ) continue; 
+
+    for ( size_t j = 0; j < ks->numberOfDaughters(); ++j){
+      const reco::Candidate  &dau = *(ks->daughter(j)) ;
       if ( dau.pdgId() == PIONPLUS_PDG_ID) ipip = j; 
       if ( dau.pdgId() == -PIONPLUS_PDG_ID) ipim = j; 
     }
-   
-    if (ipip == -1 || ipim == -1) continue; 
-   
-    const reco::Candidate & pip = *(ks.daughter(ipip));
-    const reco::Candidate & pim = *(ks.daughter(ipim));
-    const reco::Candidate & pi = *(kst.daughter(ipi));
-    const reco::Candidate & mum = *(b.daughter(imum));
-    const reco::Candidate & mup = *(b.daughter(imup));
 
+    if (ipip == -1 || ipim == -1) continue; 
+    
+    // store the B and K* vars
+    const reco::Candidate & pip = *(ks->daughter(ipip));
+    const reco::Candidate & pim = *(ks->daughter(ipim));
+    const reco::Candidate & pi  = *(kst.daughter(ipi));
+
+    const reco::Candidate *mum = NULL;  
+    const reco::Candidate *mup = NULL;  
+    
+    // K* mu mu 
+    if (imum != -1 && imup != -1) {
+      // cout << "Found GEN B+-> K* mu mu " << endl; 
+      mum = b.daughter(imum);
+      mup = b.daughter(imup);
+      decname = "BuToKstarMuMu"; 
+    } 
+
+    // K* J/psi 
+    else if ( ijpsi != -1 ) {
+      // cout << "Found GEN B+-> K* J/psi " << endl; 
+      const reco::Candidate & jpsi = *(b.daughter(ijpsi));
+      for ( size_t j = 0; j < jpsi.numberOfDaughters(); ++j){
+	const reco::Candidate  &dau = *(jpsi.daughter(j));
+	if ( dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
+	if ( dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
+      }
+      if (imum != -1 && imup != -1) {
+	mum = jpsi.daughter(imum);
+	mup = jpsi.daughter(imup);
+	decname = "BuToKstarJPsi"; 
+      } 
+    }
+
+    // K* psi(2S) 
+    else if ( ipsi2s != -1) {
+      // cout << "Found GEN B+-> K* psi(2S) " << endl; 
+      const reco::Candidate & psi2s = *(b.daughter(ipsi2s));
+      for ( size_t j = 0; j < psi2s.numberOfDaughters(); ++j){
+	const reco::Candidate  &dau = *(psi2s.daughter(j));
+	if ( dau.pdgId() == MUONMINUS_PDG_ID) imum = j; 
+	if ( dau.pdgId() == -MUONMINUS_PDG_ID) imup = j; 
+      }
+      if (imum != -1 && imup != -1) {
+	mum = psi2s.daughter(imum);
+	mup = psi2s.daughter(imup);
+	decname = "BuToKstarPsi2S"; 
+      } 
+    }
+
+    if ( mum == NULL || mup == NULL) continue; 
+
+    // save gen info
     genbchg = b.charge(); 
     genbpx = b.px();
     genbpy = b.py();
     genbpz = b.pz();
- 
-    genmumpx = mum.px();
-    genmumpy = mum.py();
-    genmumpz = mum.pz();
-
-    genmuppx = mup.px();
-    genmuppy = mup.py();
-    genmuppz = mup.pz();
 
     genkstpx = kst.px();
     genkstpy = kst.py();
     genkstpz = kst.pz();
     
-    genkspx = ks.px();
-    genkspy = ks.py();
-    genkspz = ks.pz();
+    genkspx = ks->px();
+    genkspy = ks->py();
+    genkspz = ks->pz();
 
-    genksvtxx = ks.vx();
-    genksvtxy = ks.vy();
-    genksvtxz = ks.vz();
+    genksvtxx = ks->vx();
+    genksvtxy = ks->vy();
+    genksvtxz = ks->vz();
 
     gentrkchg = pi.charge(); 
     gentrkpx = pi.px();
@@ -1860,6 +1911,14 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     genpimpx = pim.px();
     genpimpy = pim.py();
     genpimpz = pim.pz();
+  
+    genmumpx = mum->px();
+    genmumpy = mum->py();
+    genmumpz = mum->pz();
+    
+    genmuppx = mup->px();
+    genmuppy = mup->py();
+    genmuppz = mup->pz();
   }
 }
 
@@ -1895,13 +1954,15 @@ BToKstarMuMu::isGenMuonP(const reco::Candidate *p){
 
 
 void 
-BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
+BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree, 
+				  reco::VertexCompositeCandidate iKshort)
 {
   ksVertexFitTree->movePointerToTheTop();
   RefCountedKinematicVertex ks_vertex = ksVertexFitTree->currentDecayVertex();
 
-  ksvtxcl->push_back( ChiSquaredProbability((double)(ks_vertex->chiSquared()),
-					    (double)(ks_vertex->degreesOfFreedom())) );
+  ksvtxcl->push_back( ChiSquaredProbability(
+    (double)(ks_vertex->chiSquared()),
+    (double)(ks_vertex->degreesOfFreedom())) );
 
   ksvtxx->push_back(ks_vertex->position().x());
   ksvtxy->push_back(ks_vertex->position().y());
@@ -1947,7 +2008,31 @@ BToKstarMuMu::saveKshortVariables(RefCountedKinematicTree ksVertexFitTree)
   pimpx->push_back(ksPimKP.momentum().x());
   pimpy->push_back(ksPimKP.momentum().y());
   pimpz->push_back(ksPimKP.momentum().z());
+
+  if ( iKshort.daughter(0)->charge() < 0) {
+    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+		      (iKshort.daughter(0)))->track()->d0()); 
+    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			 (iKshort.daughter(0)))->track()->d0Error()); 
+    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+		      (iKshort.daughter(1)))->track()->d0()); 
+    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			 (iKshort.daughter(1)))->track()->d0Error()); 
+    
+  } else {
+    pimd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(1)))->track()->d0()); 
+    pimd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(1)))->track()->d0Error()); 
+    
+    pipd0->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(0)))->track()->d0()); 
+    pipd0err->push_back((dynamic_cast<const reco::RecoChargedCandidate *>
+			(iKshort.daughter(0)))->track()->d0Error()); 
+  }
 }
+  
+
 
 
 void 
@@ -1989,8 +2074,9 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
 				double mumutrk_R, double mumutrk_Z, 
 				double DCAmumu,  double mu_mu_vtx_cl, 
 				double MuMuLSBS, double MuMuLSBSErr, 
-				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr, 
-				double dimu_ks_mass)
+				double MuMuCosAlphaBS, double MuMuCosAlphaBSErr,
+				double mu_mu_mass, double mu_mu_mass_err) 
+ 
 {
   mumdcabs->push_back(DCAmumBS);
   mumdcabserr->push_back(DCAmumBSErr);
@@ -2007,9 +2093,9 @@ BToKstarMuMu::saveDimuVariables(double DCAmumBS, double DCAmumBSErr,
   mumucosalphabs->push_back(MuMuCosAlphaBS);
   mumucosalphabserr->push_back(MuMuCosAlphaBSErr); 
 
-  dimuksmass->push_back(dimu_ks_mass); 
+  mumumass->push_back(mu_mu_mass); 
+  mumumasserr->push_back(mu_mu_mass_err); 
 }
-
 
 void 
 BToKstarMuMu::saveMuonTriggerMatches(const pat::Muon iMuonM, const pat::Muon iMuonP)
