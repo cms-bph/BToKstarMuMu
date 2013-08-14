@@ -213,8 +213,8 @@ void summary(TString label, TString infile, TString outfile){
 
 
 
-void bpmass(TString label){
-  cout << "Making bpmass figure ..." << endl; 
+void bpmass(TString label, TString outfile){
+  // cout << "Making bpmass figure ..." << endl; 
 
   // plot the BuToKstarJPsi part
 
@@ -246,9 +246,9 @@ void bpmass(TString label){
 
   c = new TCanvas("c","c", 400, 400); 
   c->UseCurrentStyle() ;
-  TString pdffile = "test.pdf"; 
+  // TString pdffile = "test.pdf"; 
   h_bpmass->Draw();
-  c->Print(pdffile.Data());
+  c->Print(outfile.Data());
   h_bpmass->Delete(); 
   delete c; 
   
@@ -285,10 +285,12 @@ int main(int argc, char** argv) {
 
   TString func = argv[1]; 
   TString label = argv[2]; 
+  TString outfile = argv[3]; 
   
   if (func == "bpmass") 
-    bpmass(label); 
-  else cerr << "No function available for: " << func.Data() << endl; 
+    bpmass(label, outfile); 
+  else 
+    cerr << "No function available for: " << func.Data() << endl; 
 
   gSystem->Exit(0);
 
