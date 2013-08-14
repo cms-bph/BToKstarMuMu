@@ -211,6 +211,49 @@ void summary(TString label, TString infile, TString outfile){
   
 }
 
+vector<TString> get_datafiles(TString label){
+  vector<TString> datafiles(0); 
+  
+  if (label == "run2011v0/cut0") {
+    TString base = "/Users/xshi/work/cms/afb/dat/sel/data/"; 
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_May10ReReco_v1_run2011v0_2", "1")); 
+    
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_May10ReReco_v1_run2011v0_2", "2")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_PromptReco_v4_run2011v0_1", "1")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_PromptReco_v4_run2011v0_1", "2")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_PromptReco_v4_run2011v0_1", "3")); 
+    
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011A_PromptReco_v5_run2011v0", "1")); 
+  
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root",  base.Data(),
+			     "Run2011A_PromptReco_v5_run2011v0", "1")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root",  base.Data(),
+			     "Run2011A_PromptReco_v6_run2011v0", "1")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011B_PromptReco_v1_run2011v0", "1")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011B_PromptReco_v1_run2011v0", "2")); 
+
+    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
+			     "Run2011B_PromptReco_v1_run2011v0", "3")); 
+    
+  }
+    
+  return datafiles; 
+  
+}
 
 
 void bpmass(TString label, TString outfile){
@@ -219,8 +262,16 @@ void bpmass(TString label, TString outfile){
   // plot the BuToKstarJPsi part
 
   ch = new TChain("tree"); 
-  TString infile = "/Users/xshi/work/cms/afb/dat/sel/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/cut0/SingleBuToKstarMuMu.root"; 
-  ch->Add(infile.Data()); 
+
+  // TString infile = "/Users/xshi/work/cms/afb/dat/sel/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/cut0/SingleBuToKstarMuMu.root"; 
+  // ch->Add(infile.Data()); 
+
+  vector<TString> datafiles = get_datafiles(label); 
+  for (vector<TString>::iterator it = datafiles.begin(); 
+       it != datafiles.end(); ++it) {
+    ch->Add(*it); 
+  }
+
   ch->SetBranchAddress("Bchg", &Bchg);
   ch->SetBranchAddress("Bmass", &Bmass);
 
