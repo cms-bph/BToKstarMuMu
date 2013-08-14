@@ -216,7 +216,41 @@ void summary(TString label, TString infile, TString outfile){
 void bpmass(TString label){
   cout << "Making bpmass figure ..." << endl; 
 
+  // plot the BuToKstarJPsi part
+
+  ch = new TChain("tree"); 
+  TString infile = "/Users/xshi/work/cms/afb/dat/sel/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/cut0/SingleBuToKstarMuMu.root"; 
+  ch->Add(infile.Data()); 
+  ch->SetBranchAddress("Bchg", &Bchg);
+  ch->SetBranchAddress("Bmass", &Bmass);
+
+  // fill histograms
+  Int_t nentries = (Int_t)ch->GetEntries();
   
+  if (nentries == 0) {
+    cerr << "No entries found!" << endl; 
+    gSystem->Exit(0);
+  }
+  
+  TH1F* h_bpmass = new TH1F("h_bpmass", "B^{+} mass; M(B^{+}) [GeV]", 100, 5, 5.6); 
+  
+  for (Int_t i=0;i<nentries;i++) {
+    ch->GetEntry(i);
+    
+    if (Bchg > 0) 
+      h_bpmass->Fill(Bmass); 
+  }
+  
+  // save figures
+  set_root_style(); 
+
+  c = new TCanvas("c","c", 400, 400); 
+  c->UseCurrentStyle() ;
+  TString pdffile = "test.pdf"; 
+  h_bpmass->Draw();
+  c->Print(pdffile.Data());
+  h_bpmass->Delete(); 
+  delete c; 
   
 }
 
