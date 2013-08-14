@@ -211,6 +211,15 @@ void summary(TString label, TString infile, TString outfile){
   
 }
 
+
+
+void bpmass(TString label){
+  cout << "Making bpmass figure ..." << endl; 
+
+  
+  
+}
+
   
 
 #ifndef __CINT__ 
@@ -240,15 +249,13 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString label = argv[1]; 
-  TString infile = argv[2]; 
-  TString outfile = argv[3]; 
+  TString func = argv[1]; 
+  TString label = argv[2]; 
   
-  Printf("input file: '%s'", infile.Data());
-  Printf("output file: '%s'", outfile.Data());
-  
-  summary(label, infile, outfile); 
-  
+  if (func == "bpmass") 
+    bpmass(label); 
+  else cerr << "No function available for: " << func.Data() << endl; 
+
   gSystem->Exit(0);
 
   return 0 ;
