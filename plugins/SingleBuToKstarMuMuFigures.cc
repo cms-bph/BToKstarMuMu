@@ -3,6 +3,7 @@
 //       Created:   [2013-04-04 Thu 08:42] 
 // -----------------------------------------------
 #include <iostream>
+#include <fstream>
 #include <TSystem.h>
 #include <TH1.h>
 #include <TChain.h>
@@ -211,7 +212,54 @@ void summary(TString label, TString infile, TString outfile){
   
 }
 
-vector<TString> get_datafiles(TString label){
+
+
+//----------------------------------------------------------
+TChain* add_chain(TString datatype, TString label){
+  TChain *globChain = new TChain("tree");
+  
+  TString base = "/Users/xshi/work/cms/afb/dat/sel"; 
+
+  TString fNameList = Form("%s/db/%s/%s/rootfiles.list", base.Data(), 
+			   datatype.Data(), label.Data());
+
+  cout << ">>> Load Chain from file: " << fNameList << endl;
+
+  // ifstream fList((char*)fNameList);
+  ifstream fList(fNameList.Data());
+  // ifstream fList; 
+  // fList.open(fNameList.Data());
+  if (!fList)
+    {
+      cerr << "!!! Can't open file " << fNameList << endl;
+      return NULL;
+    }
+
+
+  char lineFromFile[255];
+  while(fList.getline(lineFromFile, 250))
+    {
+      TString fileName = lineFromFile;
+
+      fileName = Form("%s/%s/%s", base.Data(), datatype.Data(), fileName.Data());
+
+      if(globChain->Add(fileName))
+        cout << ">> File '" << fileName << "' has been loaded" << endl;
+      else
+        cout << ">> Can't load file '" << fileName << "'" << endl;
+    }
+  
+  cout << ">> Total number of entries: " << 
+    globChain->GetEntries() << endl;
+  fList.close();
+  return globChain; 
+
+}
+//----------------------------------------------------------
+
+
+
+vector<TString> add_datafiles(TString label){
   vector<TString> datafiles(0); 
   
   if (label == "run2011v0/cut0") {
@@ -261,17 +309,21 @@ void bpmass(TString label, TString outfile){
 
   // plot the BuToKstarJPsi part
 
-  ch = new TChain("tree"); 
+  // ch = new TChain("tree"); 
 
   // TString infile = "/Users/xshi/work/cms/afb/dat/sel/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/cut0/SingleBuToKstarMuMu.root"; 
   // ch->Add(infile.Data()); 
 
-  vector<TString> datafiles = get_datafiles(label); 
-  for (vector<TString>::iterator it = datafiles.begin(); 
-       it != datafiles.end(); ++it) {
-    ch->Add(*it); 
-  }
+  // vector<TString> datafiles = get_datafiles(label); 
+  // for (vector<TString>::iterator it = datafiles.begin(); 
+  //      it != datafiles.end(); ++it) {
+  //   ch->Add(*it); 
+  // }
 
+  
+  ch = add_chain("data", label); 
+
+  
   ch->SetBranchAddress("Bchg", &Bchg);
   ch->SetBranchAddress("Bmass", &Bmass);
 
