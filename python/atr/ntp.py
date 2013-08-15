@@ -158,7 +158,12 @@ def grid_path(label):
                    ] : 
         srcdir = os.path.join(
             eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
-            com_name, '09dd54ed3307c6d768a6853667b85e6a')
+            com_name, 'a8d57e0034258aee57fcad0fa4e53647')
+    elif label in ['BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2', 
+                   ] : 
+        srcdir = os.path.join(
+            eosbase, 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen',
+            com_name, 'a8d57e0034258aee57fcad0fa4e53647')
     else:
         raise NameError(label)
     return srcdir 

@@ -165,6 +165,10 @@ def jobs_created(datatype, label):
             'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_2', 
             ]:
         total_jobs = 20 
+    elif label in [
+            'BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2', 
+            ]:
+        total_jobs = 1203 
     else:
         raise NameError(label)
     
@@ -199,6 +203,10 @@ def get_filepath(datatype, label):
 
     elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
+        psethash = 'a8d57e0034258aee57fcad0fa4e53647'
+ 
+    elif ('BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2' in label): 
+        primarydataset = 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen'
         psethash = 'a8d57e0034258aee57fcad0fa4e53647'
 
     else:

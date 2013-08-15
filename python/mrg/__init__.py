@@ -75,3 +75,14 @@ def Run2011B_PromptReco_v1_run2011v0(com_name):
 
 def BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2(com_name):
     BuToKstarJPsi_7TeV_5E5_v1_run2011v0_1(com_name) 
+
+
+def BuToKstarMuMu_7TeV_2E7_v1_run2011v0_2(com_name):
+    eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
+    srcdir = os.path.join(
+        eosbase, 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen',
+        com_name, 'a8d57e0034258aee57fcad0fa4e53647')
+    dstdir = os.path.join(eosbase, 'dat/ntp/mc', com_name)
+    merge_root_files(srcdir, dstdir)
+
+
