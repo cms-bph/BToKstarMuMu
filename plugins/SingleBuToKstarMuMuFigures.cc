@@ -218,7 +218,9 @@ void summary(TString label, TString infile, TString outfile){
 TChain* add_chain(TString datatype, TString label){
   TChain *globChain = new TChain("tree");
   
-  TString base = "/Users/xshi/work/cms/afb/dat/sel"; 
+  // TString base = "/Users/xshi/work/cms/afb/dat/sel"; 
+
+  TString base = Form("%s/sel", getenv("dat")); 
 
   TString fNameList = Form("%s/db/%s/%s/rootfiles.list", base.Data(), 
 			   datatype.Data(), label.Data());
