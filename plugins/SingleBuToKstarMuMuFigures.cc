@@ -83,7 +83,7 @@ TChain* add_chain(TString datatype, TString label, int verbose=0){
 
 void bpmass(TString label, TString outfile){
   // plot the BuToKstarJPsi part
-  TH1F* h_bpmass = new TH1F("h_bpmass", "B^{+} mass; M(B^{+}) [GeV]", 100, 5, 5.6); 
+  TH1F* h_bpmass = new TH1F("h_bpmass", "B^{+} mass; M(B^{+}) [GeV]", 20, 5, 5.58); 
 
   TChain* ch = add_chain("data", label); 
 
@@ -103,7 +103,7 @@ void bpmass(TString label, TString outfile){
   
   for (Int_t i=0;i<nentries;i++) {
     ch->GetEntry(i);
-    if (Bchg > 0) 
+    // if (Bchg > 0) 
       h_bpmass->Fill(Bmass); 
   }
   
@@ -113,6 +113,7 @@ void bpmass(TString label, TString outfile){
   set_root_style(); 
   c->UseCurrentStyle() ;
 
+  h_bpmass->GetYaxis()->SetRangeUser(0,4200);
   h_bpmass->Draw();
   c->Print(outfile.Data());
   h_bpmass->Delete(); 
