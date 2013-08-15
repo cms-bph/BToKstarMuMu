@@ -213,36 +213,25 @@ void summary(TString label, TString infile, TString outfile){
 }
 
 
-
-//----------------------------------------------------------
 TChain* add_chain(TString datatype, TString label){
   TChain *globChain = new TChain("tree");
-  
-  // TString base = "/Users/xshi/work/cms/afb/dat/sel"; 
-
   TString base = Form("%s/sel", getenv("dat")); 
-
   TString fNameList = Form("%s/db/%s/%s/rootfiles.list", base.Data(), 
 			   datatype.Data(), label.Data());
-
   cout << ">>> Load Chain from file: " << fNameList << endl;
 
-  // ifstream fList((char*)fNameList);
   ifstream fList(fNameList.Data());
-  // ifstream fList; 
-  // fList.open(fNameList.Data());
+
   if (!fList)
     {
       cerr << "!!! Can't open file " << fNameList << endl;
       return NULL;
     }
 
-
   char lineFromFile[255];
   while(fList.getline(lineFromFile, 250))
     {
       TString fileName = lineFromFile;
-
       fileName = Form("%s/%s/%s", base.Data(), datatype.Data(), fileName.Data());
 
       if(globChain->Add(fileName))
@@ -257,75 +246,12 @@ TChain* add_chain(TString datatype, TString label){
   return globChain; 
 
 }
-//----------------------------------------------------------
-
-
-
-vector<TString> add_datafiles(TString label){
-  vector<TString> datafiles(0); 
-  
-  if (label == "run2011v0/cut0") {
-    TString base = "/Users/xshi/work/cms/afb/dat/sel/data/"; 
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_May10ReReco_v1_run2011v0_2", "1")); 
-    
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_May10ReReco_v1_run2011v0_2", "2")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_PromptReco_v4_run2011v0_1", "1")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_PromptReco_v4_run2011v0_1", "2")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_PromptReco_v4_run2011v0_1", "3")); 
-    
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011A_PromptReco_v5_run2011v0", "1")); 
-  
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root",  base.Data(),
-			     "Run2011A_PromptReco_v5_run2011v0", "1")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root",  base.Data(),
-			     "Run2011A_PromptReco_v6_run2011v0", "1")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011B_PromptReco_v1_run2011v0", "1")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011B_PromptReco_v1_run2011v0", "2")); 
-
-    datafiles.push_back(Form("%s%s/cut0/SingleBuToKstarMuMu_%s.root", base.Data(),
-			     "Run2011B_PromptReco_v1_run2011v0", "3")); 
-    
-  }
-    
-  return datafiles; 
-  
-}
 
 
 void bpmass(TString label, TString outfile){
-  // cout << "Making bpmass figure ..." << endl; 
-
   // plot the BuToKstarJPsi part
 
-  // ch = new TChain("tree"); 
-
-  // TString infile = "/Users/xshi/work/cms/afb/dat/sel/mc/BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2/cut0/SingleBuToKstarMuMu.root"; 
-  // ch->Add(infile.Data()); 
-
-  // vector<TString> datafiles = get_datafiles(label); 
-  // for (vector<TString>::iterator it = datafiles.begin(); 
-  //      it != datafiles.end(); ++it) {
-  //   ch->Add(*it); 
-  // }
-
-  
   ch = add_chain("data", label); 
-
-  
   ch->SetBranchAddress("Bchg", &Bchg);
   ch->SetBranchAddress("Bmass", &Bmass);
 
@@ -351,7 +277,7 @@ void bpmass(TString label, TString outfile){
 
   c = new TCanvas("c","c", 400, 400); 
   c->UseCurrentStyle() ;
-  // TString pdffile = "test.pdf"; 
+
   h_bpmass->Draw();
   c->Print(outfile.Data());
   h_bpmass->Delete(); 
