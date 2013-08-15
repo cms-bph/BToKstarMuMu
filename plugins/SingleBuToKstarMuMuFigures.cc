@@ -44,12 +44,12 @@ void set_root_style(int stat=1110, int grid=0){
   gStyle->SetStatBorderSize(1); 
 }
 
-TChain* add_chain(TString datatype, TString label, int verbose=0){
+TChain* add_chain(TString datatype, TString label, TString cut, int verbose=0){
   TChain *globChain = new TChain("tree");
-  TString base = Form("%s/sel", getenv("dat")); 
-  TString fNameList = Form("%s/db/%s/%s/rootfiles.list", base.Data(), 
-			   datatype.Data(), label.Data());
-  if (verbose >0 ) 
+  // TString base = Form("%s/sel", getenv("dat")); 
+  TString fNameList = Form("../data/sel_%s_%s_%s_rootfiles.txt",
+			   datatype.Data(), label.Data(), cut.Data());
+  // if (verbose >0 ) 
     cout << ">>> Load Chain from file: " << fNameList << endl;
 
   ifstream fList(fNameList.Data());
@@ -62,7 +62,8 @@ TChain* add_chain(TString datatype, TString label, int verbose=0){
   while(fList.getline(lineFromFile, 250))
     {
       TString fileName = lineFromFile;
-      fileName = Form("%s/%s/%s", base.Data(), datatype.Data(), fileName.Data());
+      fileName = Form("%s/sel/%s/%s", getenv("dat"), 
+		      datatype.Data(), fileName.Data());
       
       if(globChain->Add(fileName)){
 	if (verbose >0 ) 
@@ -81,21 +82,17 @@ TChain* add_chain(TString datatype, TString label, int verbose=0){
 }
 
 
-void bpmass(TString label, TString outfile){
+void bmass(TString datatype, TString label, TString cut, TString outfile){
   // plot the BuToKstarJPsi part
-  TH1F* h_bpmass = new TH1F("h_bpmass", "B^{+} mass; M(B^{+}) [GeV]", 20, 5, 5.58); 
-
-  TChain* ch = add_chain("data", label); 
+  TH1F* h_bmass = new TH1F("h_bmass", "B^{+/-} mass; M(B^{+/-}) [GeV/c^{2}]",
+			   100, 5, 5.6); 
+  TChain* ch = add_chain(datatype, label, cut); 
+  if (ch == NULL) gSystem->Exit(0);
 
   double Bmass = 0; 
-  int    Bchg = 0; 
-
-  ch->SetBranchAddress("Bchg", &Bchg);
   ch->SetBranchAddress("Bmass", &Bmass);
 
-  // fill histograms
   Int_t nentries = (Int_t)ch->GetEntries();
-  
   if (nentries == 0) {
     cerr << "No entries found!" << endl; 
     gSystem->Exit(0);
@@ -103,20 +100,17 @@ void bpmass(TString label, TString outfile){
   
   for (Int_t i=0;i<nentries;i++) {
     ch->GetEntry(i);
-    // if (Bchg > 0) 
-      h_bpmass->Fill(Bmass); 
+    h_bmass->Fill(Bmass); 
   }
-  
-  // save figures
 
   TCanvas* c = new TCanvas("c","c", 400, 400); 
   set_root_style(); 
   c->UseCurrentStyle() ;
 
-  h_bpmass->GetYaxis()->SetRangeUser(0,4200);
-  h_bpmass->Draw();
+  h_bmass->SetMinimum(0); 
+  h_bmass->Draw();
   c->Print(outfile.Data());
-  h_bpmass->Delete(); 
+  h_bmass->Delete(); 
   delete c; 
 }
 
@@ -149,12 +143,14 @@ int main(int argc, char** argv) {
     return -1; 
   }
 
-  TString func = argv[1]; 
-  TString label = argv[2]; 
-  TString outfile = argv[3]; 
+  TString func     = argv[1]; 
+  TString datatype = argv[2]; 
+  TString label    = argv[3]; 
+  TString cut      = argv[4]; 
+  TString outfile  = argv[5]; 
   
-  if (func == "bpmass") 
-    bpmass(label, outfile); 
+  if (func == "bmass") 
+    bmass(datatype, label, cut, outfile); 
   else 
     cerr << "No function available for: " << func.Data() << endl; 
 

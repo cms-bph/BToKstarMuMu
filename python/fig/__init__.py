@@ -27,8 +27,8 @@ def main(args):
     elif args[0] == 'SingleBuToKstarMuMu':
         import SingleBuToKstarMuMu
         SingleBuToKstarMuMu.main(args[1:], figname)
-    elif args[0] == 'bpmass':
-        bpmass(args[1:], figname)
+    elif args[0] == 'bmass':
+        bmass(args[1:], figname)
     else:
         raise NameError(args)
 
@@ -175,12 +175,18 @@ def q2mumu(args, figname):
     hist.Delete()
 
 
-def bpmass(args, figname):
-    label = args[0] 
+def bmass(args, figname):
+    test=option_exists(args, '-t')
+    datatype = args[0] 
+    label    = args[1] 
+    cut      = args[2] 
     procdir = '../plugins'
     outfile = os.path.join(atr.figpath, figname+'.pdf')
-    cmd = './fig bpmass %s %s' %(label, outfile)
-    output = proc_cmd(cmd, procdir=procdir)
+    cmd = './fig bmass %s %s %s %s' %(datatype, label, cut, outfile)
+    output = proc_cmd(cmd, procdir=procdir, test=test)
+    if test: 
+        return 
+
     print output 
     sys.stdout.write('Figure saved as:\n [[%s][%s]]\n' %(outfile, figname))
 
