@@ -175,5 +175,6 @@ num_rootfiles = {
     'Run2011A_PromptReco_v5_run2011v0': 1, 
     'Run2011A_PromptReco_v6_run2011v0': 1, 
     'Run2011B_PromptReco_v1_run2011v0': 3, 
+    'BuToKstarMuMu_7TeV_2E7_v1_run2011v0_2': 5, 
     }
 

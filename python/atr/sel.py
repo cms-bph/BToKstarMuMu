@@ -73,6 +73,9 @@ def ntp_labels(datatype, label):
     if datatype == 'mc' and 'BuToKstarJPsi_7TeV_5E5_v1_run2011v0' in label: 
         ntp_labels = [ label ] 
 
+    elif datatype == 'mc' and 'BuToKstarMuMu_7TeV_2E7_v1_run2011v0' in label: 
+        ntp_labels = [ label ] 
+
     elif datatype == 'data' and 'run2011v0' in label: 
         ntp_labels = [
             'Run2011A_May10ReReco_v1_run2011v0_2',
