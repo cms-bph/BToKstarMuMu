@@ -127,15 +127,14 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   xframe->GetYaxis()->SetTitleOffset(1.7) ; 
   xframe->Draw();
 
-  TString pdffile = outfile; 
-  // gPad->Print(pdffile); 
+  TString pdffile = outfile + ".pdf"; 
   c->Print(pdffile); 
   
   // Persist fit result in root file 
   // -------------------------------------------------------------
   
   // Open new ROOT file save result 
-  TString resfile = "test.root"; 
+  TString resfile = outfile + ".root"; 
   TFile resf(resfile, "RECREATE") ;
   gPad->Write("plot"); 
   if (! test) fitres->Write("fitres") ;
@@ -143,7 +142,6 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
 
   // In a clean ROOT session retrieve the persisted fit result as follows:
   // RooFitResult* r = gDirectory->Get("fitres") ;
-
 }
 
 int main(int argc, char** argv) {
