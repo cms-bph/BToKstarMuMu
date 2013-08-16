@@ -232,13 +232,13 @@ def bmass(args):
     label    = args[1] 
     cut      = args[2] 
     procdir = '../plugins'
-    outfile = os.path.join(atr.figpath, figname+'.pdf')
+    outfile = os.path.join(atr.figpath, figname)
     cmd = './fit bmass %s %s %s %s' %(datatype, label, cut, outfile)
     output = proc_cmd(cmd, procdir=procdir, test=test)
     if test: 
         return 
 
     print output 
-    sys.stdout.write('Figure saved as:\n [[%s][%s]]\n' %(outfile, figname))
+    sys.stdout.write('Figure saved as:\n [[%s.pdf][%s]]\n' %(outfile, figname))
 
     
