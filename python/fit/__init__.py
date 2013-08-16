@@ -8,6 +8,7 @@ __copyright__ = "Copyright (c) Xin Shi"
 
 import sys 
 from tls import * 
+import atr
 
 def main(args):
 
@@ -19,10 +20,13 @@ def main(args):
         import b0mass
         return b0mass.main(args[1:])
     
+    if args[0] == 'bmass':
+        return bmass(args[1:])
+        
     from ROOT import (gROOT, TFile, TTree, TCanvas, gDirectory, RooRealVar,
                       RooCategory, RooArgSet, RooDataSet, RooArgList, RooChebychev,
-                      RooGaussian, RooAddPdf, RooFit, kTRUE, kFALSE, kDashed, kDot, kFullCircle,
-        kFullSquare, RooAbsData)
+                      RooGaussian, RooAddPdf, RooFit, kTRUE, kFALSE, 
+                      kDashed, kDot, kFullCircle, kFullSquare, RooAbsData)
     
     var = args[0]
     datatype = args[1]
@@ -221,3 +225,20 @@ def test_plot():
     c.SaveAs(pdffile)
     
 
+def bmass(args):
+    figname = 'fit_bmass_%s' % set_figname(args) 
+    test=option_exists(args, '-t')
+    datatype = args[0] 
+    label    = args[1] 
+    cut      = args[2] 
+    procdir = '../plugins'
+    outfile = os.path.join(atr.figpath, figname+'.pdf')
+    cmd = './fit bmass %s %s %s %s' %(datatype, label, cut, outfile)
+    output = proc_cmd(cmd, procdir=procdir, test=test)
+    if test: 
+        return 
+
+    print output 
+    sys.stdout.write('Figure saved as:\n [[%s][%s]]\n' %(outfile, figname))
+
+    
