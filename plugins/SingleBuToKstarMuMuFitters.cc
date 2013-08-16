@@ -5,12 +5,16 @@
 #include <TSystem.h>
 #include <TH1.h>
 #include <TFile.h>
+#include <TPad.h> 
+#include <TCanvas.h> 
 
 #include <RooRealVar.h>
-// #include <RooGaussian.h>
-// #include <RooAddPdf.h>
+#include <RooGaussian.h>
+#include <RooChebychev.h> 
+#include <RooAddPdf.h>
 #include <RooDataSet.h>
-// #include <RooPlot.h>
+#include <RooFitResult.h>
+#include <RooPlot.h>
 // #include <RooArgList.h>
 
 #include "tools.cc" 
@@ -18,45 +22,45 @@
 using namespace std; 
 using namespace RooFit ;
 
-void bmass()
+void bmass(TString datatype, TString label, TString cut, TString outfile)
 {
+  // bool test = true; 
+  bool test = false; 
   // Importing a  TTree into a RooDataSet with cuts 
   // --------------------------------------------------------------------------
-  TString datatype = "data"; 
-  TString label = "run2011v0"; 
-  TString cut = "cut0"; 
-
   TChain* ch = add_chain(datatype, label, cut); 
   if (ch == NULL) gSystem->Exit(0);
 
-  RooRealVar x("bmass", "B^{+/=} mass(GeV/c^{2})", 5.27953-0.28, 5.27953+0.28) ;
+  RooRealVar x("Bmass", "B^{+/-} mass(GeV/c^{2})", 5.27953-0.28, 5.27953+0.28) ;
   RooDataSet data("data", "data", RooArgSet(x), Import(*ch)) ;
   data.Print();
 
-  // // C r e a t e   m o d e l   a n d   d a t a s e t
-  // // -----------------------------------------------
+  // Create model and dataset
+  // -----------------------------------------------
 
-  // // Create two Gaussian PDFs g1(x,mean1,sigma) anf g2(x,mean2,sigma) and their paramaters
-  // // RooRealVar mean("mean","mean of gaussians", 5.28, 5.23, 5.32) ;
-  // RooRealVar mean("mean","mean of gaussians", 5.27, 5.23, 5.32) ;
-  // RooRealVar sigma1("sigma1","width of gaussians", 0.0285, 0, 1) ;
+  // Create two Gaussian PDFs g1(x,mean1,sigma) anf g2(x,mean2,sigma)
+  // and their paramaters
+
+  RooRealVar mean("mean","mean of gaussians", 5.27, 5.23, 5.32) ;
+  RooRealVar sigma("sigma","width of gaussians", 0.0285, 0, 1) ;
   // RooRealVar sigma2("sigma2","width of gaussians", 0.0663, 0, 1) ;
 
-  // RooGaussian sig1("sig1","Signal component 1",x,mean,sigma1) ;  
+  RooGaussian sig("sig","Signal component", x, mean, sigma) ;  
   // RooGaussian sig2("sig2","Signal component 2",x,mean,sigma2) ;  
 
   // // mean.setConstant(false); 
   // // sigma1.setConstant(false); 
   // // sigma2.setConstant(false); 
   
-  // // Build Chebychev polynomial p.d.f.  
-  // // RooRealVar a0("a0", "constant", 0.5, -1, 1.) ;
-  // // RooRealVar a1("a1", "linear", 0.6, -1, 1) ;
-  // // RooRealVar a2("a2", "quadratic", 0.1, -1, 1) ;
+  // Build Chebychev polynomial p.d.f.  
+  RooRealVar a0("a0", "constant", 0.5, -1, 1.) ;
+  RooRealVar a1("a1", "linear", 0.6, -1, 1) ;
+  RooRealVar a2("a2", "quadratic", 0.1, -1, 1) ;
   // // //   RooRealVar a3("a3", "oct", 0.1, -1, 1) ;
   
-  // // RooChebychev bkg("bkg", "Background", x, RooArgSet(a0, a1, a2)) ;
+  RooChebychev bkg("bkg", "Background", x, RooArgSet(a0, a1, a2)) ;
   // // //  RooChebychev bkg("bkg", "Background", x, RooArgSet(a0, a1, a2, a3)) ;
+
 
 
   // // Build exponational background p.d.f.
@@ -72,7 +76,7 @@ void bmass()
   // RooAddPdf bkg("BkgMassComb","Background mass comb. bkg pdf",
   // 		RooArgList(BkgMassExp1), RooArgList());
   
-  // // Sum the signal components into a composite signal p.d.f.
+  // Sum the signal components into a composite signal p.d.f.
   // RooRealVar sig1frac("sig1frac","fraction of component 1 in signal", 0.6, 0, 1) ;
 
   // RooAddPdf sig("sig", "Signal", RooArgList(sig1,sig2), sig1frac) ;
@@ -81,54 +85,64 @@ void bmass()
   // // RooRealVar bkgfrac("bkgfrac","fraction of background",0.5,0.,1.) ;
   // // RooAddPdf  model("model","g1+g2+a",RooArgList(bkg,sig),bkgfrac) ;
 
-  // // Construct signal+background PDF
-  // RooRealVar nsig("nsig", "number of signal events", 46648, 0, 1000000); 
-  // RooRealVar nbkg("nbkg", "number of background events", 21472, 0, 1000000);
-  // RooAddPdf  model("model", "g1+g2+a", RooArgList(bkg, sig), RooArgList(nbkg, nsig)) ;
+  // Construct signal+background PDF
+  RooRealVar nsig("nsig", "number of signal events", 4648, 0, 1000000); 
+  RooRealVar nbkg("nbkg", "number of background events", 21472, 0, 1000000);
+  RooAddPdf  model("model", "g+c", RooArgList(bkg, sig), RooArgList(nbkg, nsig)) ;
   
-  // // Print structure of composite p.d.f.
-  // model.Print("t") ;
+  // Print structure of composite p.d.f.
+  model.Print("t") ;
 
   // // RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING);
   // RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
 
-  // // F i t   m o d e l   t o   d a t a ,  s a v e   f i t r e s u l t 
-  // // -----------------------------------------------------------------
-  // // Fit model to data
-  // fitres = model.fitTo(data, Extended(true),Save(true)) ;
-  // fitres->Print("v"); 
+  // Fit model to data, save fitresult 
+  // -----------------------------------------------------------------
+  RooFitResult* fitres; 
+  if (! test) {
+    fitres = model.fitTo(data, Extended(true), Save(true)) ;
+    fitres->Print("v"); 
+  }
+  // Plot model 
+  // ---------------------------------------------------------
+  TString title = "B^{+/-} mass";
+  int nbins = 50; 
+  RooPlot* xframe = x.frame(Title(title), Bins(nbins));
+  data.plotOn(xframe) ;
+  model.plotOn(xframe) ;
 
-  // // P l o t   m o d e l 
-  // // ---------------------------------------------------------
-  // // Plot data and PDF overlaid
-  // RooPlot* xframe = x.frame(Title(title),Bins(nbins));
-  // data.plotOn(xframe) ;
-  // model.plotOn(xframe) ;
-
-  // // Overlay the background component of model with a dashed line
-  // model.plotOn(xframe,Components("bkg"),LineStyle(kDashed)) ;
+  // Overlay the background component of model with a dashed line
+  model.plotOn(xframe,Components("bkg"), LineStyle(kDashed)) ;
 
   // // Overlay the background+sig2 components of model with a dotted line
   // // model.plotOn(xframe,Components("bkg,sig2"),LineStyle(kDotted)) ;
 
-  // // Draw the frame on the canvas
-  // new TCanvas("BMass", "BMass", 600, 600) ;
-  // gPad->SetLeftMargin(0.15) ;
-  // xframe->GetYaxis()->SetTitleOffset(1.7) ; 
-  // xframe->Draw() ;
+  // Draw the frame on the canvas
+  // new TCanvas("BMass", "BMass", 400, 400) ;
+  TCanvas* c = new TCanvas("c", "c", 400, 400); 
+  set_root_style(); 
+  c->UseCurrentStyle() ;
+
+  gPad->SetLeftMargin(0.15) ;
+  xframe->GetYaxis()->SetTitleOffset(1.7) ; 
+  xframe->Draw();
+
+  TString pdffile = outfile; 
   // gPad->Print(pdffile); 
-
-  // // P e r s i s t   f i t   r e s u l t   i n   r o o t   f i l e 
-  // // -------------------------------------------------------------
+  c->Print(pdffile); 
   
-  // // Open new ROOT file save result 
-  // TFile resf(resfile, "RECREATE") ;
-  // gPad->Write("plot"); 
-  // fitres->Write("fitres") ;
-  // resf.Close() ;
+  // Persist fit result in root file 
+  // -------------------------------------------------------------
+  
+  // Open new ROOT file save result 
+  TString resfile = "test.root"; 
+  TFile resf(resfile, "RECREATE") ;
+  gPad->Write("plot"); 
+  if (! test) fitres->Write("fitres") ;
+  resf.Close() ;
 
-  // // In a clean ROOT session retrieve the persisted fit result as follows:
-  // // RooFitResult* r = gDirectory->Get("fitres") ;
+  // In a clean ROOT session retrieve the persisted fit result as follows:
+  // RooFitResult* r = gDirectory->Get("fitres") ;
 
 }
 
@@ -141,7 +155,7 @@ int main(int argc, char** argv) {
   
   if (func == "bmass") 
     // bmass(datatype, label, cut, outfile); 
-    bmass(); 
+    bmass(datatype, label, cut, outfile); 
   else 
     cerr << "No function available for: " << func.Data() << endl; 
 
