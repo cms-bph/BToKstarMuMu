@@ -235,7 +235,7 @@ private:
 			  double &, double &, double &, double &, double &,
 			  double &, double &, double &);
 
-  bool hasGoodPionTrack(const edm::Event&, const pat::GenericParticle, double &);
+  bool hasGoodTrack(const edm::Event&, const pat::GenericParticle, double &);
 
   bool hasPrimaryVertex(const edm::Event &); 
 
@@ -908,7 +908,7 @@ BToKstarMuMu::hasPrimaryVertex(const edm::Event& iEvent)
 
 
 bool 
-BToKstarMuMu::hasGoodPionTrack(const edm::Event& iEvent, 
+BToKstarMuMu::hasGoodTrack(const edm::Event& iEvent, 
 			       const pat::GenericParticle iTrack, 
 			       double & pion_trk_pt)
 {
@@ -1041,7 +1041,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 		= thePATTrackHandle->begin();
 	      iTrack != thePATTrackHandle->end(); ++iTrack ) {
 
-	  passed = hasGoodPionTrack(iEvent, *iTrack, pion_trk_pt); 
+	  passed = hasGoodTrack(iEvent, *iTrack, pion_trk_pt); 
 	  histos[h_trkpt]->Fill(pion_trk_pt); 
 	  if (!passed) continue; 
 	  
@@ -1111,6 +1111,132 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
   edm::Handle< vector<pat::Muon> > patMuonHandle;
   iEvent.getByLabel(MuonLabel_, patMuonHandle);
   if( patMuonHandle->size() < 2 ) return;
+ 
+  edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
+  iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
+
+  bool passed; 
+  double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr;
+  double mumutrk_R, mumutrk_Z, DCAmumu; 
+  reco::TransientTrack refitMupTT, refitMumTT; 
+  double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
+  double MuMuLSBS, MuMuLSBSErr; 
+  double MuMuCosAlphaBS, MuMuCosAlphaBSErr;
+  double trk_pt, kstar_mass, b_vtx_chisq, b_vtx_cl, b_mass; 
+  double DCAKstTrkBS, DCAKstTrkBSErr; 
+  // RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
+
+  // ---------------------------------
+  // loop 1: mu-
+  // ---------------------------------
+  for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
+       iMuonM != patMuonHandle->end(); iMuonM++){
+    
+    reco::TrackRef muTrackm = iMuonM->innerTrack(); 
+    if ( muTrackm.isNull() ) continue; 
+
+    histos[h_mupt]->Fill(muTrackm->pt()); 
+    histos[h_mueta]->Fill(muTrackm->eta()); 
+
+    if ( (muTrackm->charge() != -1) ||
+	 (muTrackm->pt() < MuonMinPt_) ||
+	 (fabs(muTrackm->eta()) > MuonMaxEta_)) continue;
+    
+    // check mu- DCA to beam spot 
+    const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
+    passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
+    histos[h_mumdcabs]->Fill(DCAmumBS); 
+    if ( ! passed ) continue; 
+
+    // ---------------------------------
+    // loop 2: mu+ 
+    // ---------------------------------
+    for (vector<pat::Muon>::const_iterator iMuonP = patMuonHandle->begin(); 
+	 iMuonP != patMuonHandle->end(); iMuonP++){
+
+      reco::TrackRef muTrackp = iMuonP->innerTrack(); 
+      if ( muTrackp.isNull() || 
+	   (muTrackp->charge() != 1) ||
+	   (muTrackp->pt() < MuonMinPt_) ||
+	   (fabs(muTrackp->eta()) > MuonMaxEta_)) continue;
+      
+      // check mu+ DCA to beam spot 
+      const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
+      passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
+      if ( ! passed ) continue; 
+      
+      // check goodness of muons closest approach and the 3D-DCA
+      passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
+					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      histos[h_mumutrkr]->Fill(mumutrk_R); 
+      histos[h_mumutrkz]->Fill(mumutrk_Z); 
+      histos[h_mumudca]->Fill(DCAmumu); 
+      if ( !passed ) continue; 
+
+      // check dimuon vertex 
+      passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
+				 mu_mu_vtx_cl, mu_mu_pt, 
+				 mu_mu_mass, mu_mu_mass_err, 
+				 MuMuLSBS, MuMuLSBSErr,
+				 MuMuCosAlphaBS, MuMuCosAlphaBSErr); 
+      
+      histos[h_mumuvtxcl]->Fill(mu_mu_vtx_cl); 
+      histos[h_mumupt]->Fill(mu_mu_pt); 
+      histos[h_mumumass]->Fill(mu_mu_mass); 
+      histos[h_mumulxybs]->Fill(MuMuLSBS/MuMuLSBSErr); 
+      histos[h_mumucosalphabs]->Fill(MuMuCosAlphaBS); 
+      if ( !passed) continue; 
+      
+      // ---------------------------------
+      // loop 3: track- 
+      // ---------------------------------
+      for ( vector<pat::GenericParticle>::const_iterator iTrackM
+	      = thePATTrackHandle->begin();
+	    iTrackM != thePATTrackHandle->end(); ++iTrackM ) {
+	
+	reco::TrackRef Trackm = iTrackM->track();
+	if ( Trackm.isNull() || (Trackm->charge() != -1) ) continue;
+
+	passed = hasGoodTrack(iEvent, *iTrackM, trk_pt); 
+	histos[h_trkpt]->Fill(trk_pt); 
+	if (!passed) continue; 
+	  
+	// compute track DCA to beam spot 
+	const reco::TransientTrack theTrackTTm(Trackm, &(*bFieldHandle_));   
+	passed = hasGoodTrackDcaBs(theTrackTTm, DCAKstTrkBS, DCAKstTrkBSErr); 
+	histos[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
+	if (!passed) continue; 
+
+	// ---------------------------------
+	// loop 4: track+
+	// ---------------------------------
+	for ( vector<pat::GenericParticle>::const_iterator iTrackP
+		= thePATTrackHandle->begin();
+	      iTrackP != thePATTrackHandle->end(); ++iTrackP ) {
+	
+	  reco::TrackRef Trackp = iTrackP->track();
+	  if ( Trackp.isNull() || (Trackp->charge() != 1) ) continue;
+
+	  passed = hasGoodTrack(iEvent, *iTrackP, trk_pt); 
+	  // histos[h_trkpt]->Fill(trk_pt); 
+	  if (!passed) continue; 
+	  
+	  // compute track DCA to beam spot 
+	  const reco::TransientTrack theTrackTTp(Trackp, &(*bFieldHandle_));   
+	  passed = hasGoodTrackDcaBs(theTrackTTp, DCAKstTrkBS, DCAKstTrkBSErr); 
+	  if (!passed) continue; 
+
+	  
+	  
+
+
+	} // close track+ loop 
+      } // close track- loop 
+    } // close mu+ loop
+  } // close mu- loop 
+
+  if ( nb > 0) edm::LogInfo("myBd") << "Found " << nb << " Bd -> K* mu mu."; 
+
 }
 
 
