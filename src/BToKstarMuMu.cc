@@ -207,9 +207,9 @@ private:
 
   bool hasBeamSpot(const edm::Event&);
 
-  bool hasGoodClosestApproachTracks (const reco::TransientTrack,
-				     const reco::TransientTrack, 
-				     double&, double &, double &);
+  bool getClosestApproachTracks (const reco::TransientTrack,
+				 const reco::TransientTrack, 
+				 double&, double &, double &);
 
   bool hasGoodKshortVertex(const vector<reco::TrackRef>, 
 			   RefCountedKinematicTree &); 
@@ -999,12 +999,18 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
-      passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
-					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      // passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
+      // 					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      if (! getClosestApproachTracks(muTrackpTT, muTrackmTT,
+				     mumutrk_R, mumutrk_Z, DCAmumu)) continue ; 
+      
       histos[h_mumutrkr]->Fill(mumutrk_R); 
       histos[h_mumutrkz]->Fill(mumutrk_Z); 
       histos[h_mumudca]->Fill(DCAmumu); 
-      if ( !passed ) continue; 
+      // if ( !passed ) continue; 
+      if ( mumutrk_R > TrkMaxR_ ||
+	   mumutrk_Z > TrkMaxZ_ || 
+	   DCAmumu > MuMuMaxDca_ ) continue; 
 
       // check dimuon vertex 
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
@@ -1118,6 +1124,7 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
   bool passed; 
   double DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr;
   double mumutrk_R, mumutrk_Z, DCAmumu; 
+  double trk_R, trk_Z, trk_DCA; 
   reco::TransientTrack refitMupTT, refitMumTT; 
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
   double MuMuLSBS, MuMuLSBSErr; 
@@ -1166,13 +1173,18 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
       if ( ! passed ) continue; 
       
       // check goodness of muons closest approach and the 3D-DCA
-      passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
-					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      // passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
+      // 					    mumutrk_R, mumutrk_Z, DCAmumu); 
+      if ( !getClosestApproachTracks(muTrackpTT, muTrackmTT,
+				     mumutrk_R, mumutrk_Z, DCAmumu)) continue; 
       histos[h_mumutrkr]->Fill(mumutrk_R); 
       histos[h_mumutrkz]->Fill(mumutrk_Z); 
       histos[h_mumudca]->Fill(DCAmumu); 
-      if ( !passed ) continue; 
-
+      // if ( !passed ) continue; 
+      if ( mumutrk_R > TrkMaxR_ ||
+	   mumutrk_Z > TrkMaxZ_ || 
+	   DCAmumu > MuMuMaxDca_ ) continue; 
+      
       // check dimuon vertex 
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
 				 mu_mu_vtx_cl, mu_mu_pt, 
@@ -1202,8 +1214,8 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	if (!passed) continue; 
 	  
 	// compute track DCA to beam spot 
-	const reco::TransientTrack theTrackTTm(Trackm, &(*bFieldHandle_));   
-	passed = hasGoodTrackDcaBs(theTrackTTm, DCAKstTrkBS, DCAKstTrkBSErr); 
+	const reco::TransientTrack theTrackmTT(Trackm, &(*bFieldHandle_));   
+	passed = hasGoodTrackDcaBs(theTrackmTT, DCAKstTrkBS, DCAKstTrkBSErr); 
 	histos[h_trkdcasigbs]->Fill(DCAKstTrkBS/DCAKstTrkBSErr); 
 	if (!passed) continue; 
 
@@ -1222,13 +1234,18 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  if (!passed) continue; 
 	  
 	  // compute track DCA to beam spot 
-	  const reco::TransientTrack theTrackTTp(Trackp, &(*bFieldHandle_));   
-	  passed = hasGoodTrackDcaBs(theTrackTTp, DCAKstTrkBS, DCAKstTrkBSErr); 
+	  const reco::TransientTrack theTrackpTT(Trackp, &(*bFieldHandle_));   
+	  passed = hasGoodTrackDcaBs(theTrackpTT, DCAKstTrkBS, DCAKstTrkBSErr); 
 	  if (!passed) continue; 
 
-	  
-	  
 
+	  // check goodness of two trakcs closest approach and the 3D-DCA
+	  if (! getClosestApproachTracks(theTrackpTT, theTrackmTT,
+					 trk_R, trk_Z, trk_DCA)) continue ; 
+
+	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
+	  
+  
 
 	} // close track+ loop 
       } // close track- loop 
@@ -1362,27 +1379,27 @@ BToKstarMuMu::hasGoodTrackDcaPoint (const reco::TransientTrack track,
 
 
 bool
-BToKstarMuMu::hasGoodClosestApproachTracks (const reco::TransientTrack muTrackpTT, 
-					    const reco::TransientTrack muTrackmTT,
-					    double & trk_R, 
-					    double & trk_Z, 
-					    double & DCAmumu)
+BToKstarMuMu::getClosestApproachTracks (const reco::TransientTrack trackpTT, 
+					const reco::TransientTrack trackmTT,
+					double & trk_R, 
+					double & trk_Z, 
+					double & trk_DCA)
 {
   ClosestApproachInRPhi ClosestApp; 
-  ClosestApp.calculate(muTrackpTT.initialFreeState(),
-		       muTrackmTT.initialFreeState());
-  if (! ClosestApp.status())  return false;
+  ClosestApp.calculate(trackpTT.initialFreeState(),
+		       trackmTT.initialFreeState());
+  if (! ClosestApp.status() )  return false ;
   
   GlobalPoint XingPoint = ClosestApp.crossingPoint();
   
   trk_R = sqrt(XingPoint.x()*XingPoint.x() + XingPoint.y()*XingPoint.y()); 
   trk_Z = fabs(XingPoint.z()); 
 
-  if ((sqrt(XingPoint.x()*XingPoint.x() + XingPoint.y()*XingPoint.y()) > 
-       TrkMaxR_) || (fabs(XingPoint.z()) > TrkMaxZ_))  return false;
+  // if ((sqrt(XingPoint.x()*XingPoint.x() + XingPoint.y()*XingPoint.y()) > 
+  //      TrkMaxR_) || (fabs(XingPoint.z()) > TrkMaxZ_))  return false;
 
-  DCAmumu = ClosestApp.distance();
-  if (DCAmumu > MuMuMaxDca_) return false;
+  trk_DCA = ClosestApp.distance();
+  // if (DCAmumu > MuMuMaxDca_) return false;
  
   return true; 
 }
