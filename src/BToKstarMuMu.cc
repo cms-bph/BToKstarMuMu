@@ -207,7 +207,7 @@ private:
 
   bool hasBeamSpot(const edm::Event&);
 
-  bool getClosestApproachTracks (const reco::TransientTrack,
+  bool calClosestApproachTracks (const reco::TransientTrack,
 				 const reco::TransientTrack, 
 				 double&, double &, double &);
 
@@ -1001,7 +1001,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
       // check goodness of muons closest approach and the 3D-DCA
       // passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
       // 					    mumutrk_R, mumutrk_Z, DCAmumu); 
-      if (! getClosestApproachTracks(muTrackpTT, muTrackmTT,
+      if (! calClosestApproachTracks(muTrackpTT, muTrackmTT,
 				     mumutrk_R, mumutrk_Z, DCAmumu)) continue ; 
       
       histos[h_mumutrkr]->Fill(mumutrk_R); 
@@ -1175,7 +1175,7 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
       // check goodness of muons closest approach and the 3D-DCA
       // passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
       // 					    mumutrk_R, mumutrk_Z, DCAmumu); 
-      if ( !getClosestApproachTracks(muTrackpTT, muTrackmTT,
+      if ( !calClosestApproachTracks(muTrackpTT, muTrackmTT,
 				     mumutrk_R, mumutrk_Z, DCAmumu)) continue; 
       histos[h_mumutrkr]->Fill(mumutrk_R); 
       histos[h_mumutrkz]->Fill(mumutrk_Z); 
@@ -1240,13 +1240,11 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 
 
 	  // check goodness of two trakcs closest approach and the 3D-DCA
-	  if (! getClosestApproachTracks(theTrackpTT, theTrackmTT,
+	  if (! calClosestApproachTracks(theTrackpTT, theTrackmTT,
 					 trk_R, trk_Z, trk_DCA)) continue ; 
 
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
 	  
-  
-
 	} // close track+ loop 
       } // close track- loop 
     } // close mu+ loop
@@ -1379,7 +1377,7 @@ BToKstarMuMu::hasGoodTrackDcaPoint (const reco::TransientTrack track,
 
 
 bool
-BToKstarMuMu::getClosestApproachTracks (const reco::TransientTrack trackpTT, 
+BToKstarMuMu::calClosestApproachTracks (const reco::TransientTrack trackpTT, 
 					const reco::TransientTrack trackmTT,
 					double & trk_R, 
 					double & trk_Z, 
