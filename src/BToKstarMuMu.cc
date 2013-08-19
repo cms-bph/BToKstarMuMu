@@ -186,6 +186,7 @@ private:
 				  edm::EventSetup const&);
   
   void buildBuToKstarMuMu(const edm::Event &); 
+  void buildBdToKstarMuMu(const edm::Event &); 
 
   void computeLS (double, double, double, double, double, double, double, 
 		  double, double,  double, double, double, double, double, 
@@ -270,6 +271,9 @@ private:
 
   // --- begin input from python file --- 
   string OutputFileName_; 
+
+  bool BuildBuToKstarMuMu_; 
+  bool BuildBdToKstarMuMu_; 
 
   // particle properties 
   ParticleMass MuonMass_; 
@@ -405,6 +409,9 @@ private:
 //
 BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   OutputFileName_(iConfig.getParameter<string>("OutputFileName")),
+   
+  BuildBuToKstarMuMu_(iConfig.getUntrackedParameter<bool>("BuildBuToKstarMuMu")),
+  BuildBdToKstarMuMu_(iConfig.getUntrackedParameter<bool>("BuildBdToKstarMuMu")),
 
   // particle properties 
   MuonMass_(iConfig.getUntrackedParameter<double>("MuonMass")),
@@ -540,7 +547,9 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     if ( bFieldHandle_.isValid() && hasPrimaryVertex(iEvent) ) { 
       
-      buildBuToKstarMuMu(iEvent) ;  
+      if (BuildBuToKstarMuMu_) buildBuToKstarMuMu(iEvent) ;  
+
+      if (BuildBdToKstarMuMu_) buildBdToKstarMuMu(iEvent) ;  
 
       if (IsMonteCarlo_) saveTruthMatch(iEvent);
       
@@ -1092,6 +1101,16 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 
   if ( nb > 0) edm::LogInfo("myBu") << "Found " << nb << " Bu -> K* mu mu."; 
     
+}
+
+
+void 
+BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
+{
+  // init variables 
+  edm::Handle< vector<pat::Muon> > patMuonHandle;
+  iEvent.getByLabel(MuonLabel_, patMuonHandle);
+  if( patMuonHandle->size() < 2 ) return;
 }
 
 
