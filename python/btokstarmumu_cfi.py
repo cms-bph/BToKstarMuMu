@@ -9,7 +9,7 @@ process.MessageLogger = cms.Service(
     destinations = cms.untracked.vstring('cerr', 'cout', 'message'),
     categories = cms.untracked.vstring('myHLT', 'myVertex', 'myDimuon', 'myKshort',
                                        'myMuonMatch', 'myKstarCharged',
-                                       'myKshortMatch', 'myBu'),
+                                       'myKshortMatch', 'myBu', 'myBd'),
     cerr = cms.untracked.PSet(threshold = cms.untracked.string('WARNING')),
     cout = cms.untracked.PSet(
         threshold = cms.untracked.string('INFO'),
@@ -22,6 +22,7 @@ process.MessageLogger = cms.Service(
         myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
         myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
         myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+        myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
     ), 
      message = cms.untracked.PSet(
          threshold = cms.untracked.string('INFO'),
@@ -34,6 +35,7 @@ process.MessageLogger = cms.Service(
          myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
          myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
          myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+         myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
      )
     )
 
@@ -144,6 +146,9 @@ process.localV0Candidates = cms.EDProducer(
 process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
     OutputFileName = cms.string("BToKstarMuMu.root"),
+
+    BuildBuToKstarMuMu = cms.untracked.bool(True), 
+    BuildBdToKstarMuMu = cms.untracked.bool(False), 
 
     # particle properties 
     MuonMass = cms.untracked.double(0.10565837), 
