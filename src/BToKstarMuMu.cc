@@ -1276,10 +1276,17 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
 	  
 	  // check two tracks vertex 
-	  // if ( ! hasGoodKstarNeutralVertex(theTrackmTT, theTrackpTT) ) continue; 
-	 
-	  // if ( ! hasGoodKstarNeutralVertex(theTrackpTT, theTrackmTT) ) continue; 
+	  // this check takes greatly amount of time! 
 	  
+	  if ( ! hasGoodKstarNeutralVertex(theTrackmTT, theTrackpTT, 
+					   kstar_mass) ) continue; 
+	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
+
+	  if ( ! hasGoodKstarNeutralVertex(theTrackpTT, theTrackmTT, 
+					   kstar_mass) ) continue; 
+	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
+	  
+
 	} // close track+ loop 
       } // close track- loop 
     } // close mu+ loop
