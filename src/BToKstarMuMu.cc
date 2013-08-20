@@ -397,6 +397,11 @@ private:
   string decname; 
 
   vector<bool> *istruemum, *istruemup, *istrueks, *istruetrk, *istruebu;  
+
+  // variables to monitor 
+  TDatime t_begin_ , t_now_ ;
+  int n_processed_, n_selected_; 
+
 };
 
 //
@@ -537,6 +542,8 @@ BToKstarMuMu::~BToKstarMuMu()
 void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  n_processed_ += 1; 
+
   clearVariables(); 
 
   run = iEvent.id().run() ;
@@ -559,6 +566,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       if (IsMonteCarlo_) saveTruthMatch(iEvent);
       
       tree_->Fill();
+      n_selected_ += 1;
     }
   }
   
@@ -570,6 +578,14 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void 
 BToKstarMuMu::beginJob()
 {
+  t_begin_.Set(); 
+  printf("\n ---------- Begin Job ---------- \n");
+  t_begin_.Print();
+
+  n_processed_ = 0;
+  n_selected_ = 0;
+
+
   fout_ = new TFile(OutputFileName_.c_str(), "RECREATE");
   fout_->cd();
 
@@ -740,6 +756,16 @@ BToKstarMuMu::endJob()
     histos[i]->Delete();
   }
   fout_->Close();
+
+  t_now_.Set(); 
+  printf(" \n ---------- End Job ---------- \n" ) ;
+  t_now_.Print();  
+  printf(" processed: %i \n selected: %i \n \
+ duration: %i sec \n rate: %g evts/sec\n",
+	 n_processed_, n_selected_, 
+	 t_now_.Convert() - t_begin_.Convert(), 
+	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
+  
 }
 
 // method called when starting to processes a run  ------------
