@@ -215,6 +215,8 @@ private:
 			   RefCountedKinematicTree &); 
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>,
 			      RefCountedKinematicTree &); 
+  bool hasGoodKstarZeorVertex(const reco::TransientTrack,
+			      const reco::TransientTrack); 
 
   bool hasGoodMuonDcaBs (const reco::TransientTrack, double &, double &); 
   bool hasGoodTrackDcaBs (const reco::TransientTrack, double &, double &); 
@@ -280,6 +282,8 @@ private:
   float MuonMassErr_; 
   ParticleMass PionMass_; 
   float PionMassErr_; 
+  ParticleMass KaonMass_; 
+  float KaonMassErr_; 
   ParticleMass KshortMass_; 
   float KshortMassErr_; 
   double BuMass_; 
@@ -418,6 +422,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuonMassErr_(iConfig.getUntrackedParameter<double>("MuonMassErr")),
   PionMass_(iConfig.getUntrackedParameter<double>("PionMass")),
   PionMassErr_(iConfig.getUntrackedParameter<double>("PionMassErr")),
+  KaonMass_(iConfig.getUntrackedParameter<double>("KaonMass")),
+  KaonMassErr_(iConfig.getUntrackedParameter<double>("KaonMassErr")),
   KshortMass_(iConfig.getUntrackedParameter<double>("KshortMass")),
   KshortMassErr_(iConfig.getUntrackedParameter<double>("KshortMassErr")),
   BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
@@ -1242,8 +1248,10 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  // check goodness of two trakcs closest approach and the 3D-DCA
 	  if (! calClosestApproachTracks(theTrackpTT, theTrackmTT,
 					 trk_R, trk_Z, trk_DCA)) continue ; 
-
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
+	  
+	  // check two tracks vertex 
+	  if ( ! hasGoodKstarZeorVertex(theTrackmTT, theTrackpTT) ) continue; 
 	  
 	} // close track+ loop 
       } // close track- loop 
@@ -1579,6 +1587,25 @@ BToKstarMuMu::hasGoodKshortVertexMKC(const vector<reco::TrackRef> theDaughterTra
   delete ks_c; 
   if (!ksVertexFitTree->isValid()) return false; 
   return true;
+}
+
+
+bool 
+BToKstarMuMu::hasGoodKstarZeorVertex( const reco::TransientTrack pionmTT, 
+				      const reco::TransientTrack kaonpTT)
+{
+  KinematicParticleFactoryFromTransientTrack pFactory;
+
+  float chi = 0.;
+  float ndf = 0.;
+
+  vector<RefCountedKinematicParticle> kstParticles;
+  kstParticles.push_back(pFactory.particle(pionmTT,PionMass_,chi,ndf,PionMassErr_));
+  kstParticles.push_back(pFactory.particle(kaonpTT,KaonMass_,chi,ndf,KaonMassErr_));
+
+  KinematicParticleVertexFitter fitter;   
+  RefCountedKinematicTree ksVertexFitTree = fitter.fit(kstParticles); 
+  return ( ksVertexFitTree->isValid() ) ; 
 }
 
 
