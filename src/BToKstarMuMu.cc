@@ -230,6 +230,10 @@ private:
 		       const vector<reco::TrackRef>, const reco::TrackRef, 
 		       double &, double &, 
 		       RefCountedKinematicTree &, RefCountedKinematicTree &); 
+
+  bool hasGoodBdVertex(const reco::TransientTrack, const reco::TransientTrack, 
+		       const reco::TransientTrack, const reco::TransientTrack, 
+		       double &, double &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
@@ -1276,8 +1280,6 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
 	  
 	  // check two tracks vertex 
-	  // this check takes greatly amount of time! 
-	  
 	  if ( ! hasGoodKstarNeutralVertex(theTrackmTT, theTrackpTT, 
 					   kstar_mass) ) continue; 
 	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
@@ -1286,7 +1288,12 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 					   kstar_mass) ) continue; 
 	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
 	  
+	  // fit Bd vertex  
+	  if ( ! hasGoodBdVertex(muTrackmTT, muTrackpTT, theTrackmTT, theTrackpTT,
+				 b_vtx_chisq, b_vtx_cl) ) continue; 
+	  if ( b_vtx_cl < BMinVtxCl_ ) continue; 
 
+	  
 	} // close track+ loop 
       } // close track- loop 
     } // close mu+ loop
@@ -1783,6 +1790,49 @@ BToKstarMuMu::hasGoodBuVertex(const reco::TrackRef mu1Track,
   
   return true; 
 }
+
+bool 
+BToKstarMuMu::hasGoodBdVertex(const reco::TransientTrack mu1TT,
+			      const reco::TransientTrack mu2TT,
+			      const reco::TransientTrack pionTT, 
+			      const reco::TransientTrack kaonTT, 
+			      double & b_vtx_chisq, double & b_vtx_cl) 
+{
+  KinematicParticleFactoryFromTransientTrack pFactory;
+  float chi = 0.;
+  float ndf = 0.;
+
+  vector<RefCountedKinematicParticle> vFitMCParticles;
+  vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,
+					      chi,ndf,MuonMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(mu2TT,MuonMass_,
+					      chi,ndf,MuonMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(pionTT, PionMass_, chi, 
+					      ndf, PionMassErr_));
+  vFitMCParticles.push_back(pFactory.particle(kaonTT, KaonMass_, chi, 
+					      ndf, KaonMassErr_));
+
+  KinematicParticleVertexFitter fitter;   
+  RefCountedKinematicTree  vertexFitTree = fitter.fit(vFitMCParticles);
+  if (!vertexFitTree->isValid()) return false; 
+
+  vertexFitTree->movePointerToTheTop();
+  RefCountedKinematicVertex bDecayVertexMC = vertexFitTree->currentDecayVertex();
+  if ( !bDecayVertexMC->vertexIsValid()) return false; 
+ 
+  b_vtx_chisq = bDecayVertexMC->chiSquared(); 
+  if ( bDecayVertexMC->chiSquared()<0
+       || bDecayVertexMC->chiSquared()>1000 ) return false; 
+
+  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+  b_vtx_cl = ChiSquaredProbability((double)(b_KV->chiSquared()),
+				   (double)(b_KV->degreesOfFreedom()));
+
+  //  if ( b_vtx_cl < BMinVtxCl_ ) return false; 
+  
+  return true; 
+}
+
 
 void 
 BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
