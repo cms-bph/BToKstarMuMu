@@ -154,7 +154,9 @@ process.ntuple = cms.EDAnalyzer(
     MuonMass = cms.untracked.double(0.10565837), 
     MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
     PionMass = cms.untracked.double(0.13957018), 
-    PionMassErr = cms.untracked.double(0.13957018*1e-6),
+    PionMassErr = cms.untracked.double(3.5e-7),
+    KaonMass = cms.untracked.double(0.493677), 
+    KaonMassErr = cms.untracked.double(1.6e-5),
     KshortMass = cms.untracked.double(0.497614), 
     KshortMassErr = cms.untracked.double(0.000024),
     BuMass = cms.untracked.double(5.27925),
@@ -201,6 +203,11 @@ process.ntuple = cms.EDAnalyzer(
     # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
     KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
     KstarMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
+
+    # K*0 mass = 895.94 +/- 0.22 MeV, full width = 48.7 +/- 0.8 MeV 
+    # Since the value are quite same, choose the larger one: 
+    #KstarZeroMinMass = cms.untracked.double(0.75), # [GeV/c2]  - 3 sigma of the width
+    #KstarZeroMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
 
     BMinVtxCl = cms.untracked.double(0.01), 
     BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 
