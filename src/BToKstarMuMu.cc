@@ -1604,8 +1604,15 @@ BToKstarMuMu::hasGoodKstarZeorVertex( const reco::TransientTrack pionmTT,
   kstParticles.push_back(pFactory.particle(kaonpTT,KaonMass_,chi,ndf,KaonMassErr_));
 
   KinematicParticleVertexFitter fitter;   
-  RefCountedKinematicTree ksVertexFitTree = fitter.fit(kstParticles); 
-  return ( ksVertexFitTree->isValid() ) ; 
+  RefCountedKinematicTree kstVertexFitTree = fitter.fit(kstParticles); 
+  if ( ! kstVertexFitTree->isValid() ) return false ;
+
+  kstVertexFitTree->movePointerToTheTop();
+  // RefCountedKinematicParticle kst_KP = kstVertexFitTree->currentParticle();
+  RefCountedKinematicVertex kst_KV   = kstVertexFitTree->currentDecayVertex();
+  if ( !kst_KV->vertexIsValid() ) return false; 
+  
+  return true; 
 }
 
 
