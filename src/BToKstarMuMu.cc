@@ -215,7 +215,7 @@ private:
 			   RefCountedKinematicTree &); 
   bool hasGoodKshortVertexMKC(const vector<reco::TrackRef>,
 			      RefCountedKinematicTree &); 
-  bool hasGoodKstarZeorVertex(const reco::TransientTrack,
+  bool hasGoodKstarNeutralVertex(const reco::TransientTrack,
 			      const reco::TransientTrack); 
 
   bool hasGoodMuonDcaBs (const reco::TransientTrack, double &, double &); 
@@ -1251,7 +1251,7 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
 	  
 	  // check two tracks vertex 
-	  if ( ! hasGoodKstarZeorVertex(theTrackmTT, theTrackpTT) ) continue; 
+	  if ( ! hasGoodKstarNeutralVertex(theTrackmTT, theTrackpTT) ) continue; 
 	  
 	} // close track+ loop 
       } // close track- loop 
@@ -1591,8 +1591,8 @@ BToKstarMuMu::hasGoodKshortVertexMKC(const vector<reco::TrackRef> theDaughterTra
 
 
 bool 
-BToKstarMuMu::hasGoodKstarZeorVertex( const reco::TransientTrack pionmTT, 
-				      const reco::TransientTrack kaonpTT)
+BToKstarMuMu::hasGoodKstarNeutralVertex( const reco::TransientTrack pionTT, 
+					 const reco::TransientTrack kaonTT)
 {
   KinematicParticleFactoryFromTransientTrack pFactory;
 
@@ -1600,8 +1600,8 @@ BToKstarMuMu::hasGoodKstarZeorVertex( const reco::TransientTrack pionmTT,
   float ndf = 0.;
 
   vector<RefCountedKinematicParticle> kstParticles;
-  kstParticles.push_back(pFactory.particle(pionmTT,PionMass_,chi,ndf,PionMassErr_));
-  kstParticles.push_back(pFactory.particle(kaonpTT,KaonMass_,chi,ndf,KaonMassErr_));
+  kstParticles.push_back(pFactory.particle(pionTT,PionMass_,chi,ndf,PionMassErr_));
+  kstParticles.push_back(pFactory.particle(kaonTT,KaonMass_,chi,ndf,KaonMassErr_));
 
   KinematicParticleVertexFitter fitter;   
   RefCountedKinematicTree kstVertexFitTree = fitter.fit(kstParticles); 
