@@ -233,7 +233,7 @@ private:
 
   bool hasGoodBdVertex(const reco::TransientTrack, const reco::TransientTrack, 
 		       const reco::TransientTrack, const reco::TransientTrack, 
-		       double &, double &); 
+		       double &, double &, double &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
@@ -1279,21 +1279,29 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 					 trk_R, trk_Z, trk_DCA)) continue ; 
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
 	  
-	  // check two tracks vertex 
+	  // check two tracks vertex for Bd 
 	  if ( ! hasGoodKstarNeutralVertex(theTrackmTT, theTrackpTT, 
 					   kstar_mass) ) continue; 
 	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
 
+	  // check two tracks vertex for Bdbar 
 	  if ( ! hasGoodKstarNeutralVertex(theTrackpTT, theTrackmTT, 
 					   kstar_mass) ) continue; 
 	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
 	  
 	  // fit Bd vertex  
 	  if ( ! hasGoodBdVertex(muTrackmTT, muTrackpTT, theTrackmTT, theTrackpTT,
-				 b_vtx_chisq, b_vtx_cl) ) continue; 
-	  if ( b_vtx_cl < BMinVtxCl_ ) continue; 
+				 b_vtx_chisq, b_vtx_cl, b_mass) ) continue; 
+	  if ( b_vtx_cl < BMinVtxCl_ || 
+	       b_mass < BMinMass_ || b_mass > BMaxMass_ ) continue; 
 
+	  // fit Bdbar vertex  
+	  if ( ! hasGoodBdVertex(muTrackmTT, muTrackpTT, theTrackpTT, theTrackmTT,
+				 b_vtx_chisq, b_vtx_cl, b_mass) ) continue; 
+	  if ( b_vtx_cl < BMinVtxCl_ || 
+	       b_mass < BMinMass_ || b_mass > BMaxMass_ ) continue; 
 	  
+
 	} // close track+ loop 
       } // close track- loop 
     } // close mu+ loop
@@ -1796,7 +1804,8 @@ BToKstarMuMu::hasGoodBdVertex(const reco::TransientTrack mu1TT,
 			      const reco::TransientTrack mu2TT,
 			      const reco::TransientTrack pionTT, 
 			      const reco::TransientTrack kaonTT, 
-			      double & b_vtx_chisq, double & b_vtx_cl) 
+			      double & b_vtx_chisq, double & b_vtx_cl, 
+			      double & b_mass) 
 {
   KinematicParticleFactoryFromTransientTrack pFactory;
   float chi = 0.;
@@ -1828,7 +1837,8 @@ BToKstarMuMu::hasGoodBdVertex(const reco::TransientTrack mu1TT,
   b_vtx_cl = ChiSquaredProbability((double)(b_KV->chiSquared()),
 				   (double)(b_KV->degreesOfFreedom()));
 
-  //  if ( b_vtx_cl < BMinVtxCl_ ) return false; 
+  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+  b_mass = b_KP->currentState().mass(); 
   
   return true; 
 }
