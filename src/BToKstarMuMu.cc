@@ -1300,7 +1300,19 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 				 b_vtx_chisq, b_vtx_cl, b_mass) ) continue; 
 	  if ( b_vtx_cl < BMinVtxCl_ || 
 	       b_mass < BMinMass_ || b_mass > BMaxMass_ ) continue; 
+
+	  // need to check with primaryVertex tracks? 
+
+	  nb++; 
+	  // save the tree variables 
+	  saveDimuVariables(DCAmumBS, DCAmumBSErr, DCAmupBS, DCAmupBSErr,
+			    mumutrk_R, mumutrk_Z, DCAmumu, mu_mu_vtx_cl, 
+			    MuMuLSBS, MuMuLSBSErr, 
+			    MuMuCosAlphaBS, MuMuCosAlphaBSErr, 
+			    mu_mu_mass, mu_mu_mass_err); 
 	  
+	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
+
 
 	} // close track+ loop 
       } // close track- loop 
