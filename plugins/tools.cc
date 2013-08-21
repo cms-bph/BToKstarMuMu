@@ -44,7 +44,6 @@ void set_root_style(int stat, int grid){
 
 TChain* add_chain(TString datatype, TString label, TString cut, int verbose){
   TChain *globChain = new TChain("tree");
-  // TString base = Form("%s/sel", getenv("dat")); 
   TString fNameList = Form("../data/sel_%s_%s_%s_rootfiles.txt",
 			   datatype.Data(), label.Data(), cut.Data());
   // if (verbose >0 ) 
@@ -56,18 +55,19 @@ TChain* add_chain(TString datatype, TString label, TString cut, int verbose){
       return NULL;
     }
 
-  // char lineFromFile[255];
-  // while(fList.getline(lineFromFile, 250))
-
   string lineFromFile;
   while( getline(fList, lineFromFile) )
     {
       if (lineFromFile.empty()) continue; 
 
       TString fileName = lineFromFile;
-      fileName = Form("%s/sel/%s/%s", getenv("dat"), 
-		      datatype.Data(), fileName.Data());
       
+      if (datatype == "data") {
+	fileName = Form("%s/sel/data/%s", getenv("dat"), fileName.Data());
+      } else {
+	fileName = Form("%s/sel/mc/%s", getenv("dat"), fileName.Data());
+      }
+
       if(globChain->Add(fileName)){
 	if (verbose >0 ) 
 	  cout << ">> File '" << fileName << "' has been loaded" << endl;
