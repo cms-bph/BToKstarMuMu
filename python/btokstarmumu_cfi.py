@@ -232,4 +232,4 @@ process.patDefaultSequence.remove(process.selectedPatJets)
 process.patDefaultSequence.remove(process.cleanPatJets)
 process.patDefaultSequence.remove(process.countPatJets)
 
-process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
+#process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
