@@ -2,13 +2,15 @@
 //       Author: Xin Shi <Xin.Shi@cern.ch> 
 //       Created:   [2013-04-04 Thu 08:42] 
 // -----------------------------------------------
+#include <iostream>
+
 #include <TSystem.h>
 #include <TH1.h>
 #include <TChain.h>
 #include <TCanvas.h>
 #include <TROOT.h>
 
-#include "tools.cc" 
+#include "tools.h" 
 
 using namespace std; 
 

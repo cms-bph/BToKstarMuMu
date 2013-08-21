@@ -1,6 +1,7 @@
 GCCFLAGS=-Wall -g
 ROOTFLAGS=`root-config --cflags --libs`
 
+TOOLSFLAGS=$(GCCFLAGS) -I$(ROOTSYS)/include -c 
 SELECTORFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lProof
 FIGURESFLAGS=$(GCCFLAGS) $(ROOTFLAGS) 
 FITFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lRooFit -lRooFitCore 
@@ -8,14 +9,17 @@ FITFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lRooFit -lRooFitCore
 all: sel fig fit  
 	@echo "Full build successful."
 
+tools.o: tools.cc tools.h 
+	g++ $(TOOLSFLAGS) $< 
+
 sel: SingleBuToKstarMuMuSelector.cc 
 	g++ $(SELECTORFLAGS) $< -o $@
 
-fig: SingleBuToKstarMuMuFigures.cc 
-	g++ $(FIGURESFLAGS) $< -o $@
+fig: SingleBuToKstarMuMuFigures.cc tools.o 
+	g++ $(FIGURESFLAGS) $^ -o $@
 
-fit: SingleBuToKstarMuMuFitters.cc 
-	g++ $(FITFLAGS) $< -o $@	
+fit: SingleBuToKstarMuMuFitters.cc tools.o 
+	g++ $(FITFLAGS) $^ -o $@	
 
 clean:
-	rm -rf sel fig fit 
+	rm -rf tools.o sel fig fit 

@@ -7,6 +7,8 @@
 #include <TFile.h>
 #include <TPad.h> 
 #include <TCanvas.h> 
+#include <TChain.h> 
+#include <TPaveText.h>
 
 #include <RooRealVar.h>
 #include <RooGaussian.h>
@@ -16,7 +18,7 @@
 #include <RooFitResult.h>
 #include <RooPlot.h>
 
-#include "tools.cc" 
+#include "tools.h" 
 
 using namespace std; 
 using namespace RooFit ;
@@ -84,6 +86,13 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   xframe->GetYaxis()->SetTitleOffset(1.7) ; 
   xframe->Draw();
 
+  TPaveText* paveText = new TPaveText(0.17, 0.80, 0.41, 0.88, "NDC"); 
+  paveText->SetBorderSize(0.0);
+  paveText->SetFillColor(kWhite);
+  paveText->AddText(Form("nsig = %.0f #pm %.0f ", nsig.getVal(), nsig.getError())); 
+  paveText->AddText(Form("nbkg = %.0f #pm %.0f ", nbkg.getVal(), nbkg.getError())); 
+  paveText->Draw(); 
+
   TString pdffile = outfile + ".pdf"; 
   c->Print(pdffile); 
   
@@ -99,6 +108,8 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   // RooFitResult* r = gDirectory->Get("fitres") ;
   
   delete c;
+  delete paveText; 
+
 }
 
 int main(int argc, char** argv) {
@@ -109,7 +120,6 @@ int main(int argc, char** argv) {
   TString outfile  = argv[5]; 
   
   if (func == "bmass") 
-    // bmass(datatype, label, cut, outfile); 
     bmass(datatype, label, cut, outfile); 
   else 
     cerr << "No function available for: " << func.Data() << endl; 
