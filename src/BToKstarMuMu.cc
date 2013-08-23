@@ -233,7 +233,7 @@ private:
 
   bool hasGoodBdVertex(const reco::TransientTrack, const reco::TransientTrack, 
 		       const reco::TransientTrack, const reco::TransientTrack, 
-		       double &, double &, double &); 
+		       double &, double &, double &, RefCountedKinematicTree &); 
   
   bool hasGoodMuMuVertex (const reco::TransientTrack, const reco::TransientTrack,
 			  reco::TransientTrack &, reco::TransientTrack &, 
@@ -256,6 +256,7 @@ private:
   bool matchPrimaryVertexTracks (); 
 
   void saveBuToKstarMuMu(RefCountedKinematicTree); 
+  void saveBdToKstarMuMu(const RefCountedKinematicTree);
   void saveBuVertex(RefCountedKinematicTree); 
   void saveBuCosAlpha(RefCountedKinematicTree); 
   void saveBuLsig(RefCountedKinematicTree);
@@ -384,6 +385,9 @@ private:
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
   vector<double> *bcosalphabs, *bcosalphabserr, *blsbs, *blsbserr, *bctau, *bctauerr; 
   
+  // B0 and B0bar
+  vector<double> *bbarmass, *bbarmasserr; 
+
   // For MC
   int genbchg; // +1 for b+, -1 for b-
   double genbpx, genbpy, genbpz;
@@ -505,6 +509,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
   bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
 
+  bbarmass(0), bbarmasserr(0), 
 
   genbchg(0), 
   genbpx(0), genbpy(0), genbpz(0), 
@@ -705,6 +710,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bctau", &bctau);
   tree_->Branch("bctauerr", &bctauerr);
 
+  tree_->Branch("bbarmass", &bbarmass);
+  tree_->Branch("bbarmasserr", &bbarmasserr);
 
   if (IsMonteCarlo_) {
     tree_->Branch("genbchg",     &genbchg    , "genbchg/I"   );
@@ -856,7 +863,9 @@ BToKstarMuMu::clearVariables(){
   bvtxyerr->clear();
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
-
+  
+  bbarmass->clear(); bbarmasserr->clear(); 
+  
   if (IsMonteCarlo_) {
     genbchg = 0; genbpx = 0;    genbpy = 0;    genbpz = 0; 
     genkstpx = 0;  genkstpy = 0;  genkstpz = 0; 
@@ -1164,9 +1173,9 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
   double mu_mu_vtx_cl, mu_mu_pt, mu_mu_mass, mu_mu_mass_err; 
   double MuMuLSBS, MuMuLSBSErr; 
   double MuMuCosAlphaBS, MuMuCosAlphaBSErr;
-  double trk_pt, kstar_mass, b_vtx_chisq, b_vtx_cl, b_mass; 
+  double trk_pt, kstar_mass, b_vtx_chisq, b_vtx_cl, b_mass, bbar_mass; 
   double DCAKstTrkBS, DCAKstTrkBSErr; 
-  // RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
+  RefCountedKinematicTree vertexFitTree, barVertexFitTree; 
 
   // ---------------------------------
   // loop 1: mu-
@@ -1289,17 +1298,19 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 					   kstar_mass) ) continue; 
 	  if ( kstar_mass < KstarMinMass_ || kstar_mass > KstarMaxMass_ ) continue;  
 	  
-	  // fit Bd vertex  
+	  // fit Bd vertex  mu- mu+ pi- K+ 
 	  if ( ! hasGoodBdVertex(muTrackmTT, muTrackpTT, theTrackmTT, theTrackpTT,
-				 b_vtx_chisq, b_vtx_cl, b_mass) ) continue; 
+				 b_vtx_chisq, b_vtx_cl, b_mass,
+				 vertexFitTree) ) continue; 
 	  if ( b_vtx_cl < BMinVtxCl_ || 
 	       b_mass < BMinMass_ || b_mass > BMaxMass_ ) continue; 
 
-	  // fit Bdbar vertex  
+	  // fit Bdbar vertex mu- mu+ pi+ K- 
 	  if ( ! hasGoodBdVertex(muTrackmTT, muTrackpTT, theTrackpTT, theTrackmTT,
-				 b_vtx_chisq, b_vtx_cl, b_mass) ) continue; 
+				 b_vtx_chisq, b_vtx_cl, bbar_mass, 
+				 barVertexFitTree) ) continue; 
 	  if ( b_vtx_cl < BMinVtxCl_ || 
-	       b_mass < BMinMass_ || b_mass > BMaxMass_ ) continue; 
+	       bbar_mass < BMinMass_ || bbar_mass > BMaxMass_ ) continue; 
 
 	  // need to check with primaryVertex tracks? 
 
@@ -1312,7 +1323,9 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 			    mu_mu_mass, mu_mu_mass_err); 
 	  
 	  saveSoftMuonVariables(*iMuonM, *iMuonP, muTrackm, muTrackp); 
+	  // saveBdToKstarMuMu(vertexFitTree); 
 
+	  
 
 	} // close track+ loop 
       } // close track- loop 
@@ -1817,12 +1830,14 @@ BToKstarMuMu::hasGoodBdVertex(const reco::TransientTrack mu1TT,
 			      const reco::TransientTrack pionTT, 
 			      const reco::TransientTrack kaonTT, 
 			      double & b_vtx_chisq, double & b_vtx_cl, 
-			      double & b_mass) 
+			      double & b_mass, 
+			      RefCountedKinematicTree & vertexFitTree) 
 {
   KinematicParticleFactoryFromTransientTrack pFactory;
   float chi = 0.;
   float ndf = 0.;
 
+  // B0 -> mu+ mu- K*0 (K+ pi-) 
   vector<RefCountedKinematicParticle> vFitMCParticles;
   vFitMCParticles.push_back(pFactory.particle(mu1TT,MuonMass_,
 					      chi,ndf,MuonMassErr_));
@@ -1834,7 +1849,7 @@ BToKstarMuMu::hasGoodBdVertex(const reco::TransientTrack mu1TT,
 					      ndf, KaonMassErr_));
 
   KinematicParticleVertexFitter fitter;   
-  RefCountedKinematicTree  vertexFitTree = fitter.fit(vFitMCParticles);
+  vertexFitTree = fitter.fit(vFitMCParticles);
   if (!vertexFitTree->isValid()) return false; 
 
   vertexFitTree->movePointerToTheTop();
@@ -1908,6 +1923,57 @@ BToKstarMuMu::saveBuToKstarMuMu(RefCountedKinematicTree vertexFitTree){
   // ksmass->push_back(ks_KP->currentState().mass());
   // ksmasserr->push_back(ks_KP->currentState().kinematicParametersError().matrix()(6,6));
 
+}
+
+
+void 
+BToKstarMuMu::saveBdToKstarMuMu(const RefCountedKinematicTree vertexFitTree){
+
+  vertexFitTree->movePointerToTheTop(); // B0 -> K+ pi- mu+ mu- 
+  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+
+  bpx->push_back(b_KP->currentState().globalMomentum().x());
+  bpxerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(3,3) ) );
+  bpy->push_back(b_KP->currentState().globalMomentum().y());
+  bpyerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(4,4) ) );
+  bpz->push_back(b_KP->currentState().globalMomentum().z());
+  bpzerr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(5,5) ) );
+  bmass->push_back(b_KP->currentState().mass()); 
+  bmasserr->push_back( sqrt( b_KP->currentState().kinematicParametersError().matrix()(6,6) ) );
+
+  vertexFitTree->movePointerToTheFirstChild(); // mu1 
+  RefCountedKinematicParticle mu1_KP = vertexFitTree->currentParticle();
+  vertexFitTree->movePointerToTheNextChild();  // mu2 
+  RefCountedKinematicParticle mu2_KP = vertexFitTree->currentParticle();
+
+  RefCountedKinematicParticle mup_KP, mum_KP ;
+
+  if ( mu1_KP->currentState().particleCharge() > 0 ) mup_KP = mu1_KP;
+  if ( mu1_KP->currentState().particleCharge() < 0 ) mum_KP = mu1_KP;
+  if ( mu2_KP->currentState().particleCharge() > 0 ) mup_KP = mu2_KP;
+  if ( mu2_KP->currentState().particleCharge() < 0 ) mum_KP = mu2_KP;
+
+  muppx->push_back(mup_KP->currentState().globalMomentum().x());
+  muppy->push_back(mup_KP->currentState().globalMomentum().y());
+  muppz->push_back(mup_KP->currentState().globalMomentum().z());
+  
+  mumpx->push_back(mum_KP->currentState().globalMomentum().x());
+  mumpy->push_back(mum_KP->currentState().globalMomentum().y());
+  mumpz->push_back(mum_KP->currentState().globalMomentum().z());
+
+
+  vertexFitTree->movePointerToTheNextChild();  // pion track 
+  RefCountedKinematicParticle pi1_KP = vertexFitTree->currentParticle();
+  trkchg->push_back(pi1_KP->currentState().particleCharge()); 
+  trkpx->push_back(pi1_KP->currentState().globalMomentum().x());
+  trkpy->push_back(pi1_KP->currentState().globalMomentum().y());
+  trkpz->push_back(pi1_KP->currentState().globalMomentum().z());
+
+  // vertexFitTree->movePointerToTheNextChild();  // ks 
+  // RefCountedKinematicParticle ks_KP = vertexFitTree->currentParticle();
+  // kspx->push_back(ks_KP->currentState().globalMomentum().x());
+  // kspy->push_back(ks_KP->currentState().globalMomentum().y());
+  // kspz->push_back(ks_KP->currentState().globalMomentum().z());
 }
 
 
