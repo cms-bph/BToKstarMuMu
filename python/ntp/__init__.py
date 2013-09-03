@@ -397,6 +397,12 @@ def proc_one_job(rootfile, datatype, label, job=None, test=False,
         procdir = os.path.join(atr.afbpath,
         'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
         cmd = 'cmsRun btokstarmumu_MC.py'
+ 
+    elif label in [ 'Run2011B-PromptReco-v1_run2011v0.1' 
+                   ]:
+        procdir = os.path.join(atr.afbpath,
+        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
+        cmd = 'cmsRun btokstarmumu_Run2011A-PromptReco_v1.py'
 
     else:
         raise NameError(label)
