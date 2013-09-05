@@ -186,6 +186,12 @@ def Run2011B_PromptReco_v1_run2011v0(f, label):
     f, cfg_file = Run2011A_PromptReco_v4_run2011v0(f, label)
     if label == 'Run2011B-PromptReco-v1_run2011v0.1': 
         f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v1.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.2': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v2.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.3': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v3.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.4': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v4.py')
 
     return f, cfg_file
 
