@@ -104,6 +104,7 @@ struct HistArgs{
 };
 
 enum HistName{
+  h_events, 
   h_mupt, 
   h_mueta, 
   h_mumdcabs, 
@@ -133,6 +134,7 @@ enum HistName{
 HistArgs hist_args[kHistNameSize] = {
   // name, title, n_bins, x_min, x_max  
 
+  {"h_events", "Processed Events", 1, 0, 1},
   {"h_mupt", "Muon pT; [GeV]", 100, 0, 30},
   {"h_mueta", "Muon eta", 100, 0, 3},
   {"h_mumdcabs", "#mu^{-} DCA beam spot; DCA [cm]", 100, 0, 10},
@@ -552,6 +554,7 @@ void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   n_processed_ += 1; 
+  histos[h_events]->Fill(0); 
 
   clearVariables(); 
 
@@ -578,6 +581,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     }
   }
+
   clearVariables(); 
 }
 
