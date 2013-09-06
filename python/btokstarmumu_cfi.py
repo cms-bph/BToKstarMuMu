@@ -167,8 +167,8 @@ process.ntuple = cms.EDAnalyzer(
     BeamSpotLabel = cms.InputTag('offlineBeamSpot'),
     VertexLabel = cms.InputTag('offlinePrimaryVertices'),
     MuonLabel = cms.InputTag('cleanPatMuonsTriggerMatch'),
-    KshortLabel = cms.InputTag('generalV0Candidates:Kshort'),
-    #KshortLabel = cms.InputTag('localV0Candidates:Kshort'),
+    #KshortLabel = cms.InputTag('generalV0Candidates:Kshort'),
+    KshortLabel = cms.InputTag('localV0Candidates:Kshort'),
     TrackLabel = cms.InputTag('cleanPatTrackCands'), 
     TriggerNames = cms.vstring([]),
     LastFilterNames = cms.vstring([]),
@@ -195,8 +195,8 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
     # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.4), # [GeV/c]
-    TrkMaxDcaSigBs = cms.untracked.double(1.2), # hadron DCA/sigma w/respect to BS [1.2]
+    TrkMinPt = cms.untracked.double(0.3), # 0.4 [GeV/c]
+    TrkMaxDcaSigBs = cms.untracked.double(1.0), # 1.2 hadron DCA/sigma w/respect to BS 
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
 
@@ -232,4 +232,4 @@ process.patDefaultSequence.remove(process.selectedPatJets)
 process.patDefaultSequence.remove(process.cleanPatJets)
 process.patDefaultSequence.remove(process.countPatJets)
 
-#process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
+process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
