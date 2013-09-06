@@ -185,8 +185,8 @@ private:
   virtual void endLuminosityBlock(edm::LuminosityBlock const&,
 				  edm::EventSetup const&);
   
-  void buildBuToKstarMuMu(const edm::Event &); 
-  void buildBdToKstarMuMu(const edm::Event &); 
+  bool buildBuToKstarMuMu(const edm::Event &); 
+  bool buildBdToKstarMuMu(const edm::Event &); 
 
   void calLS (double, double, double, double, double, double, double, 
 	      double, double,  double, double, double, double, double, 
@@ -568,17 +568,16 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     if ( bFieldHandle_.isValid() && hasPrimaryVertex(iEvent) ) { 
       
-      if (BuildBuToKstarMuMu_) buildBuToKstarMuMu(iEvent) ;  
-
-      if (BuildBdToKstarMuMu_) buildBdToKstarMuMu(iEvent) ;  
-
-      if (IsMonteCarlo_) saveTruthMatch(iEvent);
+      if (  ( BuildBuToKstarMuMu_ && buildBuToKstarMuMu(iEvent) ) ||
+	    ( BuildBdToKstarMuMu_ && buildBdToKstarMuMu(iEvent) ) ) {  
+	
+	if (IsMonteCarlo_) saveTruthMatch(iEvent);
       
-      tree_->Fill();
-      n_selected_ += 1;
+	tree_->Fill();
+	n_selected_ += 1;
+      }
     }
   }
-  
   clearVariables(); 
 }
 
@@ -975,17 +974,17 @@ BToKstarMuMu::hasGoodTrack(const edm::Event& iEvent,
 
 
 
-void 
+bool 
 BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 {
   // init variables 
   edm::Handle< vector<pat::Muon> > patMuonHandle;
   iEvent.getByLabel(MuonLabel_, patMuonHandle);
-  if( patMuonHandle->size() < 2 ) return;
+  if( patMuonHandle->size() < 2 ) return false;
 
   edm::Handle<reco::VertexCompositeCandidateCollection> theKshorts;
   iEvent.getByLabel(KshortLabel_, theKshorts);
-  if ( theKshorts->size() <= 0) return;
+  if ( theKshorts->size() <= 0) return false;
 
   edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
@@ -1149,18 +1148,22 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
     } // close mu+ loop
   } // close mu- loop 
 
-  if ( nb > 0) edm::LogInfo("myBu") << "Found " << nb << " Bu -> K* mu mu."; 
-    
+  if ( nb > 0) {
+    edm::LogInfo("myBu") << "Found " << nb << " Bu -> K* mu mu."; 
+    return true; 
+  }
+
+  return false; 
 }
 
 
-void 
+bool 
 BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 {
   // init variables 
   edm::Handle< vector<pat::Muon> > patMuonHandle;
   iEvent.getByLabel(MuonLabel_, patMuonHandle);
-  if( patMuonHandle->size() < 2 ) return;
+  if( patMuonHandle->size() < 2 ) return false;
  
   edm::Handle< vector<pat::GenericParticle> >thePATTrackHandle;
   iEvent.getByLabel(TrackLabel_, thePATTrackHandle);
@@ -1332,7 +1335,11 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
     } // close mu+ loop
   } // close mu- loop 
 
-  if ( nb > 0) edm::LogInfo("myBd") << "Found " << nb << " Bd -> K* mu mu."; 
+  if ( nb > 0) {
+    edm::LogInfo("myBd") << "Found " << nb << " Bd -> K* mu mu."; 
+    return true;
+  }
+  return false; 
 
 }
 
