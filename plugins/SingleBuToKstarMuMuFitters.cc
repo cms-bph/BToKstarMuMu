@@ -91,6 +91,8 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   paveText->SetFillColor(kWhite);
   paveText->AddText(Form("nsig = %.0f #pm %.0f ", nsig.getVal(), nsig.getError())); 
   paveText->AddText(Form("nbkg = %.0f #pm %.0f ", nbkg.getVal(), nbkg.getError())); 
+  paveText->AddText(Form("mean = %.3f #pm %.3f ", mean.getVal(), mean.getError())); 
+  paveText->AddText(Form("sigma = %.3f #pm %.3f ", sigma.getVal(), sigma.getError())); 
   paveText->Draw(); 
 
   TString pdffile = outfile + ".pdf"; 
