@@ -133,3 +133,36 @@ int get_number_of_lines(TString fNameList, TString datatype,
     }
   return n; 
 }
+
+
+double calc_scale_factor(TString datatype, TString energy){
+  double scaleFactor = 0.0;
+  
+  double BF_BuToKstarJPsi = 1.34e-3; // +/- 0.06 PDG2012 
+  double BF_KstarToK0Pi = 2.0/3; 
+  double BF_K0ToKshort = 1.0/2; 
+  double BF_JPsiToMuMu = 5.93e-2; // +/- 0.06 
+  
+  double BF_BuToKshortPiMuMu = BF_BuToKstarJPsi*BF_KstarToK0Pi*
+    BF_K0ToKshort*BF_JPsiToMuMu; 
+  
+  double lumi = 0.0; 
+  double xsec_pythia = 0.0; 
+  if ( energy == "7TeV") {
+    lumi = 5.2; // pb^-1 
+    xsec_pythia = 48.44e9; // pb 
+  } 
+  else if ( energy == "8TeV") {
+    lumi = 19000; // pb^-1?? need to check 
+    xsec_pythia = 49.59e9; // pb
+  }
+  
+  if (datatype == "BuToKstarJPsi") {
+    double gen_eff = 1.43e-3; 
+    double nreco = 502273.0;
+    double lumi_mc = nreco/(xsec_pythia * BF_BuToKshortPiMuMu * gen_eff) ;
+    scaleFactor = lumi_mc/lumi; 
+  }
+
+  return scaleFactor; 
+}

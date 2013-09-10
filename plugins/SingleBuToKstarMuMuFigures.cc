@@ -76,7 +76,10 @@ void bmass_snb(TString datatype, TString label, TString cut, TString outfile){
       h_bmass->Fill(Bmass); 
   }
 
-  double scaleFactor = 10; 
+  // double scaleFactor = 10; 
+
+  double scaleFactor = calc_scale_factor(datatype, "7TeV"); 
+  cout << "scalefactor = " << scaleFactor << endl; 
   h_bmass->Scale(scaleFactor); 
 
   // Backgroud from data sideband
