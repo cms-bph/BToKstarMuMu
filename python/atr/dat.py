@@ -78,10 +78,10 @@ def get_dataset_run2012(label):
 
 def get_lumi_mask_run2011(label):
     if 'Run2011A-May10ReReco-v1' in label:
-        lumi_mask = 'Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt'
+        lumi_mask = '../data/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt'
     elif 'Run2011A-PromptReco-v' in label or \
         'Run2011B-PromptReco-v' in label:
-        lumi_mask = 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt'
+        lumi_mask = '../data/Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt'
     else:
         raise NameError(label)
 

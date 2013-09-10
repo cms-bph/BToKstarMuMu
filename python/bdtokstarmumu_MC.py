@@ -46,4 +46,5 @@ process.ntuple.TriggerNames = cms.vstring(g_TriggerNames)
 process.ntuple.LastFilterNames = cms.vstring(g_LastFilterNames)
 process.ntuple.IsMonteCarlo = cms.untracked.bool(True)
 
- 
+#process.p = cms.Path(process.patDefaultSequence * process.ntuple)
+
