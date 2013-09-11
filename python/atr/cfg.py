@@ -100,7 +100,12 @@ def Run2011A_PromptReco_v6_run2011v1(f, label):
     return Run2011A_PromptReco_v4_run2011v1(f, label)
 
 def Run2011B_PromptReco_v1_run2011v1(f, label):
-    return Run2011A_PromptReco_v4_run2011v1(f, label)
+    f, cfg_file = Run2011A_PromptReco_v4_run2011v1(f, label)
+    if 'run2011v1.1' in label:
+        f.remove_option('CMSSW', 'lumis_per_job')
+        f.set('CMSSW', 'number_of_jobs', 5000)
+
+    return f, cfg_file
 
 
 def BuToKstarJPsi_7TeV_5E5_v1_run2011v1(f, label):
