@@ -44,10 +44,8 @@ def proc_ntuple(args, label, cut):
     sel_datatype = datatype 
     if datatype == 'mc' and 'BuToKstarJPsi' in label:
         sel_datatype =  'BuToKstarJPsi' 
-    elif datatype == 'mc' and 'BuToKstarMuMu' in label:
+    if datatype == 'mc' and 'BuToKstarMuMu' in label:
         sel_datatype =  'BuToKstarMuMu' 
-    else:
-        raise NameError(label) 
 
     procdir = atr.sel.procdir(label)
     cmd = './sel %s %s %s %s' %(sel_datatype, cut, infile, outfile)
