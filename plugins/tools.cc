@@ -44,6 +44,10 @@ void set_root_style(int stat, int grid){
 }
 
 TChain* add_chain(TString datatype, TString label, TString cut, int verbose){
+  if  ( cut.Contains("/") ) {
+    int idx = cut.Index("/"); 
+    cut.Remove(idx, cut.Sizeof()-idx); 
+  }
 
   TString fNameList = Form("../data/sel_%s_%s_%s_rootfiles.txt",
 			   datatype.Data(), label.Data(), cut.Data());
