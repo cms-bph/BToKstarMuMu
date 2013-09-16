@@ -105,6 +105,12 @@ def Run2011B_PromptReco_v1_run2011v1(f, label):
         f.remove_option('CMSSW', 'lumis_per_job')
         f.set('CMSSW', 'number_of_jobs', 5000)
 
+    if 'run2011v1.2' in label:
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v2.py')
+
+    if 'run2011v1.3' in label:
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v3.py')
+    
     return f, cfg_file
 
 

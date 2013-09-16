@@ -35,11 +35,11 @@ def make_src_str(files, test=False):
     return src_str
 
 
-def BuToKstarJPsi_7TeV_5E5_v1_run2011v0_1(com_name):
+def BuToKstarJPsi_7TeV_5E5_v1_run2011v1_1(com_name):
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
     srcdir = os.path.join(
         eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
-        com_name, 'a8d57e0034258aee57fcad0fa4e53647')
+        com_name, '18546abab6efe9d539f70708ba8bd3ea')
     dstdir = os.path.join(eosbase, 'dat/ntp/mc', com_name)
     merge_root_files(srcdir, dstdir)
 
