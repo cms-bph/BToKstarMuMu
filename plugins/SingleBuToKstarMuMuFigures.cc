@@ -15,6 +15,7 @@ using namespace std;
 
 const double KSTARPLUS_MASS = 0.89166; // GeV
 const double BPLUS_MASS = 5.279 ; // GeV 
+const double JPSI_MASS = 3.097 ; // GeV  ±0.011
 
 void bmass(TString datatype, TString label, TString cut, TString outfile){
   // plot the BuToKstarJPsi part
@@ -26,6 +27,11 @@ void bmass(TString datatype, TString label, TString cut, TString outfile){
   double Bmass = 0; 
   ch->SetBranchAddress("Bmass", &Bmass);
 
+  double Mumumass = 0; 
+  ch->SetBranchAddress("Mumumass", &Mumumass); 
+  double Mumumasserr = 0; 
+  ch->SetBranchAddress("Mumumasserr", &Mumumasserr); 
+
   Int_t nentries = (Int_t)ch->GetEntries();
   if (nentries == 0) {
     cerr << "No entries found!" << endl; 
@@ -34,7 +40,15 @@ void bmass(TString datatype, TString label, TString cut, TString outfile){
   
   for (Int_t i=0;i<nentries;i++) {
     ch->GetEntry(i);
-    h_bmass->Fill(Bmass); 
+    if ( cut.Contains("/jpsi")) {
+      if ( Mumumass > ( JPSI_MASS - 5*Mumumasserr) && 
+	   Mumumass < ( JPSI_MASS + 3*Mumumasserr) ) {
+	h_bmass->Fill(Bmass); 
+      }
+      
+    } else {
+      h_bmass->Fill(Bmass); 
+    }
   }
 
   TCanvas* c = new TCanvas("c","c", 400, 400); 
