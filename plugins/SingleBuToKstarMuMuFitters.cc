@@ -2,6 +2,8 @@
 //       Author: Xin Shi <Xin.Shi@cern.ch> 
 //       Created:   [2013-08-15 Thu 14:54] 
 // -----------------------------------------------
+#include <sstream>
+
 #include <TSystem.h>
 #include <TH1.h>
 #include <TFile.h>
@@ -114,6 +116,26 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
 
 }
 
+void fl()
+{
+  RooRealVar* FlS = new RooRealVar("FlS","F_{L}",0.0,0.0,1.0);
+  RooRealVar* AfbS = new RooRealVar("AfbS","A_{FB}",0.0,-1.0,1.0);
+  FlS->setConstant(false);
+  AfbS->setConstant(false);
+  RooArgSet* Vars; 
+  Vars->add(*FlS);
+  Vars->add(*AfbS);
+  stringstream myString; 
+  myString.str("");
+  // S and P-wave decay rate
+  // 
+  // RooRealVar* x; 
+  // myString << "(3/4 * FlS * (1 - " << x->getPlotLabel() << "*"
+  // 	   << x->getPlotLabel() << ")";
+  
+  
+}
+
 int main(int argc, char** argv) {
   TString func     = argv[1]; 
   TString datatype = argv[2]; 
@@ -123,6 +145,10 @@ int main(int argc, char** argv) {
   
   if (func == "bmass") 
     bmass(datatype, label, cut, outfile); 
+
+  else if (func == "fl")
+    fl(); 
+
   else 
     cerr << "No function available for: " << func.Data() << endl; 
 
