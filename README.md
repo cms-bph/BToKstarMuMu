@@ -4,8 +4,11 @@
 
 >  cd /path/to/your/destination/
 
->  git clone https://github.com/xshi/BToKstarMuMu.git BToKstarMuMu_run2011v0
+>  git clone https://github.com/xshi/BToKstarMuMu.git
+
+>  cd BToKstarMuMu  
 
 >  git checkout run2011v0 
+
 
  
