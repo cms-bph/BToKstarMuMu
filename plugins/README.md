@@ -5,6 +5,12 @@
 Make sure you've installed ROOT 
 > make
 
+## Run FL fitter
+
+Produce test.pdf 
+
+> ./fit fl test 
+
 
 
 
