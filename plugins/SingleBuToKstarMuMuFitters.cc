@@ -19,6 +19,7 @@
 #include <RooDataSet.h>
 #include <RooFitResult.h>
 #include <RooPlot.h>
+#include <RooGenericPdf.h> 
 
 #include "tools.h" 
 
@@ -118,21 +119,62 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
 
 void fl()
 {
-  RooRealVar* FlS = new RooRealVar("FlS","F_{L}",0.0,0.0,1.0);
-  RooRealVar* AfbS = new RooRealVar("AfbS","A_{FB}",0.0,-1.0,1.0);
-  FlS->setConstant(false);
-  AfbS->setConstant(false);
-  RooArgSet* Vars; 
-  Vars->add(*FlS);
-  Vars->add(*AfbS);
-  stringstream myString; 
-  myString.str("");
+  // RooRealVar* FlS = new RooRealVar("FlS","F_{L}",0.0,0.0,1.0);
+  // RooRealVar* AfbS = new RooRealVar("AfbS","A_{FB}",0.0,-1.0,1.0);
+  // FlS->setConstant(false);
+  // AfbS->setConstant(false);
+  // RooArgSet* Vars; 
+  // Vars->add(*FlS);
+  // Vars->add(*AfbS);
+  // stringstream myString; 
+  // myString.str("");
   // S and P-wave decay rate
   // 
   // RooRealVar* x; 
   // myString << "(3/4 * FlS * (1 - " << x->getPlotLabel() << "*"
   // 	   << x->getPlotLabel() << ")";
   
+  // from IterativeMassAngleFitq2Bins 
+  // RooRealVar* fitVar;
+
+  // Start with example from RooFit
+  RooRealVar x("x", "x", -10, 10); 
+  RooRealVar y("y", "y", -10, 10); 
+  RooRealVar a("a", "a", 5); 
+  RooRealVar b("b", "b", 5); 
+
+  RooGenericPdf f("f", "a*x*x+b*y*y-0.3*y*y*y", RooArgSet(x,y,a,b));
+  // Generate a 2-dimensional dataset data(x,y) 
+  RooDataSet* data = f.generate(RooArgSet(x,y), 10000); 
+
+  // fit the 2-dimensional model f(x,y) to data(x,y)
+  f.fitTo(*data); 
+
+  // plot the x distribution of data(x,y) and f(x,y)
+  RooPlot* framex = x.frame(); 
+  data->plotOn(framex); 
+  f.plotOn(framex); 
+
+  // plot the y distribution of data(x,y) and f(x,y)
+  RooPlot* framey = y.frame(); 
+  data->plotOn(framey); 
+  f.plotOn(framey); 
+
+  // Draw the frame on the canvas
+  TCanvas* c = new TCanvas("c", "c", 400, 200); 
+  
+  c->Divide(2);
+  c->cd(1); 
+  framex->Draw(); 
+  c->cd(2);
+  framey->Draw();
+  
+  TString outfile = "test"; 
+  
+  TString pdffile = outfile + ".pdf"; 
+
+ 
+  c->Print(pdffile); 
   
 }
 
