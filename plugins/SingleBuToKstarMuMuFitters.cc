@@ -117,7 +117,7 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
 
 }
 
-void fl()
+void fl(TString outfile)
 {
   // From fomula (2) in LHCb 2012 PRL108, 181806(2012)
   // integrated over theta_l and phi: 
@@ -126,95 +126,45 @@ void fl()
   // + 3/4(1-F_L)(1-cos^2theta_K)
   // 
 
-  // let cos(theta_K) to be x 
-
   RooRealVar cosk("cosk", "cos#theta_{K}", 0, 1); 
-  // RooRealVar fl("fl", "F_{L}", 0.0, 0.0, 1.0);
   RooRealVar fl("fl", "F_{L}l", 0.5);
 
   RooGenericPdf f("f", "0.5*3*fl*cosk*cosk+0.25*3*(1-fl)*(1-cosk*cosk)", 
 		  RooArgSet(cosk,fl));
-  // RooGenericPdf f("f", "fl*x+3*x*x", RooArgSet(x,fl));
-  // RooGenericPdf f("f", "a*x*x", RooArgSet(x,a));
   RooDataSet* data = f.generate(RooArgSet(cosk), 10000); 
   
-  
-  // RooRealVar* FlS = new RooRealVar("FlS","F_{L}",0.0,0.0,1.0);
-  // RooRealVar* AfbS = new RooRealVar("AfbS","A_{FB}",0.0,-1.0,1.0);
-  // FlS->setConstant(false);
-  // AfbS->setConstant(false);
-  // RooArgSet* Vars; 
-  // Vars->add(*FlS);
-  // Vars->add(*AfbS);
-  // stringstream myString; 
-  // myString.str("");
-  // S and P-wave decay rate
-  // 
-  // RooRealVar* x; 
-  // myString << "(3/4 * FlS * (1 - " << x->getPlotLabel() << "*"
-  // 	   << x->getPlotLabel() << ")";
-  
-  // from IterativeMassAngleFitq2Bins 
-  // RooRealVar* fitVar;
-
-  // Start with example from RooFit
-  // RooRealVar x("x", "x", -10, 10); 
-  // RooRealVar y("y", "y", -10, 10); 
-  // RooRealVar a("a", "a", 5); 
-  // RooRealVar b("b", "b", 5); 
-
-  // RooGenericPdf f("f", "a*x*x+b*y*y-0.3*y*y*y", RooArgSet(x,y,a,b));
-  // // Generate a 2-dimensional dataset data(x,y) 
-  // RooDataSet* data = f.generate(RooArgSet(x,y), 10000); 
-
-
-  // fit the 2-dimensional model f(x,y) to data(x,y)
   f.fitTo(*data); 
 
-  // plot the x distribution of data(x,y) and f(x,y)
   RooPlot* framecosk = cosk.frame(); 
   data->plotOn(framecosk); 
   f.plotOn(framecosk); 
 
-  // plot the y distribution of data(x,y) and f(x,y)
-  // RooPlot* framey = y.frame(); 
-  // data->plotOn(framey); 
-  // f.plotOn(framey); 
-
   // Draw the frame on the canvas
   TCanvas* c = new TCanvas("c", "c", 400, 400); 
-  
-  // c->Divide(2);
-  // c->cd(1); 
   framecosk->Draw(); 
-  // c->cd(2);
-  // framey->Draw();
-  
-  TString outfile = "test"; 
-  
   TString pdffile = outfile + ".pdf"; 
-
- 
   c->Print(pdffile); 
-  
 }
+
 
 int main(int argc, char** argv) {
   TString func     = argv[1]; 
-  TString datatype = argv[2]; 
-  TString label    = argv[3]; 
-  TString cut      = argv[4]; 
-  TString outfile  = argv[5]; 
-  
-  if (func == "bmass") 
+  if (func == "bmass") {
+    TString datatype = argv[2]; 
+    TString label    = argv[3]; 
+    TString cut      = argv[4]; 
+    TString outfile  = argv[5]; 
+    
     bmass(datatype, label, cut, outfile); 
 
-  else if (func == "fl")
-    fl(); 
+  } else if (func == "fl"){
 
-  else 
+    TString outfile  = argv[2];     
+    fl(outfile);
+ 
+  } else { 
     cerr << "No function available for: " << func.Data() << endl; 
-
+  }
   gSystem->Exit(0);
 
   return 0 ;
