@@ -117,6 +117,12 @@ def Run2011B_PromptReco_v1_run2011v1(f, label):
     if 'run2011v1.5' in label:
         f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v5.py')
     
+    if 'run2011v1.7' in label:
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v7.py')
+    
+    if 'run2011v1.8' in label:
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v8.py')
+    
     return f, cfg_file
 
 

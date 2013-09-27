@@ -99,7 +99,7 @@ process.localV0Candidates = cms.EDProducer(
     tkNhitsCut = cms.int32(6),
     #   Track impact parameter significance >
     #impactParameterSigCut = cms.double(2.),
-    impactParameterSigCut = cms.double(0.5),
+    impactParameterSigCut = cms.double(1.),
     # We calculate the PCA of the tracks quickly in RPhi, extrapolating
     # the z position as well, before vertexing.  Used in the following 2 cuts:
     #   m_pipi calculated at PCA of tracks <
@@ -121,7 +121,7 @@ process.localV0Candidates = cms.EDProducer(
     lVtxCut = cms.double(0.0),
     #   Radial vertex significance >
     #vtxSignificance2DCut = cms.double(15.0),
-    vtxSignificance2DCut = cms.double(5.0),
+    vtxSignificance2DCut = cms.double(8.5),
     #   3D vertex significance using primary vertex
     #   (UNUSED)
     vtxSignificance3DCut = cms.double(0.0),
@@ -195,7 +195,7 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
     # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.3), # 0.4 [GeV/c]
+    TrkMinPt = cms.untracked.double(0.6), # 0.4 [GeV/c]
     TrkMaxDcaSigBs = cms.untracked.double(1.0), # 1.2 hadron DCA/sigma w/respect to BS 
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
