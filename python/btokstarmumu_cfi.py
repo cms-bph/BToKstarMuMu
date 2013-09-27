@@ -99,7 +99,7 @@ process.localV0Candidates = cms.EDProducer(
     tkNhitsCut = cms.int32(6),
     #   Track impact parameter significance >
     #impactParameterSigCut = cms.double(2.),
-    impactParameterSigCut = cms.double(1.),
+    impactParameterSigCut = cms.double(1.2),
     # We calculate the PCA of the tracks quickly in RPhi, extrapolating
     # the z position as well, before vertexing.  Used in the following 2 cuts:
     #   m_pipi calculated at PCA of tracks <
@@ -121,7 +121,7 @@ process.localV0Candidates = cms.EDProducer(
     lVtxCut = cms.double(0.0),
     #   Radial vertex significance >
     #vtxSignificance2DCut = cms.double(15.0),
-    vtxSignificance2DCut = cms.double(8.5),
+    vtxSignificance2DCut = cms.double(10.0),
     #   3D vertex significance using primary vertex
     #   (UNUSED)
     vtxSignificance3DCut = cms.double(0.0),
