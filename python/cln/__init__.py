@@ -67,5 +67,11 @@ def parse_ls(content, ignore=None, poz=None):
 
 def quick_rm(dir):
     cmd = 'rm -rf %s' % dir
+ 
+    sys.stdout.write('Have you checked the output been merged correctly? \n')
+    s = raw_input('Do you want to remove all of raw output files? (yes or no) ')
+    if s != 'yes':
+        return
+
     proc_cmd(cmd)
     sys.stdout.write(' done.\n')     
