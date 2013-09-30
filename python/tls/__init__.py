@@ -871,6 +871,7 @@ def list_to_file(li, f, listname='l', prefix=''):
 
 def merge_root_files(srcdir, dstdir, force_update_db=False, job=None, 
                      size_max=2*9.8e8, nfile_max=500):
+
     dbname = '.files.db'
     dbfile = check_and_join(dstdir, dbname)
 
@@ -910,7 +911,13 @@ def merge_root_files(srcdir, dstdir, force_update_db=False, job=None,
         sys.stdout.flush()
         
         output = proc_cmd(cmd, procdir=srcdir)
-        print output 
+        print output
+
+    sys.stdout.write('Merged files: \n')
+    cmd = 'ls -lh %s' % dstdir
+    output = proc_cmd(cmd)
+    print output 
+
 
 def numbers_to_string(numbers):
     strnums = map(str, numbers)
