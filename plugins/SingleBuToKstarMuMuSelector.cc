@@ -29,6 +29,7 @@ TTree *tree_;
 // Branch variables for new tree
 int    Nb = 0;
 double Mumumass = 0; 
+double Mumumasserr = 0; 
 double Kstarmass = 0; 
 double Trkpt = 0; 
 double Trkdcasigbs = 0; 
@@ -89,6 +90,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
   tree_ = new TTree("tree", "tree"); 
   
   tree_->Branch("Mumumass", &Mumumass, "Mumumass/D");
+  tree_->Branch("Mumumasserr", &Mumumasserr, "Mumumasserr/D");
   tree_->Branch("Kstarmass", &Kstarmass, "Kstarmass/D");
   tree_->Branch("Trkpt", &Trkpt, "Trkpt/D");
   tree_->Branch("Trkdcasigbs", &Trkdcasigbs, "Trkdcasigbs/D");
@@ -211,6 +213,7 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Bpt = b.Pt(); 
 
   Mumumass = mumumass->at(i); 
+  Mumumasserr = mumumasserr->at(i); 
   Kstarmass = kstarmass->at(i); 
   Trkpt = trkpt->at(i); 
   Trkdcasigbs = fabs( trkdcabs->at(i)/trkdcabserr->at(i) ); 

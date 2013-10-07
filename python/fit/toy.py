@@ -30,11 +30,13 @@ def proc_bin(binnum, args):
     fittype = args[2]
     effcorr = args[3]
 
-    test = get_options(args, 'test')
-    pbar = get_options(args, 'pbar')
-    batch = get_options(args, 'batch')
-    queue = get_options(args, 'queue')
-    jobname = get_options(args, 'jobname')
+    test = option_exists(args, '-t')
+    pbar = option_exists(args, '-pbar')
+    batch = option_exists(args, '-b')
+    #queue = get_option(args, 'queue')
+    jobname = '' #get_option(args, 'jobname')
+
+    parafile  = '../python/ParameterFile.txt'
 
     if not jobname:
         jobname = '%s%s' %(fittype, binnum)
