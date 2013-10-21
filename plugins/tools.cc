@@ -5,13 +5,15 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <TChain.h>
 #include <TStyle.h>
 #include <TROOT.h>
+#include <TFile.h>
+#include <TChain.h>
+#include "tools.h"
 
 using namespace std; 
 
-void set_root_style(int stat=1110, int grid=0){
+void set_root_style(int stat, int grid){
   gROOT->Reset();
 
   gStyle->SetTitleFillColor(0) ; 
@@ -41,27 +43,50 @@ void set_root_style(int stat=1110, int grid=0){
   gStyle->SetStatBorderSize(1); 
 }
 
-TChain* add_chain(TString datatype, TString label, TString cut, int verbose=0){
-  TChain *globChain = new TChain("tree");
-  // TString base = Form("%s/sel", getenv("dat")); 
+TChain* add_chain(TString datatype, TString label, TString cut, int verbose){
+  if  ( cut.Contains("/") ) {
+    int idx = cut.Index("/"); 
+    cut.Remove(idx, cut.Sizeof()-idx); 
+  }
+
   TString fNameList = Form("../data/sel_%s_%s_%s_rootfiles.txt",
 			   datatype.Data(), label.Data(), cut.Data());
   // if (verbose >0 ) 
-    cout << ">>> Load Chain from file: " << fNameList << endl;
+  cout << ">>> Load Chain from file: " << fNameList << endl;
 
+  TString fileName; 
+  int num_lines = get_number_of_lines(fNameList, datatype, fileName); 
+
+  // cout << "Number of lines: " << num_lines << endl; 
+  if (num_lines == 1) {
+    // cout << fileName.Data() << endl;
+    TFile *f = new TFile(fileName.Data());
+    TChain *ch = (TChain*)f->Get("tree");
+    return ch; 
+  }
+
+  
+  TChain *globChain = new TChain("tree");
   ifstream fList(fNameList.Data());
   if (!fList)
     { cerr << "!!! Can't open file " << fNameList << endl;
       return NULL;
     }
 
-  char lineFromFile[255];
-  while(fList.getline(lineFromFile, 250))
+  string lineFromFile;
+  while( getline(fList, lineFromFile) )
     {
-      TString fileName = lineFromFile;
-      fileName = Form("%s/sel/%s/%s", getenv("dat"), 
-		      datatype.Data(), fileName.Data());
+      if (lineFromFile.empty()) continue; 
+
+      // TString fileName = lineFromFile;
+      fileName = lineFromFile;
       
+      if (datatype == "data") {
+	fileName = Form("%s/sel/data/%s", getenv("dat"), fileName.Data());
+      } else {
+	fileName = Form("%s/sel/mc/%s", getenv("dat"), fileName.Data());
+      }
+
       if(globChain->Add(fileName)){
 	if (verbose >0 ) 
 	  cout << ">> File '" << fileName << "' has been loaded" << endl;
@@ -89,3 +114,59 @@ bool option_exists(char** begin, char** end, const std::string& option){
   return std::find(begin, end, option) != end;
 }
 
+
+int get_number_of_lines(TString fNameList, TString datatype, 
+			TString &fileName){
+  string lineFromFile;
+  
+  ifstream fList(fNameList.Data());
+  
+  int n = 0 ; 
+  while( getline(fList, lineFromFile) )
+    {
+      if (lineFromFile.empty()) continue; 
+
+      // TString fileName = lineFromFile;
+      fileName = lineFromFile;
+      if (datatype == "data") {
+	fileName = Form("%s/sel/data/%s", getenv("dat"), fileName.Data());
+      } else {
+	fileName = Form("%s/sel/mc/%s", getenv("dat"), fileName.Data());
+      }
+      n++; 
+    }
+  return n; 
+}
+
+
+double calc_scale_factor(TString datatype, TString energy){
+  double scaleFactor = 0.0;
+  
+  double BF_BuToKstarJPsi = 1.34e-3; // +/- 0.06 PDG2012 
+  double BF_KstarToK0Pi = 2.0/3; 
+  double BF_K0ToKshort = 1.0/2; 
+  double BF_JPsiToMuMu = 5.93e-2; // +/- 0.06 
+  
+  double BF_BuToKshortPiMuMu = BF_BuToKstarJPsi*BF_KstarToK0Pi*
+    BF_K0ToKshort*BF_JPsiToMuMu; 
+  
+  double lumi = 0.0; 
+  double xsec_pythia = 0.0; 
+  if ( energy == "7TeV") {
+    lumi = 5.2; // pb^-1 
+    xsec_pythia = 48.44e9; // pb 
+  } 
+  else if ( energy == "8TeV") {
+    lumi = 19000; // pb^-1?? need to check 
+    xsec_pythia = 49.59e9; // pb
+  }
+  
+  if (datatype == "BuToKstarJPsi") {
+    double gen_eff = 1.43e-3; 
+    double nreco = 502273.0;
+    double lumi_mc = nreco/(xsec_pythia * BF_BuToKshortPiMuMu * gen_eff) ;
+    scaleFactor = lumi_mc/lumi; 
+  }
+
+  return scaleFactor; 
+}

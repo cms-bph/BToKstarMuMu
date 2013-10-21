@@ -62,8 +62,6 @@ def filter_com_func_name(com_name):
         
     return com_name
     
- 
-
 def Run2011A_May10ReReco_v1_run2011v1(f, label):
     com_name = get_name_from_label(label)
     cfg_name = 'crab_%s.cfg' % com_name
@@ -88,10 +86,35 @@ def Run2011A_May10ReReco_v1_run2011v1(f, label):
     return f, cfg_file
 
 
+
 def Run2011A_PromptReco_v4_run2011v1(f, label):
     f, cfg_file = Run2011A_May10ReReco_v1_run2011v1(f, label)
+
+
+def Run2011A_PromptReco_v4_run2011v0(f, label):
+    f, cfg_file = Run2011A_May10ReReco_v1_run2011v0(f, label)
     f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco.py')
     return f, cfg_file
+
+def Run2011A_PromptReco_v5_run2011v0(f, label):
+    return Run2011A_PromptReco_v4_run2011v0(f, label)
+
+def Run2011A_PromptReco_v6_run2011v0(f, label):
+    return Run2011A_PromptReco_v4_run2011v0(f, label)
+
+def Run2011B_PromptReco_v1_run2011v0(f, label):
+    f, cfg_file = Run2011A_PromptReco_v4_run2011v0(f, label)
+    if label == 'Run2011B-PromptReco-v1_run2011v0.1': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v1.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.2': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v2.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.3': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v3.py')
+    if label == 'Run2011B-PromptReco-v1_run2011v0.4': 
+        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v4.py')
+
+    return f, cfg_file
+
 
 def Run2011A_PromptReco_v5_run2011v1(f, label):
     return Run2011A_PromptReco_v4_run2011v1(f, label)

@@ -115,6 +115,22 @@ def proc_one_job(rootfile, datatype, label, job=None, test=False,
         'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v1/python')
         cmd = 'cmsRun btokstarmumu_Run2011A-May10ReReco-v1.py'
 
+    elif label in ['Run2011A-PromptReco-v4_run2011v0', 
+                   'Run2011A-PromptReco-v5_run2011v0', 
+                   'Run2011A-PromptReco-v6_run2011v0', 
+                   'Run2011B-PromptReco-v1_run2011v0', 
+                   ]:
+        procdir = os.path.join(atr.afbpath,
+        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
+        cmd = 'cmsRun btokstarmumu_Run2011A-PromptReco.py'
+ 
+    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v0', 
+                   'BuToKstarMuMu-7TeV-2E7-v1_run2011v0', 
+                   ]:
+        procdir = os.path.join(atr.afbpath,
+        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
+        cmd = 'cmsRun btokstarmumu_MC.py'
+ 
     else:
         raise NameError(label)
 
