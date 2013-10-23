@@ -1,6 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-import os 
-cmssw_version = os.environ['CMSSW_VERSION']
 
 process = cms.Process("Ntuple")
 
@@ -11,7 +9,7 @@ process.MessageLogger = cms.Service(
     destinations = cms.untracked.vstring('cerr', 'cout', 'message'),
     categories = cms.untracked.vstring('myHLT', 'myVertex', 'myDimuon', 'myKshort',
                                        'myMuonMatch', 'myKstarCharged',
-                                       'myKshortMatch', 'myBu', 'myBd'),
+                                       'myKshortMatch', 'myBu'),
     cerr = cms.untracked.PSet(threshold = cms.untracked.string('WARNING')),
     cout = cms.untracked.PSet(
         threshold = cms.untracked.string('INFO'),
@@ -24,7 +22,6 @@ process.MessageLogger = cms.Service(
         myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
         myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
         myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-        myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
     ), 
      message = cms.untracked.PSet(
          threshold = cms.untracked.string('INFO'),
@@ -37,7 +34,6 @@ process.MessageLogger = cms.Service(
          myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
          myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
          myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
-         myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
      )
     )
 
@@ -47,9 +43,8 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.GeometryExtended_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-if 'CMSSW_5_3' in cmssw_version: 
-    process.load('Configuration.Geometry.GeometryIdeal_cff')
- 
+process.load('Configuration.Geometry.GeometryIdeal_cff')
+
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
 # add track candidates
@@ -66,11 +61,9 @@ makeTrackCandidates(process,
 )    
 
 from PhysicsTools.PatAlgos.tools.coreTools import *
-if 'CMSSW_4_2' in cmssw_version: 
-    removeMCMatching(process, ['All'], outputInProcess = False)
+#removeMCMatching(process, ['All'], outputInProcess = False)
+removeMCMatching(process, ['All'], outputModules=[])
 
-if 'CMSSW_5_3' in cmssw_version: 
-    removeMCMatching(process, ['All'], outputModules=[])
 
 process.localV0Candidates = cms.EDProducer(
     "V0Producer",
@@ -107,7 +100,7 @@ process.localV0Candidates = cms.EDProducer(
     tkNhitsCut = cms.int32(6),
     #   Track impact parameter significance >
     #impactParameterSigCut = cms.double(2.),
-    impactParameterSigCut = cms.double(1.2),
+    impactParameterSigCut = cms.double(0.5),
     # We calculate the PCA of the tracks quickly in RPhi, extrapolating
     # the z position as well, before vertexing.  Used in the following 2 cuts:
     #   m_pipi calculated at PCA of tracks <
@@ -129,7 +122,7 @@ process.localV0Candidates = cms.EDProducer(
     lVtxCut = cms.double(0.0),
     #   Radial vertex significance >
     #vtxSignificance2DCut = cms.double(15.0),
-    vtxSignificance2DCut = cms.double(10.0),
+    vtxSignificance2DCut = cms.double(5.0),
     #   3D vertex significance using primary vertex
     #   (UNUSED)
     vtxSignificance3DCut = cms.double(0.0),
@@ -153,83 +146,53 @@ process.localV0Candidates = cms.EDProducer(
  
 process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
-    OutputFileName = cms.string("BToKstarMuMu.root"),
-
-    BuildBuToKstarMuMu = cms.untracked.bool(True), 
-    BuildBdToKstarMuMu = cms.untracked.bool(False), 
-
-    # particle properties 
-    MuonMass = cms.untracked.double(0.10565837), 
-    MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
-    PionMass = cms.untracked.double(0.13957018), 
-    PionMassErr = cms.untracked.double(3.5e-7),
-    KaonMass = cms.untracked.double(0.493677), 
-    KaonMassErr = cms.untracked.double(1.6e-5),
-    KshortMass = cms.untracked.double(0.497614), 
-    KshortMassErr = cms.untracked.double(0.000024),
-    BuMass = cms.untracked.double(5.27925),
-
-    # labels
+    FileName = cms.string("BToKstarMuMu.root"),
+    SaveGenInfo = cms.untracked.bool(False),
     GenParticlesLabel = cms.InputTag("genParticles"),
     TriggerResultsLabel = cms.InputTag("TriggerResults","", 'HLT'),
+    TriggerNames = cms.vstring([]),
+    LastFilterNames = cms.vstring([]),
     BeamSpotLabel = cms.InputTag('offlineBeamSpot'),
     VertexLabel = cms.InputTag('offlinePrimaryVertices'),
     MuonLabel = cms.InputTag('cleanPatMuonsTriggerMatch'),
+
+    MuonMinPt = cms.untracked.double(3.0), # [GeV]
+    MuonMaxEta = cms.untracked.double(2.2),  
+    TrkMaxDcaBs = cms.untracked.double(2.0), # [cm]
+    TrkMaxR = cms.untracked.double(110.0), # [cm]
+    TrkMaxZ = cms.untracked.double(280.0), # [cm]
+    MuMuMaxDca = cms.untracked.double(0.5), # [cm]
+    MuMuMinVtxCl = cms.untracked.double(0.05), 
+    MuMuMinPt = cms.untracked.double(6.9), # [GeV/c]
+    MuMuMinInvMass = cms.untracked.double(1.0), # [GeV/c2]
+    MuMuMaxInvMass = cms.untracked.double(4.8), # [GeV/c2]
+    MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
+    MuMuMinCosAlphaBs = cms.untracked.double(0.9),
+
+    MuonMass = cms.untracked.double(0.10565837), 
+    MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
+
     #KshortLabel = cms.InputTag('generalV0Candidates:Kshort'),
     KshortLabel = cms.InputTag('localV0Candidates:Kshort'),
     TrackLabel = cms.InputTag('cleanPatTrackCands'), 
-    TriggerNames = cms.vstring([]),
-    LastFilterNames = cms.vstring([]),
+    PionMass = cms.untracked.double(0.13957018), 
+    PionMassErr = cms.untracked.double(0.13957018*1e-6),
+    KshortMass = cms.untracked.double(0.497614), 
+    KshortMassErr = cms.untracked.double(0.000024),
+ 
+    DimukshortMinMass = cms.untracked.double(2.0),
+    DimukshortMaxMass = cms.untracked.double(8.0),
 
+    KstarChargedTrackMinPt = cms.untracked.double(0.0), # [GeV/c]
+    KstarMinMass = cms.untracked.double(0.49), # [GeV/c2] K*+ mass = 891.66 +- 0.26 MeV 
+    KstarMaxMass = cms.untracked.double(1.29), # [GeV/c2] K*0 mass = 895.94 +- 0.26 MeV
 
-    # gen particle 
-    IsMonteCarlo = cms.untracked.bool(False),
-    TruthMatchMuonMaxR = cms.untracked.double(0.004), # [eta-phi]
-    TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
-    TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
-
-    # HLT-trigger cuts 
-    MuonMinPt = cms.untracked.double(3.0), # [GeV]
-    MuonMaxEta = cms.untracked.double(2.2),  
-    MuonMaxDcaBs = cms.untracked.double(2.0), # [cm]
-
-    MuMuMinPt = cms.untracked.double(6.9),      # [GeV/c]
-    MuMuMinInvMass = cms.untracked.double(1.0), # [GeV/c2]
-    MuMuMaxInvMass = cms.untracked.double(4.8), # [GeV/c2]
-
-    MuMuMinVtxCl = cms.untracked.double(0.05), 
-    MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
-    MuMuMaxDca = cms.untracked.double(0.5), # [cm]
-    MuMuMinCosAlphaBs = cms.untracked.double(0.9),
-
-    # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.6), # 0.4 [GeV/c]
-    TrkMaxDcaSigBs = cms.untracked.double(1.0), # 1.2 hadron DCA/sigma w/respect to BS 
-    TrkMaxR = cms.untracked.double(110.0), # [cm]
-    TrkMaxZ = cms.untracked.double(280.0), # [cm]
-
-    # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
-    KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
-    KstarMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
-
-    # K*0 mass = 895.94 +/- 0.22 MeV, full width = 48.7 +/- 0.8 MeV 
-    # Since the value are quite same, choose the larger one: 
-    #KstarZeroMinMass = cms.untracked.double(0.75), # [GeV/c2]  - 3 sigma of the width
-    #KstarZeroMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
-
-    BMinVtxCl = cms.untracked.double(0.01), 
-    BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 
-    BMaxMass = cms.untracked.double(8.0), # [GeV/c2] B+ mass = 5279 MeV 
-
-<<<<<<< HEAD
     BMaxMass = cms.untracked.double(8.0), # [GeV/c2]n B+ mass = 5279 MeV 
     BuMass = cms.untracked.double(5.27925),
     BMaxCandNum =  cms.untracked.int32(200),
     # B3MinMass = cms.untracked.double(4.5), 
     # B3MaxMass = cms.untracked.double(6.0), 
     # B3MinLsBs = cms.untracked.double(0.5),
-=======
->>>>>>> b0399ed6062e8c0f20c410c1377ea049b207016b
 )
 
 
@@ -242,15 +205,11 @@ process.patDefaultSequence.remove(process.patJetPartons)
 process.patDefaultSequence.remove(process.patJetPartonAssociation)
 process.patDefaultSequence.remove(process.patJetFlavourAssociation)
 process.patDefaultSequence.remove(process.patJets)
-
-if 'CMSSW_4_2' in cmssw_version: 
-    process.patDefaultSequence.remove(process.metJESCorAK5CaloJet)
-    process.patDefaultSequence.remove(process.metJESCorAK5CaloJetMuons)
-
+#process.patDefaultSequence.remove(process.metJESCorAK5CaloJet)
+#process.patDefaultSequence.remove(process.metJESCorAK5CaloJetMuons)
 process.patDefaultSequence.remove(process.patMETs)
 process.patDefaultSequence.remove(process.selectedPatJets)
 process.patDefaultSequence.remove(process.cleanPatJets)
 process.patDefaultSequence.remove(process.countPatJets)
 
-#process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
-process.p = cms.Path(process.patDefaultSequence * process.ntuple)
+process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)

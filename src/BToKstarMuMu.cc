@@ -333,7 +333,18 @@ private:
   double BMaxMass_; 
 
 
+<<<<<<< HEAD
+  // B meson
+  pat::CompositeCandidateCollection BuCandidates_;  
+  //   BuToPiMuMuCandidates_; 
+  double BMaxMass_; 
+  double BuMass_; 
+  int BMaxCandNum_;  
+  // double B3MinMass_, B3MaxMass_, B3MinLsBs_; 
+  
+=======
   // --- end input from python file --- 
+>>>>>>> b0399ed6062e8c0f20c410c1377ea049b207016b
 
  
   // Across the event 
@@ -482,6 +493,15 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   BMinVtxCl_(iConfig.getUntrackedParameter<double>("BMinVtxCl")),
   BMinMass_(iConfig.getUntrackedParameter<double>("BMinMass")),
   BMaxMass_(iConfig.getUntrackedParameter<double>("BMaxMass")),
+<<<<<<< HEAD
+  BuMass_(iConfig.getUntrackedParameter<double>("BuMass")),
+  BMaxCandNum_(iConfig.getUntrackedParameter<int>("BMaxCandNum")),
+  // B3MinMass_(iConfig.getUntrackedParameter<double>("B3MinMass")),
+  // B3MaxMass_(iConfig.getUntrackedParameter<double>("B3MaxMass")),
+  // B3MinLsBs_(iConfig.getUntrackedParameter<double>("B3MinLsBs")),
+
+=======
+>>>>>>> b0399ed6062e8c0f20c410c1377ea049b207016b
 
   tree_(0), 
   triggernames(0), triggerprescales(0), 
@@ -1006,11 +1026,36 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
   RefCountedKinematicTree vertexFitTree, ksVertexFitTree;
 
 
+<<<<<<< HEAD
+	if ( ! hasGoodBuVertex(*iDimuon, *iKshort, *iTrack, vertexFitTree)) continue; 
+	
+	if ( ! hasGoodKstarChargedMass(vertexFitTree) ) continue; 
+	
+	if ( ! hasGoodBuMass(vertexFitTree) ) continue; 
+	
+	nBu++; 
+
+	if (nBu > BMaxCandNum_) break; 
+	// BuCandidate.setCharge(iKstarCharged->charge()); 
+	// BuCandidate.setCharge(iTrack->charge()); 
+	// BuCandidates_.push_back(BuCandidate);      
+	
+	bchg->push_back(iTrack->charge()); 
+	saveBuToKstarMuMu(vertexFitTree); 
+	saveBuVertex(vertexFitTree); 
+	saveBuCosAlpha(vertexFitTree); 
+	saveBuLsig(vertexFitTree); 
+	saveBuCtau(vertexFitTree); 
+      }
+    }
+  }
+=======
   // ---------------------------------
   // loop 1: mu-
   // ---------------------------------
   for (vector<pat::Muon>::const_iterator iMuonM = patMuonHandle->begin(); 
        iMuonM != patMuonHandle->end(); iMuonM++){
+>>>>>>> b0399ed6062e8c0f20c410c1377ea049b207016b
     
     reco::TrackRef muTrackm = iMuonM->innerTrack(); 
     if ( muTrackm.isNull() ) continue; 
