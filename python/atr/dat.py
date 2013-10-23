@@ -99,69 +99,22 @@ def get_lumi_mask_run2012(label):
 
     
 def jobs_created(datatype, label):
-    if datatype == 'data' and label in [
-            'Run2011A-May10ReReco-v1_run2011v0_2'
-            ]:
-        total_jobs = 1028
-    elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v4_run2011v0_1',
-            ]:
-        total_jobs = 1279
-    elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v5_run2011v0'
-            ]:
-        total_jobs = 326
-    elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v6.5'
-            ]:
-        total_jobs = 474 
-    elif datatype == 'data' and label in [
-            'Run2011A-PromptReco-v6_run2011v0', 
-            ]:
-        total_jobs = 473 
-    elif datatype == 'data' and label in [
-            'Run2011B-PromptReco-v1.6'
-            ]:
-        total_jobs = 1504 
+    if datatype == 'data' and label in ['Run2011A-May10ReReco-v1_run2011v1']:
+        total_jobs = 2725
 
-    elif datatype == 'data' and label in [
-            'Run2011B-PromptReco-v1_run2011v0', 
-            ]:
-        total_jobs = 1578
+    elif datatype == 'data' and label in ['Run2011A-PromptReco-v4_run2011v1']:
+        total_jobs = 1291
 
-    elif datatype == 'mc' and label in [
-            'B2KstarMuMu/RECO_Brian_prod_2_1_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_2_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_3_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_4_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_8_v5',
-            'B0JPsiKstMuMuKPi/RECO_Brian_prod1_v5',
-            'B0Psi2SKstMuMuKPi/RECO_Brian_prod1_v5',
-            'B2KstarMuMu/RECO_Brian_prod_2_1_v7', 
-            'B2KstarMuMu/RECO_Brian_prod_2_2_v7', 
-            'B2KstarMuMu/RECO_Brian_prod_2_3_v7', 
-            'B2KstarMuMu/RECO_Brian_prod_2_4_v7', 
-            'B2KstarMuMu/RECO_Brian_prod_2_8_v7',
-            'B0JPsiKstMuMuKPi/RECO_Brian_prod1_v7',
-            'B0Psi2SKstMuMuKPi/RECO_Brian_prod1_v7',
-            ]:
-        total_jobs = 101 
+    elif datatype == 'data' and label in ['Run2011A-PromptReco-v5_run2011v1']:
+        total_jobs = 327
 
-    elif datatype == 'mc' and label in [
-            'B2KstarMuMu/RECO_Brian_prod_2_6_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_7_v5', 
-            'B2KstarMuMu/RECO_Brian_prod_2_6_v7', 
-            'B2KstarMuMu/RECO_Brian_prod_2_7_v7', 
-            ]:
-        total_jobs = 100 
+    elif datatype == 'data' and label in ['Run2011A-PromptReco-v6_run2011v1']:
+        total_jobs = 480 
 
-    elif datatype == 'data' and label in [
-            'Run2011A-May10ReReco-v1.10.6', 
-            'Run2011A-May10ReReco-v1.11'
-            ]:
-        total_jobs = 1028
-    elif label in [
-            'BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1', 
+    elif datatype == 'data' and label in ['Run2011B-PromptReco-v1_run2011v1']:
+        total_jobs = 1798
+
+    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v1', 
             ]:
         total_jobs = 200 
     elif label in [
@@ -180,29 +133,29 @@ def get_filepath(datatype, label):
     primarydataset = ''
     psethash = ''    
     comname = get_name_from_label(label)
-    if 'Run2011A-May10ReReco-v1_run2011v0_2' in label:
+    if 'Run2011A-May10ReReco-v1_run2011v1' in label:
         primarydataset = 'MuOnia'
-        psethash = 'f379a209b0c58c9fe256f1d4da070fb3'
+        psethash = '7832650ad13378e362824b793e74b5ef'
 
-    elif 'Run2011A-PromptReco-v4_run2011v0_1' in label:
+    elif 'Run2011A-PromptReco-v4_run2011v1' in label:
         primarydataset = 'MuOnia'
-        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+        psethash = '12d093a44a0e90cf594f6f76582ad92e'
     
-    elif 'Run2011A-PromptReco-v5_run2011v0' in label:
+    elif 'Run2011A-PromptReco-v5_run2011v1' in label:
         primarydataset = 'MuOnia'
-        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+        psethash = '12d093a44a0e90cf594f6f76582ad92e'
     
-    elif 'Run2011A-PromptReco-v6_run2011v0' in label:
+    elif 'Run2011A-PromptReco-v6_run2011v1' in label:
         primarydataset = 'MuOnia'
-        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+        psethash = '12d093a44a0e90cf594f6f76582ad92e'
 
-    elif 'Run2011B-PromptReco-v1_run2011v0' in label:
+    elif 'Run2011B-PromptReco-v1_run2011v1' in label:
         primarydataset = 'MuOnia'
-        psethash = '09dd54ed3307c6d768a6853667b85e6a'
+        psethash = '12d093a44a0e90cf594f6f76582ad92e'
 
-    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1' in label): 
+    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v1' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
-        psethash = '18546abab6efe9d539f70708ba8bd3ea'
+        psethash = 'a2cbd59f90c5e3694010a7612c1b81d6'
  
     else:
         raise NameError(label)

@@ -35,49 +35,45 @@ def make_src_str(files, test=False):
     return src_str
 
 
-def BuToKstarJPsi_7TeV_5E5_v1_run2011v1_1(com_name):
+def BuToKstarJPsi_7TeV_5E5_v1_run2011v1(com_name):
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
     srcdir = os.path.join(
         eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
-        com_name, '18546abab6efe9d539f70708ba8bd3ea')
+        com_name, 'a2cbd59f90c5e3694010a7612c1b81d6')
     dstdir = os.path.join(eosbase, 'dat/ntp/mc', com_name)
     merge_root_files(srcdir, dstdir)
 
 
-def Run2011A_May10ReReco_v1_run2011v0_2(com_name):
+def Run2011A_May10ReReco_v1_run2011v1(com_name):
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
     srcdir = os.path.join(
         eosbase, 'MuOnia',
-        com_name, 'f379a209b0c58c9fe256f1d4da070fb3')
+        com_name, '7832650ad13378e362824b793e74b5ef')
     dstdir = os.path.join(eosbase, 'dat/ntp/data', com_name)
     merge_root_files(srcdir, dstdir)
 
 
-def Run2011A_PromptReco_v4_run2011v0_1(com_name):
+def Run2011A_PromptReco_v4_run2011v1(com_name):
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
     srcdir = os.path.join(
         eosbase, 'MuOnia',
-        com_name, '09dd54ed3307c6d768a6853667b85e6a')
+        com_name, '12d093a44a0e90cf594f6f76582ad92e')
     dstdir = os.path.join(eosbase, 'dat/ntp/data', com_name)
     merge_root_files(srcdir, dstdir)
 
-def Run2011A_PromptReco_v5_run2011v0(com_name):
-    Run2011A_PromptReco_v4_run2011v0_1(com_name)
+def Run2011A_PromptReco_v5_run2011v1(com_name):
+    Run2011A_PromptReco_v4_run2011v1(com_name)
 
 
-def Run2011A_PromptReco_v6_run2011v0(com_name):
-    Run2011A_PromptReco_v5_run2011v0(com_name)
+def Run2011A_PromptReco_v6_run2011v1(com_name):
+    Run2011A_PromptReco_v5_run2011v1(com_name)
 
 
-def Run2011B_PromptReco_v1_run2011v0(com_name):
-    Run2011A_PromptReco_v6_run2011v0(com_name)
+def Run2011B_PromptReco_v1_run2011v1(com_name):
+    Run2011A_PromptReco_v6_run2011v1(com_name)
 
 
-def BuToKstarJPsi_7TeV_5E5_v1_run2011v0_2(com_name):
-    BuToKstarJPsi_7TeV_5E5_v1_run2011v0_1(com_name) 
-
-
-def BuToKstarMuMu_7TeV_2E7_v1_run2011v0_2(com_name):
+def BuToKstarMuMu_7TeV_2E7_v1_run2011v1(com_name):
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
     srcdir = os.path.join(
         eosbase, 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen',

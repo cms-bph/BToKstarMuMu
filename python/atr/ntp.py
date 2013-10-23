@@ -40,13 +40,14 @@ def rootfile(datatype, label, test=False):
 
 
 def rootpath(datatype, label, test=False):
-    eosbase = 'root://eoscms//eos/cms/store/user/xshi/'
-    
+    #eosbase = 'root://eoscms//eos/cms/store/user/xshi/'
+    datpath = atr.datpath 
+
     if datatype == 'data': 
         ntp_label = get_label_by_version(label, 'x')
-        inpath = os.path.join(eosbase, 'dat/ntp/data', ntp_label)
+        inpath = os.path.join(datpath, 'ntp/data', ntp_label)
     else:
-        inpath = os.path.join(eosbase, 'dat/ntp/mc', label)
+        inpath = os.path.join(datpath, 'ntp/mc', label)
 
     return inpath 
 
@@ -146,19 +147,24 @@ def datasets_njobs(label):
 def grid_path(label):
     com_name = get_name_from_label(label)
     eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
-    if label in ['Run2011A-PromptReco-v4_run2011v0_1', 
-                 'Run2011A-PromptReco-v5_run2011v0', 
-                 'Run2011A-PromptReco-v6_run2011v0', 
-                 'Run2011B-PromptReco-v1_run2011v0'
+    if label in ['Run2011A-PromptReco-v4_run2011v1', 
+                 'Run2011A-PromptReco-v5_run2011v1', 
+                 'Run2011A-PromptReco-v6_run2011v1', 
+                 'Run2011B-PromptReco-v1_run2011v1'
                  ] : 
         srcdir = os.path.join(
             eosbase, 'MuOnia',
-            com_name, '09dd54ed3307c6d768a6853667b85e6a')
-    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1', 
+            com_name, '12d093a44a0e90cf594f6f76582ad92e')
+    elif label in ['Run2011A-May10ReReco-v1_run2011v1'] : 
+        srcdir = os.path.join(
+            eosbase, 'MuOnia',
+            com_name, '832650ad13378e362824b793e74b5ef')
+
+    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v1', 
                    ] : 
         srcdir = os.path.join(
             eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
-            com_name, '18546abab6efe9d539f70708ba8bd3ea')
+            com_name, 'a2cbd59f90c5e3694010a7612c1b81d6')
     else:
         raise NameError(label)
     return srcdir 
@@ -169,7 +175,7 @@ num_rootfiles = {
     'Run2011A_PromptReco_v4_run2011v0_1' : 3, 
     'Run2011A_PromptReco_v5_run2011v0': 1, 
     'Run2011A_PromptReco_v6_run2011v0': 1, 
-    'Run2011B_PromptReco_v1_run2011v0': 3, 
+    'Run2011B_PromptReco_v1_run2011v1': 1, 
     'BuToKstarMuMu_7TeV_2E7_v1_run2011v1_1': 1, 
     }
 
