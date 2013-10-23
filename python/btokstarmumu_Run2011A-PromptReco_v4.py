@@ -87,6 +87,12 @@ g_LastFilterNames = [i[1] for i in g_TriggerNames_LastFilterNames]
 process.ntuple.TriggerNames = cms.vstring(g_TriggerNames)
 process.ntuple.LastFilterNames = cms.vstring(g_LastFilterNames)
 
+process.ntuple.TrkMinPt = cms.untracked.double(0.3) # [GeV/c]
+process.ntuple.TrkMaxDcaSigBs = cms.untracked.double(1.0) 
+
+process.p = cms.Path(process.patDefaultSequence * process.localV0Candidates * process.ntuple)
+
+
 test = False
 if test: 
     process.ntuple.FileName = cms.string("test.root")
