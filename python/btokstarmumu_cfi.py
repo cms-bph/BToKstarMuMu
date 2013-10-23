@@ -11,7 +11,7 @@ process.MessageLogger = cms.Service(
     destinations = cms.untracked.vstring('cerr', 'cout', 'message'),
     categories = cms.untracked.vstring('myHLT', 'myVertex', 'myDimuon', 'myKshort',
                                        'myMuonMatch', 'myKstarCharged',
-                                       'myKshortMatch', 'myBu'),
+                                       'myKshortMatch', 'myBu', 'myBd'),
     cerr = cms.untracked.PSet(threshold = cms.untracked.string('WARNING')),
     cout = cms.untracked.PSet(
         threshold = cms.untracked.string('INFO'),
@@ -24,6 +24,7 @@ process.MessageLogger = cms.Service(
         myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
         myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
         myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+        myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
     ), 
      message = cms.untracked.PSet(
          threshold = cms.untracked.string('INFO'),
@@ -36,6 +37,7 @@ process.MessageLogger = cms.Service(
          myKstarCharged = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
          myKshortMatch = cms.untracked.PSet(limit = cms.untracked.int32(0)), 
          myBu = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
+         myBd = cms.untracked.PSet(limit = cms.untracked.int32(-1)), 
      )
     )
 
@@ -105,7 +107,7 @@ process.localV0Candidates = cms.EDProducer(
     tkNhitsCut = cms.int32(6),
     #   Track impact parameter significance >
     #impactParameterSigCut = cms.double(2.),
-    impactParameterSigCut = cms.double(0.5),
+    impactParameterSigCut = cms.double(1.2),
     # We calculate the PCA of the tracks quickly in RPhi, extrapolating
     # the z position as well, before vertexing.  Used in the following 2 cuts:
     #   m_pipi calculated at PCA of tracks <
@@ -127,7 +129,7 @@ process.localV0Candidates = cms.EDProducer(
     lVtxCut = cms.double(0.0),
     #   Radial vertex significance >
     #vtxSignificance2DCut = cms.double(15.0),
-    vtxSignificance2DCut = cms.double(5.0),
+    vtxSignificance2DCut = cms.double(10.0),
     #   3D vertex significance using primary vertex
     #   (UNUSED)
     vtxSignificance3DCut = cms.double(0.0),
@@ -153,11 +155,16 @@ process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
     OutputFileName = cms.string("BToKstarMuMu.root"),
 
+    BuildBuToKstarMuMu = cms.untracked.bool(True), 
+    BuildBdToKstarMuMu = cms.untracked.bool(False), 
+
     # particle properties 
     MuonMass = cms.untracked.double(0.10565837), 
     MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
     PionMass = cms.untracked.double(0.13957018), 
-    PionMassErr = cms.untracked.double(0.13957018*1e-6),
+    PionMassErr = cms.untracked.double(3.5e-7),
+    KaonMass = cms.untracked.double(0.493677), 
+    KaonMassErr = cms.untracked.double(1.6e-5),
     KshortMass = cms.untracked.double(0.497614), 
     KshortMassErr = cms.untracked.double(0.000024),
     BuMass = cms.untracked.double(5.27925),
@@ -196,14 +203,19 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
     # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.4), # [GeV/c]
-    TrkMaxDcaSigBs = cms.untracked.double(1.2), # hadron DCA/sigma w/respect to BS [1.2]
+    TrkMinPt = cms.untracked.double(0.6), # 0.4 [GeV/c]
+    TrkMaxDcaSigBs = cms.untracked.double(1.0), # 1.2 hadron DCA/sigma w/respect to BS 
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
 
     # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
     KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
     KstarMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
+
+    # K*0 mass = 895.94 +/- 0.22 MeV, full width = 48.7 +/- 0.8 MeV 
+    # Since the value are quite same, choose the larger one: 
+    #KstarZeroMinMass = cms.untracked.double(0.75), # [GeV/c2]  - 3 sigma of the width
+    #KstarZeroMaxMass = cms.untracked.double(1.04), # [GeV/c2]  + 3 sigma of the width
 
     BMinVtxCl = cms.untracked.double(0.01), 
     BMinMass = cms.untracked.double(2.0), # [GeV/c2] B+ mass = 5279 MeV 

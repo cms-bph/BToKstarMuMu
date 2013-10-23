@@ -30,6 +30,10 @@ rfigpath = os.path.join(rafbpath, 'doc', 'fig')
 muon_mass = 0.10565837 # GeV 
 
 def get_afb_from_label(label):
-    afb = 0 
+    if 'run2011v1' in label: 
+        afb = 'run2011v1'
+    else:
+        raise NameError(label)
     return afb 
+
 

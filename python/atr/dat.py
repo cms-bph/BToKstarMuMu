@@ -78,10 +78,10 @@ def get_dataset_run2012(label):
 
 def get_lumi_mask_run2011(label):
     if 'Run2011A-May10ReReco-v1' in label:
-        lumi_mask = 'Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt'
+        lumi_mask = '../data/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_MuonPhys_v3.txt'
     elif 'Run2011A-PromptReco-v' in label or \
         'Run2011B-PromptReco-v' in label:
-        lumi_mask = 'Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt'
+        lumi_mask = '../data/Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON_MuonPhys.txt'
     else:
         raise NameError(label)
 
@@ -161,10 +161,9 @@ def jobs_created(datatype, label):
             ]:
         total_jobs = 1028
     elif label in [
-            'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_1', 
-            'BuToKstarJPsi-7TeV-5E5-v1_run2011v0_2', 
+            'BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1', 
             ]:
-        total_jobs = 20 
+        total_jobs = 200 
     elif label in [
             'BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2', 
             ]:
@@ -201,14 +200,10 @@ def get_filepath(datatype, label):
         primarydataset = 'MuOnia'
         psethash = '09dd54ed3307c6d768a6853667b85e6a'
 
-    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v0' in label): 
+    elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
-        psethash = 'a8d57e0034258aee57fcad0fa4e53647'
+        psethash = '18546abab6efe9d539f70708ba8bd3ea'
  
-    elif ('BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2' in label): 
-        primarydataset = 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen'
-        psethash = 'a8d57e0034258aee57fcad0fa4e53647'
-
     else:
         raise NameError(label)
     

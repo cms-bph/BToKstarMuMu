@@ -154,16 +154,11 @@ def grid_path(label):
         srcdir = os.path.join(
             eosbase, 'MuOnia',
             com_name, '09dd54ed3307c6d768a6853667b85e6a')
-    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v0_2', 
+    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v1_1', 
                    ] : 
         srcdir = os.path.join(
             eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
-            com_name, 'a8d57e0034258aee57fcad0fa4e53647')
-    elif label in ['BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2', 
-                   ] : 
-        srcdir = os.path.join(
-            eosbase, 'BuToKstarMuMu_EtaPtFilter_7TeV-pythia6-evtgen',
-            com_name, 'a8d57e0034258aee57fcad0fa4e53647')
+            com_name, '18546abab6efe9d539f70708ba8bd3ea')
     else:
         raise NameError(label)
     return srcdir 
@@ -175,6 +170,6 @@ num_rootfiles = {
     'Run2011A_PromptReco_v5_run2011v0': 1, 
     'Run2011A_PromptReco_v6_run2011v0': 1, 
     'Run2011B_PromptReco_v1_run2011v0': 3, 
-    'BuToKstarMuMu_7TeV_2E7_v1_run2011v0_2': 5, 
+    'BuToKstarMuMu_7TeV_2E7_v1_run2011v1_1': 1, 
     }
 
