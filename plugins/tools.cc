@@ -100,7 +100,12 @@ TChain* add_chain(TString datatype, TString label, TString cut, int verbose){
       globChain->GetEntries() << endl;
   
   fList.close();
-  return globChain; 
+
+  if ( globChain->GetEntries() > 0) 
+    return globChain; 
+  else
+    return NULL; 
+  
 }
 
 char* get_option(char ** begin, char ** end, const std::string & option){
