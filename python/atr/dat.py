@@ -68,8 +68,14 @@ def get_dataset_run2011(label):
 def get_dataset_run2012(label):
     if 'ParkingMonitor/Run2012B-PromptReco-v1' in label:
 	dataset = '/ParkingMonitor/Run2012B-PromptReco-v1/AOD'
+    elif 'Run2012A-22Jan2013-v1' in label:
+        dataset = '/DoubleMuParked/Run2012A-22Jan2013-v1/AOD'
     elif 'Run2012B-22Jan2013-v1' in label:
-        dataset = '/DoubleMuParked/Run2012B-22Jan2013-v1/AOD'
+        dataset = '/MuOniaParked/Run2012B-22Jan2013-v1/AOD'
+    elif 'Run2012C-22Jan2013-v1' in label:
+        dataset = '/MuOniaParked/Run2012C-22Jan2013-v1/AOD'
+    elif 'Run2012D-22Jan2013-v1' in label:
+        dataset = '/MuOniaParked/Run2012D-22Jan2013-v1/AOD'
     else:
         raise NameError(label)
 
@@ -89,10 +95,8 @@ def get_lumi_mask_run2011(label):
 
 
 def get_lumi_mask_run2012(label):
-    if 'Run2012B-22Jan2013-v1' in label:
-        #lumi_mask = 'Cert_190456-190688_8TeV_PromptReco_Collisions12_JSON_MuonPhys.txt'
-        #lumi_mask = 'Cert_190456-203742_8TeV_22Jan2013ReReco_Collisions12_JSON_MuonPhys.txt'
-        lumi_mask =  'Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON_MuonPhys.txt'
+    if 'Run2012' in label:
+        lumi_mask =  '../data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON_MuonPhys.txt'
     else:
         raise NameError(label)
     return lumi_mask

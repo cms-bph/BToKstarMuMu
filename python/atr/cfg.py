@@ -12,20 +12,21 @@ from tls.filetools import CfgFile
 from tls import * 
 import atr
 from dat import (get_dataset_run2011, get_lumi_mask_run2011,
+                 get_dataset_run2012, get_lumi_mask_run2012,
                  get_output_name)
 
 import cfg 
 
-def crab_cfg(label):
+def crab_cfg(label, pset):
     f = CfgFile()
     f.add_section('CRAB')
     f.set('CRAB', 'jobtype', 'cmssw')
-    f.set('CRAB', 'scheduler', 'glidein')
-    f.set('CRAB', 'use_server', 1)
+    f.set('CRAB', 'scheduler', 'remoteGlidein')
+    f.set('CRAB', 'use_server', 0)
 
     f.add_section('CMSSW')
     f.set('CMSSW', 'datasetpath', 'None')
-    f.set('CMSSW', 'pset', 'test.py')
+    f.set('CMSSW', 'pset', pset)
     f.set('CMSSW', 'total_number_of_events', 1000)
     f.set('CMSSW', 'number_of_jobs', 10)
     f.set('CMSSW', 'output_file', 'test.root')
@@ -37,10 +38,10 @@ def crab_cfg(label):
     f.set('USER', 'ui_working_dir', 'test_dir')
     f.set('USER', 'storage_element', 'T2_CH_CERN')
     f.set('USER', 'user_remote_dir', 'test_dir')
-    f.set('USER', 'publish_data', 1)
-    f.set('USER', 'publish_data_name', 'test_data_name')
-    f.set('USER', 'dbs_url_for_publication',
-          'https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet')
+    f.set('USER', 'publish_data', 0)
+    #f.set('USER', 'publish_data_name', 'test_data_name')
+    #f.set('USER', 'dbs_url_for_publication',
+    #      'https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet')
     
     f.add_section('GRID')
     f.set('GRID', 'virtual_organization', 'cms')
@@ -90,32 +91,6 @@ def Run2011A_May10ReReco_v1_run2011v1(f, label):
 def Run2011A_PromptReco_v4_run2011v1(f, label):
     f, cfg_file = Run2011A_May10ReReco_v1_run2011v1(f, label)
 
-
-def Run2011A_PromptReco_v4_run2011v0(f, label):
-    f, cfg_file = Run2011A_May10ReReco_v1_run2011v0(f, label)
-    f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco.py')
-    return f, cfg_file
-
-def Run2011A_PromptReco_v5_run2011v0(f, label):
-    return Run2011A_PromptReco_v4_run2011v0(f, label)
-
-def Run2011A_PromptReco_v6_run2011v0(f, label):
-    return Run2011A_PromptReco_v4_run2011v0(f, label)
-
-def Run2011B_PromptReco_v1_run2011v0(f, label):
-    f, cfg_file = Run2011A_PromptReco_v4_run2011v0(f, label)
-    if label == 'Run2011B-PromptReco-v1_run2011v0.1': 
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v1.py')
-    if label == 'Run2011B-PromptReco-v1_run2011v0.2': 
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v2.py')
-    if label == 'Run2011B-PromptReco-v1_run2011v0.3': 
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v3.py')
-    if label == 'Run2011B-PromptReco-v1_run2011v0.4': 
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v4.py')
-
-    return f, cfg_file
-
-
 def Run2011A_PromptReco_v5_run2011v1(f, label):
     return Run2011A_PromptReco_v4_run2011v1(f, label)
 
@@ -128,24 +103,6 @@ def Run2011B_PromptReco_v1_run2011v1(f, label):
         f.remove_option('CMSSW', 'lumis_per_job')
         f.set('CMSSW', 'number_of_jobs', 5000)
 
-    if 'run2011v1.2' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v2.py')
-
-    if 'run2011v1.3' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v3.py')
-
-    if 'run2011v1.4' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v4.py')
-
-    if 'run2011v1.5' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v5.py')
-    
-    if 'run2011v1.7' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v7.py')
-    
-    if 'run2011v1.8' in label:
-        f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-PromptReco_v8.py')
-    
     return f, cfg_file
 
 
@@ -177,3 +134,31 @@ def BuToKstarMuMu_7TeV_2E7_v1_run2011v1(f, label):
     f.set('CMSSW', 'number_of_jobs', 1200)
     return f, cfg_file
 
+def Run2012A_22Jan2013_v1(f, label):
+    com_name = get_name_from_label(label)
+    cfg_name = 'crab_%s.cfg' % com_name
+    #cmssw = 'CMSSW_4_2_8_patch7'
+    #src_name = 'BphAna/BToKstarMuMu_run2011v1' 
+    cfg_path = os.getcwd()
+    cfg_file = os.path.join(cfg_path, cfg_name)
+    
+    #f.set('CMSSW', 'pset', 'btokstarmumu_Run2011A-May10ReReco-v1.py')
+    f.set('CMSSW', 'total_number_of_lumis', -1)
+    f.set('CMSSW', 'lumis_per_job', 20)
+    f.remove_option('CMSSW', 'total_number_of_events')
+    f.remove_option('CMSSW', 'number_of_jobs')
+    f.set('CMSSW', 'output_file', 'BToKstarMuMu.root')
+    f.set('CMSSW', 'datasetpath', get_dataset_run2012(label))
+    f.set('CMSSW', 'lumi_mask', get_lumi_mask_run2012(label))
+    f.set('USER', 'user_remote_dir', com_name)
+    f.set('USER', 'ui_working_dir', 'crab_%s' %com_name)
+    return f, cfg_file
+
+def Run2012B_22Jan2013_v1(f, label):
+    return Run2012A_22Jan2013_v1(f, label)
+
+def Run2012C_22Jan2013_v1(f, label):
+    return Run2012A_22Jan2013_v1(f, label)
+
+def Run2012D_22Jan2013_v1(f, label):
+    return Run2012A_22Jan2013_v1(f, label)

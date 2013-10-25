@@ -82,62 +82,47 @@ def proc_one_job(rootfile, datatype, label, job=None, test=False,
         return
 
 
-    if grid:
-        crab_cfg = atr.cfg.crab_cfg(label)
-        cfg_path, cfg_name = os.path.split(crab_cfg)
-
-        sys.stdout.write('Please create grid jobs with command: \n\n')
-        sys.stdout.write('cd %s \n\n' %cfg_path)
-        sys.stdout.write('crab -cfg %s -create\n\n' %cfg_name)
-        return 
 
 
     if job != None: 
         sys.stdout.write('Start processing job %s ...' %job)
     
     time_start = time()
-    if label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v1']:
-        procdir = os.path.join(atr.afbpath,
-        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v1/python')
-        cmd = 'cmsRun btokstarmumu_MC.py'
 
-    elif label in ['Run2011B-PromptReco-v1_run2011v1',
-                   'Run2011A-PromptReco-v4_run2011v1', 
-                   'Run2011A-PromptReco-v5_run2011v1', 
-                   'Run2011A-PromptReco-v6_run2011v1', 
-               ]:
-        procdir = os.path.join(atr.afbpath,
-        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v1/python')
-        cmd = 'cmsRun btokstarmumu_Run2011A-PromptReco.py'
+    procdir = os.getcwd()
 
-    elif label in ['Run2011A-May10ReReco-v1_run2011v1']:
-        procdir = os.path.join(atr.afbpath,
-        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v1/python')
-        cmd = 'cmsRun btokstarmumu_Run2011A-May10ReReco-v1.py'
+    if 'BuToKstarJPsi-7TeV-5E5-v1' in label or 'BuToKstarMuMu' in label: 
+        pset = 'btokstarmumu_MC.py'
+        
+    elif 'Run2011A-May10ReReco' in label: 
+        pset = 'btokstarmumu_Run2011A-May10ReReco.py'
 
-    elif label in ['Run2011A-PromptReco-v4_run2011v0', 
-                   'Run2011A-PromptReco-v5_run2011v0', 
-                   'Run2011A-PromptReco-v6_run2011v0', 
-                   'Run2011B-PromptReco-v1_run2011v0', 
-                   ]:
-        procdir = os.path.join(atr.afbpath,
-        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
-        cmd = 'cmsRun btokstarmumu_Run2011A-PromptReco.py'
- 
-    elif label in ['BuToKstarJPsi-7TeV-5E5-v1_run2011v0', 
-                   'BuToKstarMuMu-7TeV-2E7-v1_run2011v0', 
-                   ]:
-        procdir = os.path.join(atr.afbpath,
-        'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v0/python')
-        cmd = 'cmsRun btokstarmumu_MC.py'
- 
+    elif 'Run2011B' in label and 'PromptReco' in label: 
+        pset = 'btokstarmumu_Run2011A-PromptReco.py'
+
+    elif 'Run2012' in label: 
+        pset = 'btokstarmumu_Run2012.py'
+
     else:
         raise NameError(label)
 
-    proc_cmd(cmd, test, procdir=procdir)
+    cmd = 'cmsRun %s' % pset 
+
+
     if test:
+        proc_cmd(cmd, test, procdir=procdir)
         sys.stdout.write('Please test with the above command.\n')
         return 
+ 
+    if grid:
+        crab_cfg = atr.cfg.crab_cfg(label, pset)
+        cfg_path, cfg_name = os.path.split(crab_cfg)
+
+        sys.stdout.write('Please create grid jobs with command: \n\n')
+        #sys.stdout.write('cd %s \n\n' %cfg_path)
+        sys.stdout.write('crab -cfg %s -create\n\n' %cfg_name)
+        return 
+
     dur = duration(time()-time_start)
     sys.stdout.write(' done. \n duration %s \n' %dur)
     sys.stdout.flush()

@@ -186,16 +186,18 @@ bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i){
   if  ( // soft muon 
        mumisgoodmuon->at(i)
        && mupisgoodmuon->at(i) 
-       && mumntrkhits->at(i) > 10 
-       && mupntrkhits->at(i) > 10 
+       && mumntrklayers->at(i) > 5  // 2012 Data
+       && mupntrklayers->at(i) > 5  // 2012 Data 
+       // && mumntrkhits->at(i) > 10 
+       // && mupntrkhits->at(i) > 10 
        && mumnpixlayers->at(i) > 1
        && mupnpixlayers->at(i) > 1
        && mumnormchi2->at(i) < 1.8 
        && mupnormchi2->at(i) < 1.8 
-       && mumdxyvtx->at(i) < 3
-       && mupdxyvtx->at(i) < 3
-       && mumdzvtx->at(i) < 30 
-       && mupdzvtx->at(i) < 30 
+       && fabs(mumdxyvtx->at(i)) < 3
+       && fabs(mupdxyvtx->at(i)) < 3
+       && fabs(mumdzvtx->at(i)) < 30 
+       && fabs(mupdzvtx->at(i)) < 30 
        	) return true; 
   return false; 
 }
