@@ -81,4 +81,10 @@ def BuToKstarMuMu_7TeV_2E7_v1_run2011v1(com_name):
     dstdir = os.path.join(eosbase, 'dat/ntp/mc', com_name)
     merge_root_files(srcdir, dstdir)
 
+def Run2012A_22Jan2013_v1(com_name):
+    eosbase = '/afs/cern.ch/user/x/xshi/eos/cms/store/user/xshi/'
+    srcdir = os.path.join(eosbase, com_name)
+    dstdir = os.path.join(atr.datpath, 'ntp/data', atr.version, com_name)
+    merge_root_files(srcdir, dstdir)
+
 

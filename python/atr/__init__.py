@@ -16,6 +16,8 @@ import srm
 import cfg
 
 afbpath = os.environ['afb']
+version = os.environ['ver'] 
+
 datpath = os.path.join(afbpath, 'dat')
 figpath = os.path.join(afbpath, 'doc/fig')
 logpath = os.path.join(afbpath, 'log')

@@ -165,6 +165,10 @@ def grid_path(label):
         srcdir = os.path.join(
             eosbase, 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen',
             com_name, 'a2cbd59f90c5e3694010a7612c1b81d6')
+
+    elif 'Run2012' in label:
+        srcdir = os.path.join(eosbase, com_name)
+
     else:
         raise NameError(label)
     return srcdir 
