@@ -125,6 +125,16 @@ def jobs_created(datatype, label):
             'BuToKstarMuMu-7TeV-2E7-v1_run2011v0_2', 
             ]:
         total_jobs = 1203 
+
+    elif label in ['Run2012B-22Jan2013-v1']: 
+        total_jobs = 1835
+
+    elif label in ['Run2012C-22Jan2013-v1']: 
+        total_jobs = 3305 
+
+    elif label in ['Run2012D-22Jan2013-v1']: 
+        total_jobs = 3287 
+
     else:
         raise NameError(label)
     
@@ -160,11 +170,16 @@ def get_filepath(datatype, label):
     elif ('BuToKstarJPsi-7TeV-5E5-v1_run2011v1' in label): 
         primarydataset = 'BuToKstarJPsi_EtaPtFilter_7TeV-pythia6-evtgen'
         psethash = 'a2cbd59f90c5e3694010a7612c1b81d6'
- 
+    
+    elif 'Run2012' in label:
+        primarydataset = ''
+        psethash = ''
+
     else:
         raise NameError(label)
     
     filepath = os.path.join(filebase, primarydataset, comname, psethash)
+    
     return filepath
 
 def get_output_name(pyname):

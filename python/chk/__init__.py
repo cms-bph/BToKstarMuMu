@@ -70,6 +70,10 @@ def get_goodfiles(label):
         procdir = os.path.join(
             atr.afbpath,
             'rel/CMSSW_4_2_8_patch7/src/BphAna/BToKstarMuMu_run2011v1/python')
+
+    elif 'Run2012' in label:
+        procdir = os.getcwd()
+
     else: 
         raise NameError(label)
         

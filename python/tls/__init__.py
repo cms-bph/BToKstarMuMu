@@ -869,33 +869,38 @@ def list_to_file(li, f, listname='l', prefix=''):
     fo.output(f)
 
 
-def merge_root_files(srcdir, dstdir, force_update_db=False, job=None, 
-                     size_max=2*9.8e8, nfile_max=500):
+def merge_root_files(srcdir, dstdir, job=None, size_max=2*9.8e8, nfile_max=500):
 
     dbname = '.files.db'
     dbfile = check_and_join(dstdir, dbname)
+    
 
-    if force_update_db:
-        os.remove(dbfile)
+    files_name_size_list = get_files_name_size_list_from_path(srcdir)
+    set_obj_db(files_name_size_list, dbfile)
+
+    # if force_clean_db:
+    #     os.remove(dbfile)
         
-    if os.access(dbfile, os.F_OK):
-        sys.stdout.write('using existing db file...\n')
-        files_name_size_list = get_obj_db(dbfile)
-    else:
-        sys.stdout.write('creating db file...\n')
-        files_name_size_list = get_files_name_size_list_from_path(srcdir)
-        set_obj_db(files_name_size_list, dbfile)
-
+    # if os.access(dbfile, os.F_OK):
+    #     sys.stdout.write('using existing db file...\n')
+    #     files_name_size_list = get_obj_db(dbfile)
+    # else:
+    #     sys.stdout.write('creating db file...\n')
+    #     files_name_size_list = get_files_name_size_list_from_path(srcdir)
+    #     set_obj_db(files_name_size_list, dbfile)
 
     size = [int(s) for n, s in files_name_size_list]
     totalsize = sum(size)
     sys.stdout.write('total of %s files, size %s.\n' % (len(files_name_size_list),
                                                       convert_bytes(totalsize)))
+
     com_name = files_name_size_list[0][0].split('_')[0] 
     rootfile_groups = get_file_groups_by_size(files_name_size_list, 
                                               size_max=size_max, nfile_max=nfile_max)
 
     ngroups = len(rootfile_groups)
+    dst_files = get_files_name_size_list_from_path(dstdir)
+    last_target_number = len(dst_files)
 
     if job is None:
         jobs = range(1, ngroups+1)
@@ -904,12 +909,11 @@ def merge_root_files(srcdir, dstdir, force_update_db=False, job=None,
 
     for i in jobs: 
         sourcefiles = ' '.join(rootfile_groups[i-1])
-        targetname = '%s_merged_%s.root' % (com_name, i)
+        targetname = '%s_merged_%s.root' % (com_name, i+last_target_number)
         targetfile = os.path.join(dstdir, targetname)
         cmd = 'hadd %s %s' %(targetfile, sourcefiles)
         sys.stdout.write('merging %s of %s ...\n' %(i, ngroups))
         sys.stdout.flush()
-        
         output = proc_cmd(cmd, procdir=srcdir)
         print output
 

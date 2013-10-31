@@ -87,4 +87,12 @@ def Run2012A_22Jan2013_v1(com_name):
     dstdir = os.path.join(atr.datpath, 'ntp/data', atr.version, com_name)
     merge_root_files(srcdir, dstdir)
 
+def Run2012B_22Jan2013_v1(com_name):
+    return Run2012A_22Jan2013_v1(com_name)
+
+def Run2012C_22Jan2013_v1(com_name):
+    return Run2012A_22Jan2013_v1(com_name)
+
+def Run2012D_22Jan2013_v1(com_name):
+    return Run2012A_22Jan2013_v1(com_name)
 
