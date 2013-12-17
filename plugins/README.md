@@ -1,4 +1,4 @@
-# Instructions for Plugins (run2011v1) 
+# Instructions for Plugins (run2011v0) 
 
 The package inside the plugins is intended to run independent of MUS software. 
 One can run it on laptop as long as the ROOT and gcc are installed. 
