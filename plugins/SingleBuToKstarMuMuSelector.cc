@@ -34,6 +34,10 @@ double Kstarmass = 0;
 double Trkpt = 0; 
 double Trkdcasigbs = 0; 
 
+double Kshortpt = 0;
+double Pimpt = 0;
+double Pippt = 0;
+
 double Bmass = 0; 
 double Bpt = 0; 
 int    Bchg = 0; 
@@ -95,6 +99,10 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/){
   tree_->Branch("Trkpt", &Trkpt, "Trkpt/D");
   tree_->Branch("Trkdcasigbs", &Trkdcasigbs, "Trkdcasigbs/D");
 
+  tree_->Branch("Kshortpt", &Kshortpt, "Kshortpt/D");
+  tree_->Branch("Pimpt", &Pimpt, "Pimpt/D");
+  tree_->Branch("Pippt", &Pippt, "Pippt/D");
+
   tree_->Branch("Bmass", &Bmass, "Bmass/D");
   tree_->Branch("Bpt", &Bpt, "Bpt/D");
   tree_->Branch("Bchg", &Bchg, "Bchg/I");
@@ -122,7 +130,7 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry){
   if ( i != -1) {
     
     if ( datatype == "data" || 
-	 ( datatype == *decname && istruebu->at(i) ) ) {
+       ( datatype == *decname && istruebu->at(i) ) ) { 
 
       n_selected_ += 1; 
       SaveEvent(i);     
@@ -209,6 +217,10 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i){
   Blxysig = (blsbs->at(i)/blsbserr->at(i)); 
   Bcosalphabs = bcosalphabs->at(i); 
   Bctau = bctau->at(i); 
+
+  Kshortpt = sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) );
+  Pimpt = sqrt( (pimpx->at(i))*(pimpx->at(i)) + (pimpy->at(i))*(pimpy->at(i)) );
+  Pippt = sqrt( (pippx->at(i))*(pippx->at(i)) + (pippy->at(i))*(pippy->at(i)) );
 
   TLorentzVector b; 
   b.SetXYZM(bpx->at(i), bpy->at(i), bpz->at(i), bmass->at(i)); 
