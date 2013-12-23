@@ -312,6 +312,7 @@ public :
    int SelectB(string); 
    bool HasGoodDimuon(int); 
    void SaveEvent(int); 
+   void SaveGen();
 };
 
 #endif
