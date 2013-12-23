@@ -197,7 +197,7 @@ void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/)
 
 void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
 {//{{{
-    TString option = GetOption();
+    string option = GetOption();
     tree_ = new TTree("tree", "tree"); 
     
     tree_->Branch("Mumumass"    , &Mumumass    , "Mumumass/D");
@@ -224,118 +224,121 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
     tree_->Branch("CosThetaL"   , &CosThetaL   , "CosThetaL/D");
     tree_->Branch("CosThetaK"   , &CosThetaK   , "CosThetaK/D");
 
-    tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
-    tree_->Branch("genBPt"       , &genBPt       , "genBPt/D");
-    tree_->Branch("genBEta"      , &genBEta      , "genBEta/D");
-    tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
-    tree_->Branch("genBVtxX"     , &genBVtxX     , "genBVtxX/D");
-    tree_->Branch("genBVtxY"     , &genBVtxY     , "genBVtxY/D");
-    tree_->Branch("genBVtxZ"     , &genBVtxZ     , "genBVtxZ/D");
-    tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
-    tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
-    tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
-    tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
-    tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
-    tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
-    tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
-    tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
-    tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
-    tree_->Branch("genTkChg"     , &genTkChg     , "genTkChg/I");
-    tree_->Branch("genTkPt"      , &genTkPt      , "genTkPt/D");
-    tree_->Branch("genTkEta"     , &genTkEta     , "genTkEta/D");
-    tree_->Branch("genTkPhi"     , &genTkPhi     , "genTkPhi/D");
-    tree_->Branch("genKPt"       , &genKPt       , "genKPt/D");
-    tree_->Branch("genKEta"      , &genKEta      , "genKEta/D");
-    tree_->Branch("genKPhi"      , &genKPhi      , "genKPhi/D");
-    tree_->Branch("genKVtxX"     , &genKVtxX     , "genKVtxX/D");
-    tree_->Branch("genKVtxY"     , &genKVtxY     , "genKVtxY/D");
-    tree_->Branch("genKVtxZ"     , &genKVtxZ     , "genKVtxZ/D");
-    tree_->Branch("genPipPt"     , &genPipPt     , "genPipPt/D");
-    tree_->Branch("genPipEta"    , &genPipEta    , "genPipEta/D");
-    tree_->Branch("genPipPhi"    , &genPipPhi    , "genPipPhi/D");
-    tree_->Branch("genPimPt"     , &genPimPt     , "genPimPt/D");
-    tree_->Branch("genPimEta"    , &genPimEta    , "genPimEta/D");
-    tree_->Branch("genPimPhi"    , &genPimPhi    , "genPimPhi/D");
-    tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
-    tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
-    tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
-  
-  fOutput->AddAll(gDirectory->GetList()); 
-}//}}}
-
-Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
-{//{{{
-    ClearEvent();
-
-    string option = GetOption();
     string datatype = get_option_value(option, "datatype"); 
-    string cut = get_option_value(option, "cut"); 
-
-    GetEntry(entry); 
-    n_processed_ += 1; 
-    Nb = nb; 
-
-    if (datatype != "data") SaveGen();
-
-    int i = SelectB(cut); 
-    if ( i != -1 && (datatype == "data" || ( datatype == *decname && istruebu->at(i))) ) {
-        n_selected_ += 1; 
-        SaveEvent(i);     
+    if (datatype != "data"){
+        tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
+        tree_->Branch("genBPt"       , &genBPt       , "genBPt/D");
+        tree_->Branch("genBEta"      , &genBEta      , "genBEta/D");
+        tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
+        tree_->Branch("genBVtxX"     , &genBVtxX     , "genBVtxX/D");
+        tree_->Branch("genBVtxY"     , &genBVtxY     , "genBVtxY/D");
+        tree_->Branch("genBVtxZ"     , &genBVtxZ     , "genBVtxZ/D");
+        tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
+        tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+        tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
+        tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
+        tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+        tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+        tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
+        tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
+        tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
+        tree_->Branch("genTkChg"     , &genTkChg     , "genTkChg/I");
+        tree_->Branch("genTkPt"      , &genTkPt      , "genTkPt/D");
+        tree_->Branch("genTkEta"     , &genTkEta     , "genTkEta/D");
+        tree_->Branch("genTkPhi"     , &genTkPhi     , "genTkPhi/D");
+        tree_->Branch("genKPt"       , &genKPt       , "genKPt/D");
+        tree_->Branch("genKEta"      , &genKEta      , "genKEta/D");
+        tree_->Branch("genKPhi"      , &genKPhi      , "genKPhi/D");
+        tree_->Branch("genKVtxX"     , &genKVtxX     , "genKVtxX/D");
+        tree_->Branch("genKVtxY"     , &genKVtxY     , "genKVtxY/D");
+        tree_->Branch("genKVtxZ"     , &genKVtxZ     , "genKVtxZ/D");
+        tree_->Branch("genPipPt"     , &genPipPt     , "genPipPt/D");
+        tree_->Branch("genPipEta"    , &genPipEta    , "genPipEta/D");
+        tree_->Branch("genPipPhi"    , &genPipPhi    , "genPipPhi/D");
+        tree_->Branch("genPimPt"     , &genPimPt     , "genPimPt/D");
+        tree_->Branch("genPimEta"    , &genPimEta    , "genPimEta/D");
+        tree_->Branch("genPimPhi"    , &genPimPhi    , "genPimPhi/D");
+        tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
+        tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
+        tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
     }
 
-    tree_->Fill();	   
-    return kTRUE;
+        fOutput->AddAll(gDirectory->GetList()); 
 }//}}}
 
-void SingleBuToKstarMuMuSelector::SlaveTerminate(){}
+    Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
+    {//{{{
+        ClearEvent();
 
-void SingleBuToKstarMuMuSelector::Terminate()
-{//{{{
-  string option = GetOption();
-  TString outfile = get_option_value(option, "outfile"); 
-  
-  TFile file(outfile.Data(), "recreate"); 
-  fOutput->Write();
-  
-  t_now_.Set(); 
-  printf(" \n ---------- End Job ---------- \n" ) ;
-  t_now_.Print();  
-  printf(" processed: %i \n selected: %i \n \
- duration: %i sec \n rate: %g evts/sec\n",
-	 n_processed_, n_selected_, 
-	 t_now_.Convert() - t_begin_.Convert(), 
-	 float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
-}//}}}
+        string option = GetOption();
+        string datatype = get_option_value(option, "datatype"); 
+        string cut = get_option_value(option, "cut"); 
 
-int SingleBuToKstarMuMuSelector::SelectB(string cut)
-{//{{{
+        GetEntry(entry); 
+        n_processed_ += 1; 
+        Nb = nb; 
 
-  int best_idx = -1; 
-  double best_bvtxcl = 0.0; 
+        if (datatype != "data") SaveGen();
 
-  if (cut == "cut0") {
-    for (int i = 0; i < nb; i++) {
-      
-      if ( ! HasGoodDimuon(i) ) continue; 
+        int i = SelectB(cut); 
+        if ( i != -1 && (datatype == "data" || ( datatype == *decname && istruebu->at(i))) ) {
+            n_selected_ += 1; 
+            SaveEvent(i);     
+        }
 
-      if (bvtxcl->at(i) > best_bvtxcl) {
-	best_bvtxcl = bvtxcl->at(i); 
-	best_idx = i; 
-      }
-    }
-  }
+        tree_->Fill();	   
+        return kTRUE;
+    }//}}}
 
-  // if (bvtxcl->at(i) < 0.09) continue; 
-  // double blxysig = blsbs->at(i)/blsbserr->at(i); 
-  // if (blxysig < 12 ) continue; 
-  // if (bcosalphabs->at(i) < 0.99) continue; 
-  // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
-  // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
-   
-  return best_idx;
-}//}}}
+    void SingleBuToKstarMuMuSelector::SlaveTerminate(){}
 
-bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i)
+    void SingleBuToKstarMuMuSelector::Terminate()
+    {//{{{
+        string option = GetOption();
+        TString outfile = get_option_value(option, "outfile"); 
+
+        TFile file(outfile.Data(), "recreate"); 
+        fOutput->Write();
+
+        t_now_.Set(); 
+        printf(" \n ---------- End Job ---------- \n" ) ;
+        t_now_.Print();  
+        printf(" processed: %i \n selected: %i \n \
+                duration: %i sec \n rate: %g evts/sec\n",
+                n_processed_, n_selected_, 
+                t_now_.Convert() - t_begin_.Convert(), 
+                float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
+    }//}}}
+
+    int SingleBuToKstarMuMuSelector::SelectB(string cut)
+    {//{{{
+
+        int best_idx = -1; 
+        double best_bvtxcl = 0.0; 
+
+        if (cut == "cut0") {
+            for (int i = 0; i < nb; i++) {
+
+                if ( ! HasGoodDimuon(i) ) continue; 
+
+                if (bvtxcl->at(i) > best_bvtxcl) {
+                    best_bvtxcl = bvtxcl->at(i); 
+                    best_idx = i; 
+                }
+            }
+        }
+
+        // if (bvtxcl->at(i) < 0.09) continue; 
+        // double blxysig = blsbs->at(i)/blsbserr->at(i); 
+        // if (blxysig < 12 ) continue; 
+        // if (bcosalphabs->at(i) < 0.99) continue; 
+        // if (Kstarmass < (KSTAR_MASS - kstar_mass_delta) 
+        // 	|| Kstarmass > (KSTAR_MASS + kstar_mass_delta))
+
+        return best_idx;
+    }//}}}
+
+    bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i)
 {//{{{
   if  ( // soft muon 
        mumisgoodmuon->at(i)
