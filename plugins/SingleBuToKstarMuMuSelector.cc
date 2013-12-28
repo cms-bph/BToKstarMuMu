@@ -417,8 +417,8 @@ void SingleBuToKstarMuMuSelector::SaveGen()
     genKst_4vec.SetXYZM(genkstpx,genkstpy,genkstpz,KSTAR_MASS);
     genTk_4vec.SetXYZM(gentrkpx,gentrkpy,gentrkpz,PION_MASS);
     genK_4vec.SetXYZM(genkspx,genkspy,genkspz,KSHORT_MASS);
-    genPip_4vec.SetXYZM(genmuppx,genmuppy,genmuppz,PION_MASS);
-    genPim_4vec.SetXYZM(genmumpx,genmumpy,genmumpz,PION_MASS);
+    genPip_4vec.SetXYZM(genpippx,genpippy,genpippz,PION_MASS);
+    genPim_4vec.SetXYZM(genpimpx,genpimpy,genpimpz,PION_MASS);
 
     genBChg      = genbchg;
     genBPt       = genB_4vec.Pt();
