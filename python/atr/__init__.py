@@ -26,7 +26,7 @@ bashpath = os.path.join(afbpath, 'src/sh')
 castor_afbpath = '/castor/cern.ch/user/x/xshi/afb'
 castor_datpath = os.path.join(castor_afbpath, 'dat')
 
-rafbpath = os.environ['rafb']
+rafbpath = os.environ['afb']
 rfigpath = os.path.join(rafbpath, 'doc', 'fig')
 
 muon_mass = 0.10565837 # GeV 
