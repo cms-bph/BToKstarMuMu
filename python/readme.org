@@ -2,7 +2,8 @@
 
 * Env Setup
 
-  Please add the following function into your .bashrc
+  Please add the following function into your .bashrc. Change the
+  'storage_element' for your need. 
 
   : setafb() {  
   :   echo -ne "Setting afb ...\r"
@@ -12,8 +13,8 @@
   :   export doc=$afb/doc
   :   export fig=$doc/fig
   :   export log=$afb/log
-  :   export rafb=$afb
-  :  if [ -z "$1" ]; then
+  :   export storage_element=T3_TEST
+  :   if [ -z "$1" ]; then
   : 	echo "Default version: v2"
   : 	export ver="v2"
   :   else
