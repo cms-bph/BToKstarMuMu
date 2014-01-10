@@ -368,8 +368,8 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     Mum_4vec.SetXYZM(mumpx->at(i),mumpy->at(i),mumpz->at(i),MUON_MASS);
     Tk_4vec.SetXYZM(trkpx->at(i),trkpy->at(i),trkpz->at(i),PION_MASS);
     K_4vec.SetXYZM(kspx->at(i),kspy->at(i),kspz->at(i),KSHORT_MASS);
-    Pip_4vec.SetXYZM(muppx->at(i),muppy->at(i),muppz->at(i),PION_MASS);
-    Pim_4vec.SetXYZM(mumpx->at(i),mumpy->at(i),mumpz->at(i),PION_MASS);
+    Pip_4vec.SetXYZM(pippx->at(i),pippy->at(i),pippz->at(i),PION_MASS);
+    Pim_4vec.SetXYZM(pimpx->at(i),pimpy->at(i),pimpz->at(i),PION_MASS);
 
     Bmass = bmass->at(i); 
     Bchg = bchg->at(i); 
@@ -396,7 +396,11 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     buff1 = B_4vec;
     buff2 = Mup_4vec+Mum_4vec;
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    buff3 = Mum_4vec;//Take mu- to avoid extra minus sign.
+    if ( Bchg > 0){
+        buff3 = Mum_4vec;//Take mu- to avoid extra minus sign.
+    }else{
+        buff3 = Mup_4vec;
+    }
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     CosThetaL = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
     
@@ -457,7 +461,11 @@ void SingleBuToKstarMuMuSelector::SaveGen()
     buff1 = genB_4vec;
     buff2 = genMup_4vec+genMum_4vec;
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    buff3 = genMum_4vec;//Take mu- to avoid extra minus sign.
+    if (genBChg > 0){
+        buff3 = genMum_4vec;//Take mu- to avoid extra minus sign.
+    }else{
+        buff3 = genMup_4vec;
+    }
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     genCosThetaL = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
     
