@@ -9,6 +9,7 @@ FITFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lRooFit -lRooFitCore
 all: sel fig fit  
 	@echo "Full build successful."
 
+
 tools.o: tools.cc tools.h 
 	g++ $(TOOLSFLAGS) $< 
 
@@ -20,6 +21,9 @@ fig: SingleBuToKstarMuMuFigures.cc tools.o
 
 fit: SingleBuToKstarMuMuFitters.cc tools.o 
 	g++ $(FITFLAGS) $^ -o $@	
+
+sel2011: SingleBdToKstarMuMuSelector_xCheck2011.C
+	g++ ${SELECTORFLAGS} $< -o $@
 
 clean:
 	rm -rf tools.o sel fig fit 
