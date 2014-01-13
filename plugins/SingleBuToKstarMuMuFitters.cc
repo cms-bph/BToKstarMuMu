@@ -32,16 +32,33 @@
 #include "tools.h" 
 
 using namespace std; 
-using namespace RooFit ;
+using namespace RooFit;
 
-void bmass(TString datatype, TString label, TString cut, TString outfile)
+TChain *ch=new TChain("tree");
+char genQ2range[10][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
+                           "genQ2 < 4.30 && genQ2 > 2.00",
+                           "genQ2 < 8.68 && genQ2 > 4.30",
+                           "genQ2 <10.09 && genQ2 > 8.68",
+                           "genQ2 <12.86 && genQ2 >10.09",
+                           "genQ2 <14.18 && genQ2 >12.86",
+                           "genQ2 <16.00 && genQ2 >14.18",
+                           "genQ2 <19.00 && genQ2 >16.00",
+                           "genQ2 <19.00 && genQ2 > 1.00",
+                           "genQ2 < 6.00 && genQ2 > 1.00"};
+char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
+                        "Q2 < 4.30 && Q2 > 2.00",
+                        "Q2 < 8.68 && Q2 > 4.30",
+                        "Q2 <10.09 && Q2 > 8.68",
+                        "Q2 <12.86 && Q2 >10.09",
+                        "Q2 <14.18 && Q2 >12.86",
+                        "Q2 <16.00 && Q2 >14.18",
+                        "Q2 <19.00 && Q2 >16.00",
+                        "Q2 <19.00 && Q2 > 1.00",
+                        "Q2 < 6.00 && Q2 > 1.00"};
+
+void bmass( const char outfile[] = "bmass")
 {//{{{
   bool test = false; 
-
-  // Importing a  TTree into a RooDataSet with cuts 
-  // --------------------------------------------------------------------------
-  TChain* ch = add_chain(datatype, label, cut); 
-  if (ch == NULL) gSystem->Exit(0);
 
   RooRealVar x("Bmass", "B^{+/-} mass(GeV/c^{2})", 5.27953-0.28, 5.27953+0.28) ;
   RooDataSet data("data", "data", RooArgSet(x), Import(*ch)) ;
@@ -105,13 +122,11 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   paveText->AddText(Form("sigma = %.3f #pm %.3f ", sigma.getVal(), sigma.getError())); 
   paveText->Draw(); 
 
-  TString pdffile = outfile + ".pdf"; 
-  c->Print(pdffile); 
+  c->Print(TString::Format("./plots/%s.pdf",outfile));
   
   // Persist fit result in root file 
   // -------------------------------------------------------------
-  TString resfile = outfile + ".root"; 
-  TFile resf(resfile, "RECREATE") ;
+  TFile resf(TString::Format("./plots/%s.root",outfile), "RECREATE") ;
   gPad->Write("plot"); 
   if (! test) fitres->Write("fitres") ;
   resf.Close() ;
@@ -119,8 +134,8 @@ void bmass(TString datatype, TString label, TString cut, TString outfile)
   // In a clean ROOT session retrieve the persisted fit result as follows:
   // RooFitResult* r = gDirectory->Get("fitres") ;
   
-  delete c;
   delete paveText; 
+  delete c;
 
 }//}}}
 
@@ -132,22 +147,8 @@ std::vector<double> fl_bin(int iBin, const char outfile[] = "fl")
   // 1/Gamma * d^2 Gamma/d cos(theta_K) dq^2 = 3/2 * F_L cos^2(theta_K)
   // + 3/4(1-F_L)(1-cos^2theta_K)
   // 
-    char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
-                            "Q2 < 4.30 && Q2 > 2.00",
-                            "Q2 < 8.68 && Q2 > 4.30",
-                            "Q2 <10.09 && Q2 > 8.68",
-                            "Q2 <12.86 && Q2 >10.09",
-                            "Q2 <14.18 && Q2 >12.86",
-                            "Q2 <16.00 && Q2 >14.18",
-                            "Q2 <19.00 && Q2 >16.00",
-                            "Q2 <19.00 && Q2 > 1.00",
-                            "Q2 < 6.00 && Q2 > 1.00"};
 
   bool test = false;
-
-  TChain *treein = new TChain("tree");
-  //treein->Add("BuToKstarMuMu_test.root");
-  treein->Add("BuToKstar_merged.root");
 
   RooRealVar genCosThetaK("genCosThetaK", "cos#theta_{K}", -1, 1);
   RooRealVar Q2("Q2","q^{2}",0.5,20.);
@@ -160,18 +161,18 @@ std::vector<double> fl_bin(int iBin, const char outfile[] = "fl")
       fl.setVal(0.5);
       data = f.generate(RooArgSet(genCosThetaK,Q2), 10000);
   }else{
-      data = new RooDataSet("data","data",treein,RooArgSet(genCosThetaK,Q2),q2range[iBin],0);
+      data = new RooDataSet("data","data",ch,RooArgSet(genCosThetaK,Q2),q2range[iBin],0);
   }
   
-  f.fitTo(*data); 
-  //f.fitTo(*data,Extended()); 
+  //f.fitTo(*data); 
+  f.fitTo(*data,Extended()); 
 
   RooPlot* framecosk = genCosThetaK.frame(); 
   data->plotOn(framecosk); 
   f.plotOn(framecosk); 
 
   // Draw the frame on the canvas
-  TCanvas* c = new TCanvas("c"); 
+  TCanvas *c = new TCanvas("c"); 
   framecosk->SetTitle("");
   framecosk->Draw();
 
@@ -181,6 +182,10 @@ std::vector<double> fl_bin(int iBin, const char outfile[] = "fl")
   t1->DrawLatex(.40,.79,TString::Format("F_{L}=%5.3f#pm%5.3f",fl.getVal(),fl.getError()));
 
   c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
+
+  delete c;
+  delete t1;
+  delete data;
 
   std::vector<double> outvect;
   outvect.push_back(fl.getVal());
@@ -217,33 +222,22 @@ void fl(const char outfile[] = "fl")
     TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(8,x,yfl,xerr,xerr,yerrfl,yerrfl);
     g_fl->Draw("P*");
     c->Print(TString::Format("./plots/%s.pdf",outfile));
+
+    delete g_fl;
+    delete frame;
+    delete c;
 }//}}}
 
 std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_gen")
 {//{{{
-    char q2range[10][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
-                            "genQ2 < 4.30 && genQ2 > 2.00",
-                            "genQ2 < 8.68 && genQ2 > 4.30",
-                            "genQ2 <10.09 && genQ2 > 8.68",
-                            "genQ2 <12.86 && genQ2 >10.09",
-                            "genQ2 <14.18 && genQ2 >12.86",
-                            "genQ2 <16.00 && genQ2 >14.18",
-                            "genQ2 <19.00 && genQ2 >16.00",
-                            "genQ2 <19.00 && genQ2 > 1.00",
-                            "genQ2 < 6.00 && genQ2 > 1.00"};
-
-    TChain *treein = new TChain("tree");
-    //treein->Add("BuToKstarMuMu_PtEtaFilter_7TeV_1E6.root");
-    treein->Add("BuToKstarMuMu_NoFilter_staticB_1E6.root");
-    //treein->Add("BuBarToKstarMuMu_NoFilter_1E6.root");
 
     RooRealVar genCosThetaK("genCosThetaK", "cos#theta_{K}", -1., 1.);
     RooRealVar genCosThetaL("genCosThetaL", "cos#theta_{L}", -1., 1.);
     RooRealVar genQ2("genQ2","q^{2}",0.5,20.);
     RooRealVar fl("fl", "F_{L}", 0.8, -0.2, 1.2);
     RooRealVar afb("afb", "A_{FB}", 0., -1., 1.);
-    RooRealVar fs("fs","F_{S}",0.);//B0ToKstarJpsi
-    RooRealVar as("as","A_{S}",0.);//B0ToKstarJpsi
+    RooRealVar fs("fs","F_{S}",0.);//Derive from B0ToKstarJpsi
+    RooRealVar as("as","A_{S}",0.);//Derive from B0ToKstarJpsi
     fs.setConstant(kTRUE);
     as.setConstant(kTRUE);
 
@@ -254,7 +248,7 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     RooGenericPdf f_bkg("f_bkg", "1",RooArgSet());
     //nbkg.setConstant(kTRUE);
     RooAddPdf f("f","f",RooArgList(f_sig,f_bkg),RooArgList(nsig,nbkg));
-    RooDataSet *data = new RooDataSet("data","data",treein,RooArgSet(genCosThetaK,genCosThetaL,genQ2),q2range[iBin],0);
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(genCosThetaK,genCosThetaL,genQ2),genQ2range[iBin],0);
 
     RooFitResult *f_fitresult = f.fitTo(*data,Extended(),Save(kTRUE),Minimizer("Minuit2"));
 
@@ -267,7 +261,6 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     f.plotOn(framecosk,Components(f_bkg),LineStyle(2),LineColor(8),LineWidth(2));
 
     framecosk->SetTitle("");
-    //framecosk->SetMaximum(0);
     framecosk->SetMinimum(0);
     framecosk->Draw();
 
@@ -275,7 +268,7 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     t1->SetNDC();
     double fixNDC = -0.5;
     if (iBin < 5) fixNDC = 0.;
-    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
     //t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%5.3f",fl.getVal(),fl.getError()));
     //t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%5.3f",afb.getVal(),afb.getError()));
     if ( f_fitresult->status() == 0){
@@ -296,12 +289,11 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     f.plotOn(framecosl,Components(f_bkg),LineStyle(2),LineColor(8),LineWidth(2));
 
     framecosl->SetTitle("");
-    //framecosl->SetMaximum(0);
     framecosl->SetMinimum(0);
     framecosl->Draw();
 
     if (iBin < 5) fixNDC = 0.;
-    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
     c->Update();
     c->Print(TString::Format("./plots/%s_cosl_gen_bin%d.pdf",outfile,iBin));
 
@@ -311,6 +303,12 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     c->Update();
     c->Print(TString::Format("./plots/%s_2d_gen_bin%d.pdf",outfile,iBin));
 
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+
+    //write output
     std::vector<double> output;
     output.push_back(fl.getVal());
     output.push_back(fl.getError());
@@ -320,14 +318,15 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
 
 }//}}}
 
-void angular_gen(const char outfile[] = "angular")
+void angular_gen(const char outfile[] = "angular_gen")
 {//{{{
 
     TCanvas *c = new TCanvas();
-    TH2F *frame = new TH2F("frame","",18,1,19,10,0,1.5);
+    TH2F *frame = new TH2F("frame","",18,1,19,10,-1,1);
     frame->SetStats(kFALSE);
     frame->SetXTitle("q^{2} [(GeV)^{2}]");
     frame->SetYTitle("F_{L}");
+    frame->SetAxisRange(0,1,"Y");
     frame->Draw();
 
     double x[8]={1.5,3.15,6.49,9.385,11.475,13.52,15.09,17.5};
@@ -350,15 +349,22 @@ void angular_gen(const char outfile[] = "angular")
     }
 
     TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(8,x,yfl,xerr,xerr,yerrfl,yerrfl);
-    g_fl->Draw("P*");
+    g_fl->SetFillColor(2);
+    g_fl->SetFillStyle(3001);
+    g_fl->Draw("P2");
     c->Print(TString::Format("./plots/%s_fl.pdf",outfile));
-
     c->Clear();
+
+    frame->SetTitle("");
     frame->SetYTitle("A_{FB}");
+    frame->SetXTitle("q^{2} [(GeV)^{2}]");
+    frame->SetAxisRange(-1,1,"Y");
     frame->Draw();
-    //TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(8,x,yafb,xerr,xerr,yerrafb,yerrafb);
-    //g_afb->Draw("ap");
-    //c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
+    TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(8,x,yafb,xerr,xerr,yerrafb,yerrafb);
+    g_afb->SetFillColor(2);
+    g_afb->SetFillStyle(3001);
+    g_afb->Draw("P2");
+    c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
 }//}}}
 
 std::vector<double> efficiency(int iBin) // acceptance times reconstruction efficiency
@@ -372,23 +378,21 @@ std::vector<double> efficiency(int iBin) // acceptance times reconstruction effi
     double gCosThetaK = 0;
     double gCosThetaL = 0;
 
-    TChain *treein = new TChain("tree");
-    treein->Add("BuToKstarMuMu_1M.root");
-    treein->SetBranchStatus("*",0);
-    treein->SetBranchStatus("genQ2"         , 1);
-    treein->SetBranchStatus("genCosTheta*"  , 1);
-    treein->SetBranchStatus("BMass"         , 1);
-    treein->SetBranchAddress("genQ2"        , &genQ2);
-    treein->SetBranchAddress("genCosThetaK" , &gCosThetaK);
-    treein->SetBranchAddress("genCosThetaL" , &gCosThetaL);
-    treein->SetBranchAddress("BMass"        , &BMass);
+    ch->SetBranchStatus("*",0);
+    ch->SetBranchStatus("genQ2"         , 1);
+    ch->SetBranchStatus("genCosTheta*"  , 1);
+    ch->SetBranchStatus("BMass"         , 1);
+    ch->SetBranchAddress("genQ2"        , &genQ2);
+    ch->SetBranchAddress("genCosThetaK" , &gCosThetaK);
+    ch->SetBranchAddress("genCosThetaL" , &gCosThetaL);
+    ch->SetBranchAddress("BMass"        , &BMass);
 
     // Fill histograms
     TH2F h2_ngen("h2_ngen" ,"h2_ngen" ,10,-1.,1.,10,-1.,1.); 
     TH2F h2_nacc("h2_nacc" ,"h2_nacc" ,10,-1.,1.,10,-1.,1.); 
     TH2F h2_nreco("h2_nreco","h2_nreco",10,-1.,1.,10,-1.,1.);
-    for (int entry = 0; entry < treein->GetEntries(); entry++) {
-        treein->GetEntry(entry);
+    for (int entry = 0; entry < ch->GetEntries(); entry++) {
+        ch->GetEntry(entry);
         if (genQ2 > q2rangeup[iBin] || genQ2 < q2rangedn[iBin]) continue;
         h2_ngen.Fill(gCosThetaK,gCosThetaL);
         
@@ -463,8 +467,6 @@ std::vector<double> efficiency(int iBin) // acceptance times reconstruction effi
     canvas.Print(TString::Format("./plots/fitEfficiency_cosL_bin%d.pdf",iBin));
 
     // Clear
-    treein = 0;
-    delete treein;
 
     return output;
 }//}}}
@@ -472,20 +474,6 @@ std::vector<double> efficiency(int iBin) // acceptance times reconstruction effi
 /*
 std::vector<double> angular_bin(int iBin, const char outfile[] = "angular")
 {//{{{
-    char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
-                            "Q2 < 4.30 && Q2 > 2.00",
-                            "Q2 < 8.68 && Q2 > 4.30",
-                            "Q2 <10.09 && Q2 > 8.68",
-                            "Q2 <12.86 && Q2 >10.09",
-                            "Q2 <14.18 && Q2 >12.86",
-                            "Q2 <16.00 && Q2 >14.18",
-                            "Q2 <19.00 && Q2 >16.00",
-                            "Q2 <19.00 && Q2 > 1.00",
-                            "Q2 < 6.00 && Q2 > 1.00"};
-
-    TChain *treein = new TChain("tree");
-    //treein->Add("BuToKstarMuMu_test.root");
-    treein->Add("BuToKstar_merged.root");
 
     // Fit efficiency
     RooRealVar 
@@ -511,7 +499,7 @@ std::vector<double> angular_bin(int iBin, const char outfile[] = "angular")
 
     RooGenericPdf f_eff("f_eff", "", RooArgSet());
     
-    RooDataSet *data = new RooDataSet("data","data",treein,RooArgSet(CosThetaK,CosThetaL,Q2),q2range[iBin],0);
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK,CosThetaL,Q2),q2range[iBin],0);
     RooFitResult *f_fitresult = f.fitTo(*data,Extended(),Save(kTRUE));
 
     RooPlot* framecosk = CosThetaK.frame(); 
@@ -551,34 +539,46 @@ std::vector<double> angular_bin(int iBin, const char outfile[] = "angular")
 
 
 int main(int argc, char** argv) {
-    if (argc == 1) {
-        printf("argv[0]=%s\n",argv[0]);
+    if (argc <= 2) {
+        printf("Need at least 2 arguments.\n");
+        printf("./fit [bmass, fl, angular_gen,angular] infile\n");
+        printf("Outputs will be stored in ./plots.\n");
         return 0;
     }
 
     TString func    = argv[1];
     TString infile  = argv[2];
-
-    if (func == "help" || func == "-h"){
-        printf("./fit [bmass, angular_gen,angular,fl] infile\n");
-    }else if (func == "bmass") {
+  
+    if (func == "bmass") {
         TString datatype = argv[3]; 
         TString label    = argv[4]; 
         TString cut      = argv[5]; 
-        TString outfile  = argv[6]; 
 
-        bmass(datatype, label, cut, "bmass"); 
+        TChain* ch = add_chain(datatype, label, cut); 
+        if (ch == NULL) gSystem->Exit(0);
+        
+        const char outfile[]="bmass";
+        bmass(outfile); 
     }else if (func == "fl"){
+        ch->Add(infile.Data());
+        if (ch == NULL) gSystem->Exit(0);
         fl("fl");
     }else if (func == "angular_gen"){
+        ch->Add(infile.Data());
+        if (ch == NULL) gSystem->Exit(0);
         const char outfile[]="angular_gen";
-        //angular_bin_gen(8,outfile);
         angular_gen(outfile);
     }else if (func == "angular"){
+        ch->Add(infile.Data());
+        if (ch == NULL) gSystem->Exit(0);
         const char outfile[]="angular";
+        printf("This function is under developing...\n");
         //angular_bin(8,outfile);
         //angular(outfile);
     }else if (func == "efficiency") {
+        ch->Add(infile.Data());
+        if (ch == NULL) gSystem->Exit(0);
+        const char outfile[] = "efficiency";
         for (int iBin = 0; iBin < 8; iBin++) {
             efficiency(iBin);
         }
