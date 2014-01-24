@@ -263,10 +263,10 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
         tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
     }
 
-        fOutput->AddAll(gDirectory->GetList()); 
+    fOutput->AddAll(gDirectory->GetList()); 
 }//}}}
 
-    Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
+Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
     {//{{{
         ClearEvent();
 
@@ -290,27 +290,31 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
         return kTRUE;
     }//}}}
 
-    void SingleBuToKstarMuMuSelector::SlaveTerminate(){}
+void SingleBuToKstarMuMuSelector::SlaveTerminate()
+{//{{{
+}//}}}
 
-    void SingleBuToKstarMuMuSelector::Terminate()
-    {//{{{
-        string option = GetOption();
-        TString outfile = get_option_value(option, "outfile"); 
+void SingleBuToKstarMuMuSelector::Terminate()
+{//{{{
+    string option = GetOption();
+    TString outfile = get_option_value(option, "ofile"); 
+    //printf("option=%s\n",option.c_str());
+    //printf("outfile=%s",outfile.Data());
+    
+    TFile file(outfile.Data(), "recreate"); 
+    fOutput->Write();
 
-        TFile file(outfile.Data(), "recreate"); 
-        fOutput->Write();
+    t_now_.Set(); 
+    printf(" \n ---------- End Job ---------- \n" ) ;
+    t_now_.Print();  
+    printf(" processed: %i \n selected: %i \n \
+            duration: %i sec \n rate: %g evts/sec\n",
+            n_processed_, n_selected_, 
+            t_now_.Convert() - t_begin_.Convert(), 
+            float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
+}//}}}
 
-        t_now_.Set(); 
-        printf(" \n ---------- End Job ---------- \n" ) ;
-        t_now_.Print();  
-        printf(" processed: %i \n selected: %i \n \
-                duration: %i sec \n rate: %g evts/sec\n",
-                n_processed_, n_selected_, 
-                t_now_.Convert() - t_begin_.Convert(), 
-                float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
-    }//}}}
-
-    int SingleBuToKstarMuMuSelector::SelectB(string cut)
+int SingleBuToKstarMuMuSelector::SelectB(string cut)
     {//{{{
 
         int best_idx = -1; 
@@ -338,7 +342,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
         return best_idx;
     }//}}}
 
-    bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i)
+bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i)
 {//{{{
   if  ( // soft muon 
        mumisgoodmuon->at(i)
@@ -521,13 +525,15 @@ int main(int argc, char** argv) {
     Printf("output file: '%s'", outfile.Data());
 
     TString option; 
-    option.Form("datatype=%s;cut=%s;outfile=%s", datatype.Data(), cut.Data(), outfile.Data()); 
+    option.Form("datatype=%s;cut=%s;ofile=%s", datatype.Data(), cut.Data(), outfile.Data()); 
+    //printf("option=%s",option.Data());
 
     TChain *ch = new TChain("tree"); 
     ch->Add(infile.Data()); 
 
-    char * j = get_option(argv, argv + argc, "-j");
+    char *j = get_option(argv, argv+argc, "-j");
     if (j) {
+        //printf("workers=%s\n", j);
         TProof::Open(Form("workers=%s", j));
         ch->SetProof(); 
     }
@@ -535,6 +541,7 @@ int main(int argc, char** argv) {
     Long64_t nentries = 1000000000; 
     char * n = get_option(argv, argv+argc, "-n");  
     if (n) nentries = atoi(n);
+    //printf("nentries=%lld\n",nentries);
 
     ch->Process("SingleBuToKstarMuMuSelector.cc+", option, nentries); 
 
