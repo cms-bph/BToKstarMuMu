@@ -323,7 +323,7 @@ Bool_t SingleBdToKstarMuMuSelector_xCheck2011::Process(Long64_t entry)
     GetEntry(entry); 
     n_processed_ += 1; 
     Nb = nB; 
-    printf("Enter entry %lld with %d B candidate(s).\n",entry,Nb);
+    //printf("Enter entry %lld with %d B candidate(s).\n",entry,Nb);
 
     if (datatype != "data") SaveGen();
 
@@ -353,7 +353,7 @@ void SingleBdToKstarMuMuSelector_xCheck2011::Terminate()
    // the results graphically or save the results to file.
    //
     string option = GetOption();
-    TString outfile = get_option_value(option, "outfile"); 
+    TString outfile = get_option_value(option, "ofile"); 
 
     TFile file(outfile.Data(), "recreate"); 
     fOutput->Write();
@@ -589,12 +589,12 @@ int main(int argc, char** argv) {
     Printf("output file: '%s'", outfile.Data());
 
     TString option; 
-    option.Form("datatype=%s;cut=%s;outfile=%s", datatype.Data(), cut.Data(), outfile.Data()); 
+    option.Form("datatype=%s;cut=%s;ofile=%s", datatype.Data(), cut.Data(), outfile.Data()); 
 
     TChain *ch = new TChain("B0SingleCand/B0KstMuMuSingleCandNTuple"); 
     ch->Add(infile.Data()); 
 
-    char * j = get_option(argv, argv + argc, "-j");
+    char * j = get_option(argv, argv+argc, "-j");
     if (j) {
         TProof::Open(Form("workers=%s", j));
         ch->SetProof(); 
