@@ -72,7 +72,7 @@
 using namespace std;
 
 // 
-// Constans
+// Constants
 // 
 
 const int MUONMINUS_PDG_ID = 13; 
@@ -199,7 +199,13 @@ private:
 		    double, double, double, double,
 		    double, double, double, double,
 		    double*, double*); 
-  
+
+  void calCosAlpha2d (double, double, double, double, double,     /* added */
+		      double, double, double, double, double,
+		      double, double, double, double,
+		      double, double, double, double,
+		      double*, double*);
+ 
   void calCtau(RefCountedKinematicTree, double &, double &);
   double calEta(double, double, double); 
   double calPhi(double, double, double); 
@@ -261,6 +267,7 @@ private:
   void saveBdToKstarMuMu(const RefCountedKinematicTree);
   void saveBuVertex(RefCountedKinematicTree); 
   void saveBuCosAlpha(RefCountedKinematicTree); 
+  void saveBuCosAlpha2d(RefCountedKinematicTree);    /* added */
   void saveBuLsig(RefCountedKinematicTree);
   void saveBuCtau(RefCountedKinematicTree); 
 
@@ -381,7 +388,7 @@ private:
   vector<int>    *bchg; // +1 for b+, -1 for b-
   vector<double> *bpx, *bpxerr, *bpy, *bpyerr, *bpz, *bpzerr, *bmass, *bmasserr; 
   vector<double> *bvtxcl, *bvtxx, *bvtxxerr, *bvtxy, *bvtxyerr, *bvtxz, *bvtxzerr; 
-  vector<double> *bcosalphabs, *bcosalphabserr, *blsbs, *blsbserr, *bctau, *bctauerr; 
+  vector<double> *bcosalphabs, *bcosalphabserr, *bcosalphabs2d, *bcosalphabs2derr, *blsbs, *blsbserr, *bctau, *bctauerr; /* added */
   
   // B0 and B0bar
   vector<double> *bbarmass, *bbarmasserr; 
@@ -505,7 +512,8 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   nb(0), bchg(0), bpx(0), bpxerr(0), bpy(0), bpyerr(0), bpz(0), bpzerr(0),
   bmass(0), bmasserr(0), 
   bvtxcl(0), bvtxx(0), bvtxxerr(0), bvtxy(0), bvtxyerr(0), bvtxz(0), bvtxzerr(0), 
-  bcosalphabs(0), bcosalphabserr(0), blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
+  bcosalphabs(0), bcosalphabserr(0), bcosalphabs2d(0), bcosalphabs2derr(0),        /* added */
+  blsbs(0), blsbserr(0), bctau(0), bctauerr(0), 
 
   bbarmass(0), bbarmasserr(0), 
 
@@ -704,6 +712,8 @@ BToKstarMuMu::beginJob()
   tree_->Branch("bvtxzerr", &bvtxzerr);
   tree_->Branch("bcosalphabs", &bcosalphabs);
   tree_->Branch("bcosalphabserr", &bcosalphabserr);
+  tree_->Branch("bcosalphabs2d", &bcosalphabs2d);            /* added */
+  tree_->Branch("bcosalphabs2derr", &bcosalphabs2derr);      /* added */
   tree_->Branch("blsbs", &blsbs);
   tree_->Branch("blsbserr", &blsbserr);
   tree_->Branch("bctau", &bctau);
@@ -746,7 +756,7 @@ BToKstarMuMu::beginJob()
     tree_->Branch("istruemum",  &istruemum );
     tree_->Branch("istruemup",  &istruemup );
     tree_->Branch("istrueks",   &istrueks  );
-    tree_->Branch("istruetrk",   &istruetrk  );
+    tree_->Branch("istruetrk",  &istruetrk );
     tree_->Branch("istruebu",   &istruebu  );
 
   } 
@@ -861,6 +871,7 @@ BToKstarMuMu::clearVariables(){
   bvtxcl->clear(); bvtxx->clear(); bvtxxerr->clear(); bvtxy->clear();
   bvtxyerr->clear();
   bvtxz->clear(); bvtxzerr->clear(); bcosalphabs->clear(); bcosalphabserr->clear(); 
+  bcosalphabs2d->clear(); bcosalphabs2derr->clear();                                     
   blsbs->clear(); blsbserr->clear();  bctau->clear(); bctauerr->clear(); 
   
   bbarmass->clear(); bbarmasserr->clear(); 
@@ -1139,6 +1150,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  saveBuToKstarMuMu(vertexFitTree); 
 	  saveBuVertex(vertexFitTree); 
 	  saveBuCosAlpha(vertexFitTree); 
+	  saveBuCosAlpha2d(vertexFitTree);
 	  saveBuLsig(vertexFitTree); 
 	  saveBuCtau(vertexFitTree); 
 
@@ -1285,7 +1297,7 @@ BToKstarMuMu::buildBdToKstarMuMu(const edm::Event& iEvent)
 	  if (!passed) continue; 
 
 
-	  // check goodness of two trakcs closest approach and the 3D-DCA
+	  // check goodness of two tracks closest approach and the 3D-DCA
 	  if (! calClosestApproachTracks(theTrackpTT, theTrackmTT,
 					 trk_R, trk_Z, trk_DCA)) continue ; 
 	  if ( trk_R > TrkMaxR_ || trk_Z > TrkMaxZ_ ) continue; 
@@ -1411,6 +1423,49 @@ BToKstarMuMu::calCosAlpha (double Vx, double Vy, double Vz,
     *cosAlphaErr = 0.;
   }
 }
+
+
+void
+BToKstarMuMu::calCosAlpha2d (double Vx, double Vy, double Vz,
+			     double Wx, double Wy, double Wz,
+			     double VxErr2, double VyErr2, double VzErr2,
+			     double VxyCov, double VxzCov, double VyzCov,
+			     double WxErr2, double WyErr2, double WzErr2,
+			     double WxyCov, double WxzCov, double WyzCov,
+			     double* cosAlpha2d, double* cosAlpha2dErr)
+{
+  double Vnorm = sqrt(Vx*Vx + Vy*Vy + Vz*Vz);
+  double Wnorm = sqrt(Wx*Wx + Wy*Wy + Wz*Wz);
+  double VdotW = Vx*Wx + Vy*Wy + Vz*Wz;
+
+  if ((Vnorm > 0.) && (Wnorm > 0.)) {
+    *cosAlpha2d = VdotW / (Vnorm * Wnorm);
+    *cosAlpha2dErr = sqrt( (
+			  (Vx*Wnorm - VdotW*Wx) * (Vx*Wnorm - VdotW*Wx) * WxErr2 +
+			  (Vy*Wnorm - VdotW*Wy) * (Vy*Wnorm - VdotW*Wy) * WyErr2 +
+			  (Vz*Wnorm - VdotW*Wz) * (Vz*Wnorm - VdotW*Wz) * WzErr2 +
+
+			  (Vx*Wnorm - VdotW*Wx) * (Vy*Wnorm - VdotW*Wy) * 2.*WxyCov +
+			  (Vx*Wnorm - VdotW*Wx) * (Vz*Wnorm - VdotW*Wz) * 2.*WxzCov +
+			  (Vy*Wnorm - VdotW*Wy) * (Vz*Wnorm - VdotW*Wz) * 2.*WyzCov) /
+			 (Wnorm*Wnorm*Wnorm*Wnorm) +
+
+			 ((Wx*Vnorm - VdotW*Vx) * (Wx*Vnorm - VdotW*Vx) * VxErr2 +
+			  (Wy*Vnorm - VdotW*Vy) * (Wy*Vnorm - VdotW*Vy) * VyErr2 +
+			  (Wz*Vnorm - VdotW*Vz) * (Wz*Vnorm - VdotW*Vz) * VzErr2 +
+
+			  (Wx*Vnorm - VdotW*Vx) * (Wy*Vnorm - VdotW*Vy) * 2.*VxyCov +
+			  (Wx*Vnorm - VdotW*Vx) * (Wz*Vnorm - VdotW*Vz) * 2.*VxzCov +
+			  (Wy*Vnorm - VdotW*Vy) * (Wz*Vnorm - VdotW*Vz) * 2.*VyzCov) /
+			 (Vnorm*Vnorm*Vnorm*Vnorm) ) / (Wnorm*Vnorm);
+  }  else {
+    *cosAlpha2d = 0.;
+    *cosAlpha2dErr = 0.;
+  }
+}
+
+
+
 
 
 bool 
@@ -2028,11 +2083,41 @@ BToKstarMuMu::saveBuCosAlpha(RefCountedKinematicTree vertexFitTree)
 	      b_KV->error().matrix()(1,2) + beamSpot_.covariance()(1,2),
 	      &cosAlphaBS,&cosAlphaBSErr);	  
 
+
   bcosalphabs->push_back(cosAlphaBS);
   bcosalphabserr->push_back(cosAlphaBSErr); 
-  
+
+
 }
 
+
+void
+BToKstarMuMu::saveBuCosAlpha2d(RefCountedKinematicTree vertexFitTree)
+{
+                                                                             
+  vertexFitTree->movePointerToTheTop();
+  RefCountedKinematicParticle b_KP = vertexFitTree->currentParticle();
+  RefCountedKinematicVertex b_KV = vertexFitTree->currentDecayVertex();
+
+
+  double cosAlphaBS2d, cosAlphaBS2dErr;
+  calCosAlpha2d(b_KP->currentState().globalMomentum().x(),
+                b_KP->currentState().globalMomentum().y(),0.0,                            /* added */
+                b_KV->position().x() - beamSpot_.position().x(),
+                b_KV->position().y() - beamSpot_.position().y(),0.0,
+                b_KP->currentState().kinematicParametersError().matrix()(3,3),
+                b_KP->currentState().kinematicParametersError().matrix()(4,4),0.0,
+                b_KP->currentState().kinematicParametersError().matrix()(3,4),0.0,0.0,
+                b_KV->error().cxx() + beamSpot_.covariance()(0,0),
+                b_KV->error().cyy() + beamSpot_.covariance()(1,1),0.0,
+                b_KV->error().matrix()(0,1) + beamSpot_.covariance()(0,1),0.0,0.0,
+                &cosAlphaBS2d,&cosAlphaBS2dErr);
+
+
+  bcosalphabs2d->push_back(cosAlphaBS2d);
+  bcosalphabs2derr->push_back(cosAlphaBS2dErr);
+
+}
 
 
 bool 
