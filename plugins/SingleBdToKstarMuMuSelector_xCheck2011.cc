@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <map>
 #include "SingleBdToKstarMuMuSelector_xCheck2011.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -72,6 +73,7 @@ double CosThetaK   = 999;
 
 // Branches NOT included in 2012 analysis
 int TrkChg = 999;
+double EvtWeight = 1;
 
 // Branches for Generator level information
 int     genBChg      = 999;
@@ -135,6 +137,10 @@ void ClearEvent()
     Q2          = 0;
     CosThetaL   = 999;
     CosThetaK   = 999;
+
+        // 2011 special
+    TrkChg      = 999;
+    EvtWeight   = 1;
 
         // mc
     genBChg = 999;
@@ -251,48 +257,77 @@ void SingleBdToKstarMuMuSelector_xCheck2011::SlaveBegin(TTree * /*tree*/)
     tree_->Branch("CosThetaL"   , &CosThetaL   , "CosThetaL/D");
     tree_->Branch("CosThetaK"   , &CosThetaK   , "CosThetaK/D");
 
+    tree_->Branch("TrkChg"      , &TrkChg       , "TrkChg/I");
+    tree_->Branch("EvtWeight"   , &EvtWeight    , "EvtWeight/D");
+
     string datatype = get_option_value(option, "datatype"); 
-    if (datatype != "data"){
-        tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
-        tree_->Branch("genBPt"       , &genBPt       , "genBPt/D");
-        tree_->Branch("genBEta"      , &genBEta      , "genBEta/D");
-        tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
-        tree_->Branch("genBVtxX"     , &genBVtxX     , "genBVtxX/D");
-        tree_->Branch("genBVtxY"     , &genBVtxY     , "genBVtxY/D");
-        tree_->Branch("genBVtxZ"     , &genBVtxZ     , "genBVtxZ/D");
-        tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
-        tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
-        tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
-        tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
-        tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
-        tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
-        tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
-        tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
-        tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
-        tree_->Branch("genTkChg"     , &genTkChg     , "genTkChg/I");
-        tree_->Branch("genTkPt"      , &genTkPt      , "genTkPt/D");
-        tree_->Branch("genTkEta"     , &genTkEta     , "genTkEta/D");
-        tree_->Branch("genTkPhi"     , &genTkPhi     , "genTkPhi/D");
-        tree_->Branch("genKPt"       , &genKPt       , "genKPt/D");
-        tree_->Branch("genKEta"      , &genKEta      , "genKEta/D");
-        tree_->Branch("genKPhi"      , &genKPhi      , "genKPhi/D");
-        tree_->Branch("genKVtxX"     , &genKVtxX     , "genKVtxX/D");
-        tree_->Branch("genKVtxY"     , &genKVtxY     , "genKVtxY/D");
-        tree_->Branch("genKVtxZ"     , &genKVtxZ     , "genKVtxZ/D");
-        tree_->Branch("genPipPt"     , &genPipPt     , "genPipPt/D");
-        tree_->Branch("genPipEta"    , &genPipEta    , "genPipEta/D");
-        tree_->Branch("genPipPhi"    , &genPipPhi    , "genPipPhi/D");
-        tree_->Branch("genPimPt"     , &genPimPt     , "genPimPt/D");
-        tree_->Branch("genPimEta"    , &genPimEta    , "genPimEta/D");
-        tree_->Branch("genPimPhi"    , &genPimPhi    , "genPimPhi/D");
-        tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
-        tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
-        tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
-    }
+    std::map<string,int> maptype;
+    maptype.insert(std::pair<string,int>("data",1));
+    maptype.insert(std::pair<string,int>("mc.lite",2));
+    maptype.insert(std::pair<string,int>("mc",999));
+    switch (maptype[datatype]) {
+        case 1:
+            break;
+        case 2:
+            tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
+            tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
+            tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
+            tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+            tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
+            tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+            tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
+            tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
+            tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
+            break;
+        case 999:
+            tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
+            tree_->Branch("genBPt"       , &genBPt       , "genBPt/D");
+            tree_->Branch("genBEta"      , &genBEta      , "genBEta/D");
+            tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
+            tree_->Branch("genBVtxX"     , &genBVtxX     , "genBVtxX/D");
+            tree_->Branch("genBVtxY"     , &genBVtxY     , "genBVtxY/D");
+            tree_->Branch("genBVtxZ"     , &genBVtxZ     , "genBVtxZ/D");
+            tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
+            tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+            tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
+            tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
+            tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+            tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+            tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
+            tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
+            tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
+            tree_->Branch("genTkChg"     , &genTkChg     , "genTkChg/I");
+            tree_->Branch("genTkPt"      , &genTkPt      , "genTkPt/D");
+            tree_->Branch("genTkEta"     , &genTkEta     , "genTkEta/D");
+            tree_->Branch("genTkPhi"     , &genTkPhi     , "genTkPhi/D");
+            tree_->Branch("genKPt"       , &genKPt       , "genKPt/D");
+            tree_->Branch("genKEta"      , &genKEta      , "genKEta/D");
+            tree_->Branch("genKPhi"      , &genKPhi      , "genKPhi/D");
+            tree_->Branch("genKVtxX"     , &genKVtxX     , "genKVtxX/D");
+            tree_->Branch("genKVtxY"     , &genKVtxY     , "genKVtxY/D");
+            tree_->Branch("genKVtxZ"     , &genKVtxZ     , "genKVtxZ/D");
+            tree_->Branch("genPipPt"     , &genPipPt     , "genPipPt/D");
+            tree_->Branch("genPipEta"    , &genPipEta    , "genPipEta/D");
+            tree_->Branch("genPipPhi"    , &genPipPhi    , "genPipPhi/D");
+            tree_->Branch("genPimPt"     , &genPimPt     , "genPimPt/D");
+            tree_->Branch("genPimEta"    , &genPimEta    , "genPimEta/D");
+            tree_->Branch("genPimPhi"    , &genPimPhi    , "genPimPhi/D");
+            tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
+            tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
+            tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
+            break;
+        default:
+            printf("No compatible datatype found. Please check use following types...\n\t\t[");
+            for (std::map<string,int>::iterator iType = maptype.begin(); iType != maptype.end(); iType++){
+                if (iType->second != 0) printf("%s,",iType->first.c_str());
+            }
+            printf("]\n");
+            break;
+        }
 
-        fOutput->AddAll(gDirectory->GetList()); 
+            fOutput->AddAll(gDirectory->GetList()); 
 
-}//}}}
+    }//}}}
 
 Bool_t SingleBdToKstarMuMuSelector_xCheck2011::Process(Long64_t entry)
 {//{{{
@@ -465,6 +500,8 @@ void SingleBdToKstarMuMuSelector_xCheck2011::SaveEvent(int i)
     buff3 = Tk_4vec;//Take pion to avoid extra minus.
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     CosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
+    
+    EvtWeight = evWeight;
 }//}}}
 
 void SingleBdToKstarMuMuSelector_xCheck2011::SaveGen()
@@ -562,18 +599,19 @@ bool option_exists(char** begin, char** end, const std::string& option)
 
 void print_usage()
 {//{{{
-    cerr << "Usage: SingleBdToKstarMuMuSelector_xCheck2011 datatype cut infile outfile [-n] [-j] [-h]\n"
-        << "  datatype: data, mc.\n"
+    cerr << "Usage: SingleBdToKstarMuMuSelector_xCheck2011 datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
+        << "  datatype: data, mc, mc.lite.\n"
         << "  cut     : singleCand cut0.\n"
         << "Options: \n" 
         << "  -h \t\tPrint this info.\n"
         << "  -n \t\tNumber of entries.\n" 
+        << "  -s \t\tStarting run number.\n"
         << "  -j \t\tNumber of workers.\n" 
         << endl; 
 }//}}}
 
 int main(int argc, char** argv) {
-    if ( (argc < 2) or option_exists(argv, argv+argc, "-h") ){
+    if ( (argc < 3) or option_exists(argv, argv+argc, "-h") ){
         print_usage() ;  
         return -1; 
     }
@@ -588,9 +626,6 @@ int main(int argc, char** argv) {
     Printf("input file: '%s'", infile.Data());
     Printf("output file: '%s'", outfile.Data());
 
-    TString option; 
-    option.Form("datatype=%s;cut=%s;ofile=%s", datatype.Data(), cut.Data(), outfile.Data()); 
-
     TChain *ch = new TChain("B0SingleCand/B0KstMuMuSingleCandNTuple"); 
     ch->Add(infile.Data()); 
 
@@ -603,8 +638,28 @@ int main(int argc, char** argv) {
     Long64_t nentries = 1000000000; 
     char * n = get_option(argv, argv+argc, "-n");  
     if (n) nentries = atoi(n);
+    
+    
+    int     iStart = 0;
+    char *s = get_option(argv, argv+argc, "-s");
+    if (s) {
+        iStart = atoi(s);
+        if (iStart > ch->GetEntries()){
+            printf("ERROR: Number of entries is %lld.\n",ch->GetEntries());
+            return -1;
+        }
+    }
 
-    ch->Process("SingleBdToKstarMuMuSelector_xCheck2011.cc+", option, nentries); 
+    TString option; 
+    option.Form("datatype=%s;cut=%s;ofile=%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), iStart); 
+    
+    // It's not allowed to run with fat trees!
+    if (datatype == "mc" && (!(s) || !(n))){
+        printf("WARNING: You must specify #entries(-n) and start run(-s) for datatype '%s'.\n",datatype.Data());
+        return -1;
+    }
+
+    ch->Process("SingleBdToKstarMuMuSelector_xCheck2011.cc+", option, nentries, iStart); 
 
     gSystem->Exit(0);
 

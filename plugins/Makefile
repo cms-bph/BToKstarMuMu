@@ -22,7 +22,7 @@ fig: SingleBuToKstarMuMuFigures.cc tools.o
 fit: SingleBuToKstarMuMuFitters.cc tools.o 
 	g++ $(FITFLAGS) $^ -o $@	
 
-sel2011: SingleBdToKstarMuMuSelector_xCheck2011.C
+sel2011: SingleBdToKstarMuMuSelector_xCheck2011.cc
 	g++ ${SELECTORFLAGS} $< -o $@
 
 clean:
