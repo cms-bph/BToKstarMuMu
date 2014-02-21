@@ -65,10 +65,19 @@
        : crab -c crab_BuToKstarJPsi_8TeV_2p5E7 -submit all 
        
        Note: make the job numbers less than 500 for each submission.
-       Break down if necessary: 1-500, 501-1000, etc. 
+       Break down if necessary: 1-500, 501-1000, etc.
 
 
+  - Check ntuple duplication 
+    : ./afb.py chk data Run2012B-22Jan2013-v1 
 
+  - Merge ntuples
+    : ./afb.py mrg data Run2012B-22Jan2013-v1
+
+  - Clean up the raw ntuples 
+    : ./afb.py cln data Run2012B-22Jan2013-v1 
+
+ 
  
 
 
