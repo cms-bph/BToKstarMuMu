@@ -30,25 +30,26 @@ int n_processed_, n_selected_;
 TTree *tree_; 
 
 // Branch variables for new tree
-int    Nb          = 0;
-double Mumumass    = 0;
-double Mumumasserr = 0;
-double Kstarmass   = 0;
-double Trkpt       = 0;
-double Trkdcasigbs = 0;
+int    Nb             = 0;
+double Mumumass       = 0;
+double Mumumasserr    = 0;
+double Kstarmass      = 0;
+double Trkpt          = 0;
+double Trkdcasigbs    = 0;
 
-double Kshortpt    = 0;
-double Pimpt       = 0;
-double Pippt       = 0;
+double Kshortpt       = 0;
+double Pimpt          = 0;
+double Pippt          = 0;
 
-double Bmass       = 0;
-double Bpt         = 0;
-double Bphi        = 0;
-int    Bchg        = 0;
-double Bvtxcl      = 0;
-double Blxysig     = 0;
-double Bcosalphabs = 0;
-double Bctau       = 0;
+double Bmass          = 0;
+double Bpt            = 0;
+double Bphi           = 0;
+int    Bchg           = 0;
+double Bvtxcl         = 0;
+double Blxysig        = 0;
+double Bcosalphabs    = 0;
+double Bcosalphabs2d  = 0;
+double Bctau          = 0;
 
 double Q2 = 0;
 double CosThetaL   = 999;
@@ -93,29 +94,30 @@ double  genCosThetaK = 999;
 
 void ClearEvent()
 {//{{{
-    Nb          = 0;
-    Mumumass    = 0;
-    Mumumasserr = 0;
-    Kstarmass   = 0;
-    Trkpt       = 0;
-    Trkdcasigbs = 0;
+    Nb             = 0;
+    Mumumass       = 0;
+    Mumumasserr    = 0;
+    Kstarmass      = 0;
+    Trkpt          = 0;
+    Trkdcasigbs    = 0;
     
-    Kshortpt    = 0;
-    Pimpt       = 0;
-    Pippt       = 0;
+    Kshortpt       = 0;
+    Pimpt          = 0;
+    Pippt          = 0;
     
-    Bmass       = 0;
-    Bpt         = 0;
-    Bphi        = 0;
-    Bchg        = 0;
-    Bvtxcl      = 0;
-    Blxysig     = 0;
-    Bcosalphabs = 0;
-    Bctau       = 0;
+    Bmass          = 0;
+    Bpt            = 0;
+    Bphi           = 0;
+    Bchg           = 0;
+    Bvtxcl         = 0;
+    Blxysig        = 0;
+    Bcosalphabs    = 0;
+    Bcosalphabs2d  = 0;
+    Bctau          = 0;
 
-    Q2          = 0;
-    CosThetaL   = 999;
-    CosThetaK   = 999;
+    Q2             = 0;
+    CosThetaL      = 999;
+    CosThetaK      = 999;
 
         // mc
     genBChg = 999;
@@ -200,29 +202,30 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
 {//{{{
     string option = GetOption();
     tree_ = new TTree("tree", "tree"); 
-    tree_->Branch("Mumumass"    , &Mumumass    , "Mumumass/D");
-    tree_->Branch("Mumumasserr" , &Mumumasserr , "Mumumasserr/D");
-    tree_->Branch("Kstarmass"   , &Kstarmass   , "Kstarmass/D");
-    tree_->Branch("Trkpt"       , &Trkpt       , "Trkpt/D");
-    tree_->Branch("Trkdcasigbs" , &Trkdcasigbs , "Trkdcasigbs/D");
+    tree_->Branch("Mumumass"      , &Mumumass      , "Mumumass/D");
+    tree_->Branch("Mumumasserr"   , &Mumumasserr   , "Mumumasserr/D");
+    tree_->Branch("Kstarmass"     , &Kstarmass     , "Kstarmass/D");
+    tree_->Branch("Trkpt"         , &Trkpt         , "Trkpt/D");
+    tree_->Branch("Trkdcasigbs"   , &Trkdcasigbs   , "Trkdcasigbs/D");
 
-    tree_->Branch("Kshortpt"    , &Kshortpt    , "Kshortpt/D");
-    tree_->Branch("Pimpt"       , &Pimpt       , "Pimpt/D");
-    tree_->Branch("Pippt"       , &Pippt       , "Pippt/D");
+    tree_->Branch("Kshortpt"      , &Kshortpt      , "Kshortpt/D");
+    tree_->Branch("Pimpt"         , &Pimpt         , "Pimpt/D");
+    tree_->Branch("Pippt"         , &Pippt         , "Pippt/D");
 
-    tree_->Branch("Bmass"       , &Bmass       , "Bmass/D");
-    tree_->Branch("Bpt"         , &Bpt         , "Bpt/D");
-    tree_->Branch("Bphi"         , &Bphi         , "Bphi/D");
-    tree_->Branch("Bchg"        , &Bchg        , "Bchg/I");
+    tree_->Branch("Bmass"         , &Bmass         , "Bmass/D");
+    tree_->Branch("Bpt"           , &Bpt           , "Bpt/D");
+    tree_->Branch("Bphi"          , &Bphi          , "Bphi/D");
+    tree_->Branch("Bchg"          , &Bchg          , "Bchg/I");
 
-    tree_->Branch("Bvtxcl"      , &Bvtxcl      , "Bvtxcl/D");
-    tree_->Branch("Blxysig"     , &Blxysig     , "Blxysig/D");
-    tree_->Branch("Bcosalphabs" , &Bcosalphabs , "Bcosalphabs/D");
-    tree_->Branch("Bctau"       , &Bctau       , "Bctau/D");
+    tree_->Branch("Bvtxcl"        , &Bvtxcl        , "Bvtxcl/D");
+    tree_->Branch("Blxysig"       , &Blxysig       , "Blxysig/D");
+    tree_->Branch("Bcosalphabs"   , &Bcosalphabs   , "Bcosalphabs/D");
+    tree_->Branch("Bcosalphabs2d" , &Bcosalphabs2d , "Bcosalphabs2d/D");
+    tree_->Branch("Bctau"         , &Bctau         , "Bctau/D");
 
-    tree_->Branch("Q2"          , &Q2          , "Q2/D");
-    tree_->Branch("CosThetaL"   , &CosThetaL   , "CosThetaL/D");
-    tree_->Branch("CosThetaK"   , &CosThetaK   , "CosThetaK/D");
+    tree_->Branch("Q2"            , &Q2            , "Q2/D");
+    tree_->Branch("CosThetaL"     , &CosThetaL     , "CosThetaL/D");
+    tree_->Branch("CosThetaK"     , &CosThetaK     , "CosThetaK/D");
 
     string datatype = get_option_value(option, "datatype");
     std::map<string,int> maptype;
@@ -407,6 +410,7 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     Bvtxcl = bvtxcl->at(i); 
     Blxysig = (blsbs->at(i)/blsbserr->at(i)); 
     Bcosalphabs = bcosalphabs->at(i); 
+    Bcosalphabs2d = bcosalphabs2d->at(i);
     Bctau = bctau->at(i); 
 
     Kshortpt = sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) );
