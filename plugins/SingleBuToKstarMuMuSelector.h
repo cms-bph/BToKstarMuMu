@@ -117,6 +117,8 @@ public :
    vector<double>  *bvtxzerr;
    vector<double>  *bcosalphabs;
    vector<double>  *bcosalphabserr;
+   vector<double>  *bcosalphabs2d;
+   vector<double>  *bcosalphabs2derr;
    vector<double>  *blsbs;
    vector<double>  *blsbserr;
    vector<double>  *bctau;
@@ -252,6 +254,8 @@ public :
    TBranch        *b_bvtxzerr;   //!
    TBranch        *b_bcosalphabs;   //!
    TBranch        *b_bcosalphabserr;   //!
+   TBranch        *b_bcosalphabs2d;    //!
+   TBranch        *b_bcosalphabs2derr;  //!
    TBranch        *b_blsbs;   //!
    TBranch        *b_blsbserr;   //!
    TBranch        *b_bctau;   //!
@@ -418,6 +422,8 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    bvtxzerr = 0;
    bcosalphabs = 0;
    bcosalphabserr = 0;
+   bcosalphabs2d = 0;
+   bcosalphabs2derr = 0;
    blsbs = 0;
    blsbserr = 0;
    bctau = 0;
@@ -527,6 +533,8 @@ void SingleBuToKstarMuMuSelector::Init(TTree *tree)
    fChain->SetBranchAddress("bvtxzerr", &bvtxzerr, &b_bvtxzerr);
    fChain->SetBranchAddress("bcosalphabs", &bcosalphabs, &b_bcosalphabs);
    fChain->SetBranchAddress("bcosalphabserr", &bcosalphabserr, &b_bcosalphabserr);
+   fChain->SetBranchAddress("bcosalphabs2d", &bcosalphabs2d, &b_bcosalphabs2d);
+   fChain->SetBranchAddress("bcosalphabs2derr", &bcosalphabs2derr, &b_bcosalphabs2derr);
    fChain->SetBranchAddress("blsbs", &blsbs, &b_blsbs);
    fChain->SetBranchAddress("blsbserr", &blsbserr, &b_blsbserr);
    fChain->SetBranchAddress("bctau", &bctau, &b_bctau);
