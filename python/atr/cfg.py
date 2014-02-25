@@ -90,6 +90,7 @@ def Run2011A_May10ReReco_v1_run2011v1(f, label):
 
 def Run2011A_PromptReco_v4_run2011v1(f, label):
     f, cfg_file = Run2011A_May10ReReco_v1_run2011v1(f, label)
+    return f, cfg_file
 
 def Run2011A_PromptReco_v5_run2011v1(f, label):
     return Run2011A_PromptReco_v4_run2011v1(f, label)

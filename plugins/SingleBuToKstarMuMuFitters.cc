@@ -9,10 +9,12 @@
 
 #include <TSystem.h>
 #include <TF1.h>
+#include <TF2.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH1D.h>
+#include <TH1F.h>
 #include <TH2F.h>
+#include <TMinuit.h>
 #include <TFile.h>
 #include <TPad.h> 
 #include <TCanvas.h> 
@@ -27,7 +29,6 @@
 #include <RooGaussian.h>
 #include <RooChebychev.h> 
 #include <RooAddPdf.h>
-#include <RooAddition.h>
 #include <RooDataSet.h>
 #include <RooAbsData.h>
 #include <RooFitResult.h>
@@ -36,8 +37,6 @@
 #include <RooPolynomial.h>
 #include <RooProdPdf.h>
 #include <RooDataHist.h>
-#include <RooCategory.h>
-#include <RooEfficiency.h>
 
 #include "tools.h" 
 
@@ -67,6 +66,36 @@ char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
                         "Q2 < 6.00 && Q2 > 1.00"};
 double q2rangedn[10] = {1.00 , 2.00 , 4.30 , 8.68  , 10.09 , 12.86 , 14.18 , 16.00 ,  1.00 , 1.00};
 double q2rangeup[10] = {2.00 , 4.30 , 8.68 , 10.09 , 12.86 , 14.18 , 16.00 , 19.00 , 19.00 , 6.00};
+
+TF2  *f2_fcn = NULL;
+double model_2D(double x, double y,int nPar, double* par)
+{//{{{
+    for (int i = 0; i < nPar; i++) f2_fcn->SetParameter(i,par[i]);
+    return f2_fcn->Eval(x,y);
+}//}}}
+
+TH2F *h2_fcn = NULL;
+// nParameters, ???, return fcn value, parameter array, strategy
+void fcn_binnedChi2_2D(int &npar, double *gin, double &f, double *par, int iflag)
+{//{{{
+    f=0;
+    for (int i = 1; i <= h2_fcn->GetNbinsX(); i++) {
+        for (int j = 1; j <= h2_fcn->GetNbinsY(); j++) {
+            int gBin = h2_fcn->GetBin(i,j);
+            double xx = h2_fcn->GetXaxis()->GetBinCenter(i);
+            double yy = h2_fcn->GetYaxis()->GetBinCenter(j);
+            double measure  = h2_fcn->GetBinContent(gBin);
+            double error    = h2_fcn->GetBinError(gBin);
+            double func     = model_2D(xx,yy,npar, par);
+            double delta    = (measure-func)/error;
+            f+=delta*delta;
+        }
+    }
+    //printf("FCN in calls = %f\n",f);
+}//}}}
+
+
+//_________________________________________________________________________________
 
 void bmass( const char outfile[] = "bmass")
 {//{{{
@@ -150,6 +179,9 @@ void bmass( const char outfile[] = "bmass")
   delete c;
 
 }//}}}
+
+
+//_________________________________________________________________________________
 
 std::vector<double> fl_bin(int iBin, const char outfile[] = "fl")
 {//{{{
@@ -239,6 +271,9 @@ void fl(const char outfile[] = "fl")
     delete frame;
     delete c;
 }//}}}
+
+
+//_________________________________________________________________________________
 
 std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_gen")
 {//{{{
@@ -379,6 +414,9 @@ void angular_gen(const char outfile[] = "angular_gen")
     c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
 }//}}}
 
+
+//_________________________________________________________________________________
+
 std::vector<double> acceptance(int iBin) // acceptance
 {//{{{
     std::vector<double> output;
@@ -420,8 +458,8 @@ std::vector<double> acceptance(int iBin) // acceptance
     h2_acc.SetAxisRange(0.,1.,"Z");
     for (int i = 1; i <= 6; i++) {
         for (int j = 1; j <= 5; j++) {
-            if (h2_ngen.GetBinContent(i,j) == 0) {
-                printf("ERROR: h2_ngen_bin%d(%d,%d)=0\n",iBin,i,j);
+            if (h2_ngen.GetBinContent(i,j) == 0 || h2_nacc.GetBinContent(i,j) == 0) {
+                printf("WARNING: Angular bin(%d,%d)=0, set error to be 1.\n",i,j);
                 h2_acc.SetBinContent(i,j,0);
                 h2_acc.SetBinError(i,j,1);
             }else{
@@ -430,122 +468,229 @@ std::vector<double> acceptance(int iBin) // acceptance
             }
         }
     }
-    // Define fit function
-    RooRealVar genCosThetaL("genCosThetaL","genCosThetaL",-1,1);
-    RooRealVar genCosThetaK("genCosThetaK","genCosThetaK",-1,1);
-    RooRealVar k0l0("k0l0","k0l0",1,-1E2,1E2);// As the normalizer, forced to be 1.
-    RooRealVar k1l0("k1l0","k1l0",1,-1E2,1E2);
-    RooRealVar k2l0("k2l0","k2l0",1,-1E2,1E2);
-    RooRealVar k3l0("k3l0","k3l0",1,-1E2,1E2);
-    RooRealVar k0l2("k0l2","k0l2",1,-1E2,1E2);
-    RooRealVar k1l2("k1l2","k1l2",1,-1E2,1E2);
-    RooRealVar k2l2("k2l2","k2l2",1,-1E2,1E2);
-    RooRealVar k3l2("k3l2","k3l2",1,-1E2,1E2);
-    RooRealVar k0l3("k0l3","k0l3",1,-1E2,1E2);
-    RooRealVar k1l3("k1l3","k1l3",1,-1E2,1E2);
-    RooRealVar k2l3("k2l3","k2l3",1,-1E2,1E2);
-    RooRealVar k3l3("k3l3","k3l3",1,-1E2,1E2);
-    RooRealVar k0l4("k0l4","k0l4",1,-1E2,1E2);
-    RooRealVar k1l4("k1l4","k1l4",1,-1E2,1E2);
-    RooRealVar k2l4("k2l4","k2l4",1,-1E2,1E2);
-    RooRealVar k3l4("k3l4","k3l4",1,-1E2,1E2);
-    RooRealVar k0l6("k0l6","k0l6",1,-1E2,1E2);
-    RooRealVar k1l6("k1l6","k1l6",1,-1E2,1E2);
-    RooRealVar k2l6("k2l6","k2l6",1,-1E2,1E2);
-    RooRealVar k3l6("k3l6","k3l6",1,-1E2,1E2);
-    RooAbsPdf *f = 0;
-    RooGenericPdf *f_kl0 = new RooGenericPdf("f_kl0","f_kl0","(1+k1l0*genCosThetaK+k2l0*genCosThetaK**2+k3l0*genCosThetaK**3)"                ,RooArgList(genCosThetaK,genCosThetaL,k1l0,k2l0,k3l0));
-    RooGenericPdf *f_kl2 = new RooGenericPdf("f_kl2","f_kl2","(1+k1l2*genCosThetaK+k2l2*genCosThetaK**2+k3l2*genCosThetaK**3)*genCosThetaL**2",RooArgList(genCosThetaK,genCosThetaL,k1l2,k2l2,k3l2));
-    RooGenericPdf *f_kl3 = new RooGenericPdf("f_kl3","f_kl3","(1+k1l3*genCosThetaK+k2l3*genCosThetaK**2+k3l3*genCosThetaK**3)*genCosThetaL**3",RooArgList(genCosThetaK,genCosThetaL,k1l3,k2l3,k3l3));
-    RooGenericPdf *f_kl4 = new RooGenericPdf("f_kl4","f_kl4","(1+k1l4*genCosThetaK+k2l4*genCosThetaK**2+k3l4*genCosThetaK**3)*genCosThetaL**4",RooArgList(genCosThetaK,genCosThetaL,k1l4,k2l4,k3l4));
-    RooGenericPdf *f_kl6 = new RooGenericPdf("f_kl6","f_kl6","(1+k1l6*genCosThetaK+k2l6*genCosThetaK**2+k3l6*genCosThetaK**3)*genCosThetaL**6",RooArgList(genCosThetaK,genCosThetaL,k1l6,k2l6,k3l6));
-    if (iBin == 0){
-        f = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl4,*f_kl6),RooArgList(k0l0,k0l2,k0l4,k0l6));
-    }else if (iBin == 1){
-        f = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl4),RooArgList(k0l0,k0l2,k0l4));
-    }else if (iBin >=2 && iBin < 6){
-        f = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl3,*f_kl4),RooArgList(k0l0,k0l2,k0l3,k0l4));
+    
+    // Using pure TMinuit
+    int nPar = 20;
+    TMinuit *gMinuit = new TMinuit(nPar);
+    h2_fcn = &h2_acc;
+    gMinuit->SetFCN(fcn_binnedChi2_2D);
+    
+    TF2 f2_model("f2_model","([0]+[1]*y+[2]*y**2+[3]*y**3)+([4]+[5]*y+[6]*y**2+[7]*y**3)*x**2+([8]+[9]*y+[10]*y**2+[11]*y**3)*x**3+([12]+[13]*y+[14]*y**2+[15]*y**3)*x**4+([16]+[17]*y+[18]*y**2+[19]*y**3)*x**6",-1.,1.,-1.,1.);
+    f2_fcn = &f2_model;
+    gMinuit->DefineParameter( 0, "k0l0", .01,    .1,    -1E-2, 1E-1);
+    gMinuit->DefineParameter( 1, "k1l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 2, "k2l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 3, "k3l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 4, "k0l2", .01,    .1,    -1E-2, 1E-1);
+    gMinuit->DefineParameter( 5, "k1l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 6, "k2l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 7, "k3l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 8, "k0l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 9, "k1l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(10, "k2l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(11, "k3l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(12, "k0l4",1E-3,  1E-3,    -1   , 1   );
+    gMinuit->DefineParameter(13, "k1l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(14, "k2l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(15, "k3l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(16, "k0l6",1E-3,  1E-3,    -1   , 1   );
+    gMinuit->DefineParameter(17, "k1l6",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(18, "k2l6",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(19, "k3l6",  0.,    .1,    -1E-1, 1E-1);
+    if (iBin == 0) {
+        gMinuit->Command("SET PARM 9 0");
+        gMinuit->Command("SET PARM 10 0");
+        gMinuit->Command("SET PARM 11 0");
+        gMinuit->Command("SET PARM 12 0");
+        gMinuit->Command("FIX 9");
+        gMinuit->Command("FIX 10");
+        gMinuit->Command("FIX 11");
+        gMinuit->Command("FIX 12");
+    }else if (iBin == 1) {
+        gMinuit->Command("SET PARM 9 0");
+        gMinuit->Command("SET PARM 10 0");
+        gMinuit->Command("SET PARM 11 0");
+        gMinuit->Command("SET PARM 12 0");
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 9");
+        gMinuit->Command("FIX 10");
+        gMinuit->Command("FIX 11");
+        gMinuit->Command("FIX 12");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
+    }else if (iBin > 1 && iBin < 6 ) {
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
     }else{
-        f = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl3),RooArgList(k0l0,k0l2,k0l3));
+        gMinuit->Command("SET PARM 13 0");
+        gMinuit->Command("SET PARM 14 0");
+        gMinuit->Command("SET PARM 15 0");
+        gMinuit->Command("SET PARM 16 0");
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 13");
+        gMinuit->Command("FIX 14");
+        gMinuit->Command("FIX 15");
+        gMinuit->Command("FIX 16");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
     }
     
-    // Fit reco efficiency
-    RooDataHist *data_acc = new RooDataHist("data","data",RooArgList(genCosThetaK,genCosThetaL),Import(h2_acc,kFALSE));
-    RooFitResult *f_fitresult = f->fitTo(*data_acc,Save(kTRUE),Extended(kTRUE));
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    //gMinuit->Command("HESSE");
+    gMinuit->Command("IMPROVE");
+    gMinuit->Command("MINOS");
+
+    double arrPar[nPar];
+    double arrParErr[nPar];
+    for (int iPar = 0; iPar < nPar; iPar++) gMinuit->GetParameter(iPar,arrPar[iPar],arrParErr[iPar]);
+    for (int iPar = 0; iPar < nPar; iPar++) f2_model.SetParameter(iPar,arrPar[iPar]);
+
+    // Calculate chi2
+    double chi2Val=0;
+    for (int i = 1; i <= 6; i++) {//thetaL
+        for (int j = 1; j <= 5; j++) {//thetaK
+            chi2Val += pow((f2_model.Eval(h2_acc.GetXaxis()->GetBinCenter(i),h2_acc.GetYaxis()->GetBinCenter(j))-h2_acc.GetBinContent(i,j))/h2_acc.GetBinError(i,j),2);
+            printf("FitValue= (%9.6f - %9.6f)/%f at i=%2d(%.2f),j=%2d(%.2f)\n",f2_model.Eval(h2_acc.GetXaxis()->GetBinCenter(i),h2_acc.GetYaxis()->GetBinCenter(j)),h2_acc.GetBinContent(i,j),h2_acc.GetBinError(i,j),i,h2_acc.GetXaxis()->GetBinCenter(i),j,h2_acc.GetYaxis()->GetBinCenter(j));
+        }
+    }
+    printf("Chi2=%f \n",chi2Val);
+    
+    // Prepare draw
+    TCanvas canvas("canvas");
+    TLatex *latex = new TLatex();
     
     // Draw efficiency
-    TCanvas canvas("canvas");
-    h2_acc.Draw("LEGO2");
+    h2_acc.SetStats(0);
+    h2_acc.SetMaximum(.02);
+    h2_acc.Draw("LEGO2 Z");
+    latex->DrawLatexNDC(0.35,0.95,TString::Format("Acceptance_{RECO} in Bin%d",iBin));
     
     // Draw FitResult
-    TH1 *h2_acc_fitresult = f->createHistogram("h2_acc_fitresult",genCosThetaL,YVar(genCosThetaK));
-    //h2_acc_fitresult->SetAxisRange->(0.,1.,"Z");
-    h2_acc_fitresult->Draw("SURF FUNC SAME");
+    f2_model.SetTitle("");
+    f2_model.SetMaximum(.02);
+    f2_model.SetLineWidth(1);
+    f2_model.Draw("SURF3 SAME ");
     canvas.Print(TString::Format("./plots/acceptance_2D_bin%d.pdf",iBin));
-
-    // Draw projections
-    RooPlot* framecosk = genCosThetaK.frame();
-    data_acc->plotOn(framecosk,DataError(RooAbsData::None));
-    f->plotOn(framecosk);
-    //framecosk->SetAxisRange(0.,1.1,"Y");
-    framecosk->Draw();
-    canvas.Update();
-    canvas.Print(TString::Format("./plots/acceptance_cosK_bin%d.pdf",iBin));
     
-    RooPlot* framecosl = genCosThetaL.frame(); 
-    data_acc->plotOn(framecosl,DataError(RooAbsData::None)); 
-    f->plotOn(framecosl); 
-    //framecosl->SetAxisRange(0.,1.1,"Y");
-    framecosl->Draw();
+
+    //// Draw compare
+    TH2F h2_compFit("h2_compFit","",6,thetaLBins,5,thetaKBins);
+    for (int i = 1; i <= 6; i++) {//thetaL
+        for (int j = 1; j <= 5; j++) {//thetaK
+            if (h2_acc.GetBinContent(i,j) != 0){
+                h2_compFit.SetBinContent(i,j,f2_model.Eval(h2_acc.GetXaxis()->GetBinCenter(i),h2_acc.GetYaxis()->GetBinCenter(j))/h2_acc.GetBinContent(i,j));
+            }else{
+                h2_compFit.SetBinContent(i,j,0.);
+            }
+        }
+    }
+    h2_compFit.SetMinimum(0.);
+    h2_compFit.SetStats(0);
+    h2_compFit.Draw("LEGO2");
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
+    latex->DrawLatexNDC(0.3,0.95,TString::Format("#varepsilon_{RECO,measured} / #varepsilon_{RECO,fit} in Bin%d",iBin));
     canvas.Update();
-    canvas.Print(TString::Format("./plots/acceptance_cosL_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("./plots/acceptance_compFit_2D_bin%d.pdf",iBin));
+
+    // Draw projection to cosThetaK
+    TH1D *h_cosk = new TH1D("h_cosk","",5,thetaKBins);
+    for (int kBin = 1; kBin <= 5; kBin++) {
+        float sumGen = 0.;
+        float sumAcc = 0.;
+        for ( int lBin = 1; lBin <= 6; lBin++) {
+            sumGen+=h2_ngen.GetBinContent(lBin,kBin);
+            sumAcc+=h2_nacc.GetBinContent(lBin,kBin);
+        }
+        h_cosk->SetBinContent(kBin,sumAcc/sumGen);
+        h_cosk->SetBinError(kBin,sqrt(sumAcc*(sumGen-sumAcc)/pow(sumGen,3)));
+    }
+    h_cosk->SetStats(0);
+    h_cosk->SetMinimum(0.);
+    h_cosk->SetMaximum(0.02);
+    h_cosk->Draw();
+    latex->DrawLatexNDC(0.32,0.95,TString::Format("Projection to cos#theta_{k} in Bin%d",iBin));
+
+    chi2Val = 0;
+    TF1  *f_cosk = new TF1("f_cosk"
+                          ,"([0]+[1]*x+[2]*x**2+[3]*x**3)+([4]+[5]*x+[6]*x**2+[7]*x**3)/3+([8]+[9]*x+[10]*x**2+[11]*x**3)*0+([12]+[13]*x+[14]*x**2+[15]*x**3)/5+([16]+[17]*x+[18]*x**2+[19]*x**3)/7"
+                          ,-1.,1.);
+    for (int iPar = 0; iPar < nPar; iPar++) f_cosk->SetParameter(iPar,arrPar[iPar]);
+    f_cosk->Draw("SAME");
+    for (int kBin = 1; kBin <= 5; kBin++) {
+        chi2Val += pow((f_cosk->Eval(h_cosk->GetBinCenter(kBin))-h_cosk->GetBinContent(kBin))/h_cosk->GetBinError(kBin),2);
+    }
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
+    canvas.Update();
+    canvas.Print(TString::Format("./plots/recoEff_cosK_bin%d.pdf",iBin));
+    
+    // Draw projection to cosThetaL
+    TH1D *h_cosl = new TH1D("h_cosl","",6,thetaLBins);
+    for ( int lBin = 1; lBin <= 6; lBin++) {
+        float sumGen = 0.;
+        float sumAcc = 0.;
+        for (int kBin = 1; kBin <= 5; kBin++) {
+            sumAcc+=h2_nacc.GetBinContent(lBin,kBin);
+            sumGen+=h2_ngen.GetBinContent(lBin,kBin);
+        }
+        h_cosl->SetBinContent(lBin,sumAcc/sumGen);
+        h_cosl->SetBinError(lBin,sqrt(sumAcc*(sumGen-sumAcc)/pow(sumGen,3)));
+    }
+    h_cosl->SetStats(0);
+    h_cosl->SetMinimum(0.);
+    h_cosl->SetMaximum(0.02);
+    h_cosl->Draw();
+    latex->DrawLatexNDC(0.32,0.95,TString::Format("Projection to cos#theta_{l} in Bin%d",iBin));
+
+    chi2Val = 0;
+    TF1  *f_cosl = new TF1("f_cosl"
+                          ,"([0]+[1]*x*0+[2]/3+[3]*0)+([4]+[5]*0+[6]/3+[7]*0)*x**2+([8]+[9]*0+[10]/3+[11]*0)*x**3+([12]+[13]*0+[14]/3+[15]*0)*x**4+([16]+[17]*0+[18]/3+[19]*0)*x**6"
+                          ,-1.,1.);
+    for (int iPar = 0; iPar < nPar; iPar++) f_cosl->SetParameter(iPar,arrPar[iPar]);
+    f_cosl->Draw("SAME");
+    for (int lBin = 1; lBin <= 6; lBin++) {
+        chi2Val += pow((f_cosl->Eval(h_cosl->GetBinCenter(lBin))-h_cosl->GetBinContent(lBin))/h_cosl->GetBinError(lBin),2);
+    }
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
+    canvas.Update();
+    canvas.Print(TString::Format("./plots/recoEff_cosL_bin%d.pdf",iBin));
 
     // Clear
-    delete data_acc;
-    delete f;
+    delete f_cosl;
+    delete h_cosl;
+    delete f_cosk;
+    delete h_cosk;
+    delete latex;
+    delete gMinuit;
 
     //prepare output
-    output.push_back(k0l0.getVal());
-    output.push_back(k0l0.getError());
-    output.push_back(k1l0.getVal());
-    output.push_back(k1l0.getError());
-    output.push_back(k2l0.getVal());
-    output.push_back(k2l0.getError());
-    output.push_back(k3l0.getVal());
-    output.push_back(k3l0.getError());
-    output.push_back(k0l2.getVal());
-    output.push_back(k0l2.getError());
-    output.push_back(k1l2.getVal());
-    output.push_back(k1l2.getError());
-    output.push_back(k2l2.getVal());
-    output.push_back(k2l2.getError());
-    output.push_back(k3l2.getVal());
-    output.push_back(k3l2.getError());
-    output.push_back(k0l3.getVal());
-    output.push_back(k0l3.getError());
-    output.push_back(k1l3.getVal());
-    output.push_back(k1l3.getError());
-    output.push_back(k2l3.getVal());
-    output.push_back(k2l3.getError());
-    output.push_back(k3l3.getVal());
-    output.push_back(k3l3.getError());
-    output.push_back(k0l4.getVal());
-    output.push_back(k0l4.getError());
-    output.push_back(k1l4.getVal());
-    output.push_back(k1l4.getError());
-    output.push_back(k2l4.getVal());
-    output.push_back(k2l4.getError());
-    output.push_back(k3l4.getVal());
-    output.push_back(k3l4.getError());
-    output.push_back(k0l6.getVal());
-    output.push_back(k0l6.getError());
-    output.push_back(k1l6.getVal());
-    output.push_back(k1l6.getError());
-    output.push_back(k2l6.getVal());
-    output.push_back(k2l6.getError());
-    output.push_back(k3l6.getVal());
-    output.push_back(k3l6.getError());
-
+    for (int iPar = 0; iPar < nPar; iPar++){
+        output.push_back(arrPar[iPar]);
+        output.push_back(arrParErr[iPar]);
+    }
+    for (int i = 0; i < output.size(); i=i+2) {
+        printf("%f +- %f\n",output[i],output[i+1]);
+    }
     return output;
 }//}}}
 
@@ -596,79 +741,233 @@ std::vector<double> efficiency(int iBin) // reconstruction efficiency
     }
     
     // Calculate efficiency
-    TH2F h2_rec("h2_rec","h2_rec",6,thetaLBins,5,thetaKBins);
+    TH2F h2_rec("h2_rec","",6,thetaLBins,5,thetaKBins);
     h2_rec.SetMinimum(0.);
     h2_rec.SetXTitle("genCosThetaL");
     h2_rec.SetYTitle("genCosThetaK");
     for (int i = 1; i <= 6; i++) {
         for (int j = 1; j <= 5; j++) {
-            if (h2_nacc.GetBinContent(i,j) == 0) {
-                printf("ERROR: h2_nacc_bin%d(%d,%d)=0\n",iBin,i,j);
-                h2_rec.SetBinContent(i,j,0);
-                h2_rec.SetBinError(i,j,1);
+            // Build from MC samples
+            if (h2_nacc.GetBinContent(i,j) == 0 || h2_nreco.GetBinContent(i,j) == 0) {
+                printf("WARNING: Angular bin(%d,%d)=0, set error to be 1.\n",i,j);
+                h2_rec.SetBinContent(i,j,0.);
+                h2_rec.SetBinError(i,j,1.);
             }else{
                 h2_rec.SetBinContent(i,j,h2_nreco.GetBinContent(i,j)/h2_nacc.GetBinContent(i,j));
-                h2_rec.SetBinError(i,j,sqrt(h2_rec.GetBinContent(i,j)*(1-h2_rec.GetBinContent(i,j))));
+                h2_rec.SetBinError(i,j,sqrt(h2_rec.GetBinContent(i,j)*(1-h2_rec.GetBinContent(i,j))/h2_nacc.GetBinContent(i,j)));
             }
+
+            // Build a toy sample
+            //h2_rec.SetBinContent(i,j,fabs(sin((thetaLBins[i]+thetaLBins[i-1])*3.1415926/4)/(20.-2*j))+0.1);
+            //h2_rec.SetBinError(i,j,sqrt(h2_rec.GetBinContent(i,j)*(1-h2_rec.GetBinContent(i,j))/20));
         }
     }
-    RooDataHist *data  = new RooDataHist("data","data",RooArgList(genCosThetaL,genCosThetaK),Import(h2_rec,kFALSE)) ; 
 
+    // Using RooFit //{{{
+    /*
+    RooDataHist *data  = new RooDataHist("data","data",RooArgList(genCosThetaL,genCosThetaK),Import(h2_rec,kFALSE)) ; 
+    
     // Define fit function
-    RooRealVar k0l0("k0l0","k0l0",.01,-1,1);// As the normalizer, forced to be 1.
-    RooRealVar k1l0("k1l0","k1l0",0,-1,1);
-    RooRealVar k2l0("k2l0","k2l0",0,-1,1);
-    RooRealVar k3l0("k3l0","k3l0",0,-1,1);
-    RooRealVar k0l2("k0l2","k0l2",0,-1,1);
-    RooRealVar k1l2("k1l2","k1l2",0,-1,1);
-    RooRealVar k2l2("k2l2","k2l2",0,-1,1);
-    RooRealVar k3l2("k3l2","k3l2",0,-1,1);
-    RooRealVar k0l3("k0l3","k0l3",0.,-1E-2,1E-2);
-    RooRealVar k1l3("k1l3","k1l3",0,-0.1,0.1);
-    RooRealVar k2l3("k2l3","k2l3",0,-0.1,0.1);
-    RooRealVar k3l3("k3l3","k3l3",0,-0.1,0.1);
-    RooRealVar k0l4("k0l4","k0l4",0,-1,1);
-    RooRealVar k1l4("k1l4","k1l4",0,-1,1);
-    RooRealVar k2l4("k2l4","k2l4",0,-1,1);
-    RooRealVar k3l4("k3l4","k3l4",0,-1,1);
-    RooRealVar k0l6("k0l6","k0l6",0,-1,1);
-    RooRealVar k1l6("k1l6","k1l6",0,-1,1);
-    RooRealVar k2l6("k2l6","k2l6",0,-1,1);
-    RooRealVar k3l6("k3l6","k3l6",0,-1,1);
+    RooRealVar k0l0("k0l0","k0l0",1,-1E2,1E2);// As the normalizer, forced to be 1.
+    RooRealVar k1l0("k1l0","k1l0",0,-1E2,1E2);
+    RooRealVar k2l0("k2l0","k2l0",0,-1E2,1E2);
+    RooRealVar k3l0("k3l0","k3l0",0,-1E2,1E2);
+    RooRealVar k0l2("k0l2","k0l2",1,-1E2,1E2);
+    RooRealVar k1l2("k1l2","k1l2",0,-1E2,1E2);
+    RooRealVar k2l2("k2l2","k2l2",0,-1E2,1E4);
+    RooRealVar k3l2("k3l2","k3l2",0,-1E2,1E2);
+    RooRealVar k0l3("k0l3","k0l3",0,-1E2,1E2);
+    RooRealVar k1l3("k1l3","k1l3",0,-1E2,1E2);
+    RooRealVar k2l3("k2l3","k2l3",0,-1E2,1E2);
+    RooRealVar k3l3("k3l3","k3l3",0,-1E2,1E2);
+    RooRealVar k0l4("k0l4","k0l4",1,-1E2,1E2);
+    RooRealVar k1l4("k1l4","k1l4",0,-1E2,1E2);
+    RooRealVar k2l4("k2l4","k2l4",0,-1E2,1E2);
+    RooRealVar k3l4("k3l4","k3l4",0,-1E2,1E2);
+    RooRealVar k0l6("k0l6","k0l6",1,-1E2,1E2);
+    RooRealVar k1l6("k1l6","k1l6",0,-1E2,1E2);
+    RooRealVar k2l6("k2l6","k2l6",0,-1E2,1E2);
+    RooRealVar k3l6("k3l6","k3l6",0,-1E2,1E2);
     RooAddPdf *f_addition = 0;
-    RooGenericPdf *f_kl0 = new RooGenericPdf("f_kl0","f_kl0","(1+k1l0*genCosThetaK+k2l0*genCosThetaK**2+k3l0*genCosThetaK**3)"                ,RooArgList(genCosThetaK,genCosThetaL,k1l0,k2l0,k3l0));
-    RooGenericPdf *f_kl2 = new RooGenericPdf("f_kl2","f_kl2","(1+k1l2*genCosThetaK+k2l2*genCosThetaK**2+k3l2*genCosThetaK**3)*genCosThetaL**2",RooArgList(genCosThetaK,genCosThetaL,k1l2,k2l2,k3l2));
-    RooGenericPdf *f_kl3 = new RooGenericPdf("f_kl3","f_kl3","(1+k1l3*genCosThetaK+k2l3*genCosThetaK**2+k3l3*genCosThetaK**3)*genCosThetaL**3",RooArgList(genCosThetaK,genCosThetaL,k1l3,k2l3,k3l3));
-    RooGenericPdf *f_kl4 = new RooGenericPdf("f_kl4","f_kl4","(1+k1l4*genCosThetaK+k2l4*genCosThetaK**2+k3l4*genCosThetaK**3)*genCosThetaL**4",RooArgList(genCosThetaK,genCosThetaL,k1l4,k2l4,k3l4));
-    RooGenericPdf *f_kl6 = new RooGenericPdf("f_kl6","f_kl6","(1+k1l6*genCosThetaK+k2l6*genCosThetaK**2+k3l6*genCosThetaK**3)*genCosThetaL**6",RooArgList(genCosThetaK,genCosThetaL,k1l6,k2l6,k3l6));
+    //RooGenericPdf *f_kl0 = new RooGenericPdf("f_kl0","f_kl0","(1+k1l0*genCosThetaK+k2l0*genCosThetaK**2+k3l0*genCosThetaK**3)/(2+2*k2l0/3)"                ,RooArgList(genCosThetaK,genCosThetaL,k1l0,k2l0,k3l0));
+    RooGenericPdf *f_kl0 = new RooGenericPdf("f_kl0","f_kl0","(1+k1l0*genCosThetaK+k2l0*genCosThetaK**2+k3l0*genCosThetaK**3)/(2+2/3*k2l0)*0.5+(k0l3+k1l3*genCosThetaK+k2l3*genCosThetaK**2+k3l3*genCosThetaK**3)*genCosThetaL**3",RooArgList(genCosThetaK,genCosThetaL,k1l0,k2l0,k3l0,k0l3,k1l3,k2l3,k3l3));
+    RooGenericPdf *f_kl2 = new RooGenericPdf("f_kl2","f_kl2","(1+k1l2*genCosThetaK+k2l2*genCosThetaK**2+k3l2*genCosThetaK**3)/(2+2/3*k2l2)*1.5*genCosThetaL**2",RooArgList(genCosThetaK,genCosThetaL,k1l2,k2l2,k3l2));
+    //RooGenericPdf *f_kl3 = new RooGenericPdf("f_kl3","f_kl3","(1+k1l3*genCosThetaK+k2l3*genCosThetaK**2+k3l3*genCosThetaK**3)/(2+2/3*k2l2)*genCosThetaL**3",RooArgList(genCosThetaK,genCosThetaL,k1l3,k2l3,k3l3));
+    RooGenericPdf *f_kl4 = new RooGenericPdf("f_kl4","f_kl4","(1+k1l4*genCosThetaK+k2l4*genCosThetaK**2+k3l4*genCosThetaK**3)/(2+2/3*k2l4)*2.5*genCosThetaL**4",RooArgList(genCosThetaK,genCosThetaL,k1l4,k2l4,k3l4));
+    RooGenericPdf *f_kl6 = new RooGenericPdf("f_kl6","f_kl6","(1+k1l6*genCosThetaK+k2l6*genCosThetaK**2+k3l6*genCosThetaK**3)/(2+2/3*k2l6)*3.5*genCosThetaL**6",RooArgList(genCosThetaK,genCosThetaL,k1l6,k2l6,k3l6));
     if (iBin == 0){
         f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl4,*f_kl6),RooArgList(k0l0,k0l2,k0l4,k0l6));
     }else if (iBin == 1){
         f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl4),RooArgList(k0l0,k0l2,k0l4));
-    }else if (iBin >=2 && iBin < 6){
-        f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl3,*f_kl4),RooArgList(k0l0,k0l2,k0l3,k0l4));
+        k0l3.setVal(0.);
+        k1l3.setVal(0.);
+        k2l3.setVal(0.);
+        k3l3.setVal(0.);
+        k0l3.setConstant(kTRUE);
+        k1l3.setConstant(kTRUE);
+        k2l3.setConstant(kTRUE);
+        k3l3.setConstant(kTRUE);
+    }else if (iBin >=1 && iBin < 6){
+        f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl4),RooArgList(k0l0,k0l2,k0l4));
     }else{
-        f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2,*f_kl3),RooArgList(k0l0,k0l2,k0l3));
+        f_addition = new RooAddPdf("f","f",RooArgList(*f_kl0,*f_kl2),RooArgList(k0l0,k0l2));
     }
     RooAddPdf *f = f_addition;
     
     // Fit reco efficiency
     printf("Start fitting...\n");
-    RooFitResult *f_fitresult = f->fitTo(*data,Save(kTRUE),Extended(kTRUE));
+    //f->chi2FitTo(*data,Extended());
+    //f->chi2FitTo(*data,Extended());
+    RooFitResult *f_fitresult = f->chi2FitTo(*data,Save(kTRUE),Extended());
     printf("End fitting...\n");
+    */ //}}}
+
+    // Using pure TMinuit
+    int nPar = 20;
+    TMinuit *gMinuit = new TMinuit(nPar);
+    h2_fcn = &h2_rec;
+    gMinuit->SetFCN(fcn_binnedChi2_2D);
+    
+    TF2 f2_model("f2_model","([0]+[1]*y+[2]*y**2+[3]*y**3)+([4]+[5]*y+[6]*y**2+[7]*y**3)*x**2+([8]+[9]*y+[10]*y**2+[11]*y**3)*x**3+([12]+[13]*y+[14]*y**2+[15]*y**3)*x**4+([16]+[17]*y+[18]*y**2+[19]*y**3)*x**6",-1.,1.,-1.,1.);
+    f2_fcn = &f2_model;
+    gMinuit->DefineParameter( 0, "k0l0", .01,    .1,    -1E-2, 1E-1);
+    gMinuit->DefineParameter( 1, "k1l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 2, "k2l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 3, "k3l0",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 4, "k0l2", .01,    .1,    -1E-2, 1E-1);
+    gMinuit->DefineParameter( 5, "k1l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 6, "k2l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 7, "k3l2",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 8, "k0l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter( 9, "k1l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(10, "k2l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(11, "k3l3",  0.,    .1,    -1E-2, 1E-2);
+    gMinuit->DefineParameter(12, "k0l4",1E-3,  1E-3,    -1   , 1   );
+    gMinuit->DefineParameter(13, "k1l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(14, "k2l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(15, "k3l4",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(16, "k0l6",1E-3,  1E-3,    -1   , 1   );
+    gMinuit->DefineParameter(17, "k1l6",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(18, "k2l6",  0.,    .1,    -1E-1, 1E-1);
+    gMinuit->DefineParameter(19, "k3l6",  0.,    .1,    -1E-1, 1E-1);
+    if (iBin == 0) {
+        gMinuit->Command("SET PARM 9 0");
+        gMinuit->Command("SET PARM 10 0");
+        gMinuit->Command("SET PARM 11 0");
+        gMinuit->Command("SET PARM 12 0");
+        gMinuit->Command("FIX 9");
+        gMinuit->Command("FIX 10");
+        gMinuit->Command("FIX 11");
+        gMinuit->Command("FIX 12");
+    }else if (iBin == 1) {
+        gMinuit->Command("SET PARM 9 0");
+        gMinuit->Command("SET PARM 10 0");
+        gMinuit->Command("SET PARM 11 0");
+        gMinuit->Command("SET PARM 12 0");
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 9");
+        gMinuit->Command("FIX 10");
+        gMinuit->Command("FIX 11");
+        gMinuit->Command("FIX 12");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
+    }else if (iBin > 1 && iBin < 6 ) {
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
+    }else{
+        gMinuit->Command("SET PARM 13 0");
+        gMinuit->Command("SET PARM 14 0");
+        gMinuit->Command("SET PARM 15 0");
+        gMinuit->Command("SET PARM 16 0");
+        gMinuit->Command("SET PARM 17 0");
+        gMinuit->Command("SET PARM 18 0");
+        gMinuit->Command("SET PARM 19 0");
+        gMinuit->Command("SET PARM 20 0");
+        gMinuit->Command("FIX 13");
+        gMinuit->Command("FIX 14");
+        gMinuit->Command("FIX 15");
+        gMinuit->Command("FIX 16");
+        gMinuit->Command("FIX 17");
+        gMinuit->Command("FIX 18");
+        gMinuit->Command("FIX 19");
+        gMinuit->Command("FIX 20");
+    }
+    
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    gMinuit->Command("MINI");
+    //gMinuit->Command("HESSE");
+    gMinuit->Command("IMPROVE");
+    gMinuit->Command("MINOS");
+
+    double arrPar[nPar];
+    double arrParErr[nPar];
+    for (int iPar = 0; iPar < nPar; iPar++) gMinuit->GetParameter(iPar,arrPar[iPar],arrParErr[iPar]);
+    for (int iPar = 0; iPar < nPar; iPar++) f2_model.SetParameter(iPar,arrPar[iPar]);
+
+    // Calculate chi2
+    double chi2Val=0;
+    for (int i = 1; i <= 6; i++) {//thetaL
+        for (int j = 1; j <= 5; j++) {//thetaK
+            chi2Val += pow((f2_model.Eval(h2_rec.GetXaxis()->GetBinCenter(i),h2_rec.GetYaxis()->GetBinCenter(j))-h2_rec.GetBinContent(i,j))/h2_rec.GetBinError(i,j),2);
+            printf("FitValue= (%9.6f - %9.6f)/%f at i=%2d(%.2f),j=%2d(%.2f)\n",f2_model.Eval(h2_rec.GetXaxis()->GetBinCenter(i),h2_rec.GetYaxis()->GetBinCenter(j)),h2_rec.GetBinContent(i,j),h2_rec.GetBinError(i,j),i,h2_rec.GetXaxis()->GetBinCenter(i),j,h2_rec.GetYaxis()->GetBinCenter(j));
+        }
+    }
+    printf("Chi2=%f \n",chi2Val);
+    
+    // Prepare draw
+    TCanvas canvas("canvas");
+    TLatex *latex = new TLatex();
     
     // Draw efficiency
-    TCanvas canvas("canvas");
     h2_rec.SetStats(0);
+    h2_rec.SetMaximum(.02);
     h2_rec.Draw("LEGO2");
+    latex->DrawLatexNDC(0.35,0.95,TString::Format("#varepsilon_{RECO} in Bin%d",iBin));
     
     // Draw FitResult
-    TH1 *h2_rec_fitresult = f->createHistogram("h2_rec_fitresult",genCosThetaL,YVar(genCosThetaK));
-    h2_rec_fitresult->Draw("SURF FUNC SAME");
+    f2_model.SetTitle("");
+    f2_model.SetMaximum(.02);
+    f2_model.SetLineWidth(1);
+    f2_model.Draw("SURF SAME ");
     canvas.Print(TString::Format("./plots/recoEff_2D_bin%d.pdf",iBin));
+    
 
-    // Draw projections
-    TH1D *h_cosk = new TH1D("h_cosk","h_cosk",5,thetaKBins);
+    //// Draw compare
+    TH2F h2_compFit("h2_compFit","",6,thetaLBins,5,thetaKBins);
+    for (int i = 1; i <= 6; i++) {//thetaL
+        for (int j = 1; j <= 5; j++) {//thetaK
+            if (h2_rec.GetBinContent(i,j) != 0){
+                h2_compFit.SetBinContent(i,j,f2_model.Eval(h2_rec.GetXaxis()->GetBinCenter(i),h2_rec.GetYaxis()->GetBinCenter(j))/h2_rec.GetBinContent(i,j));
+            }else{
+                h2_compFit.SetBinContent(i,j,0.);
+            }
+        }
+    }
+    h2_compFit.SetMinimum(0.);
+    h2_compFit.SetStats(0);
+    h2_compFit.Draw("LEGO2");
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
+    latex->DrawLatexNDC(0.3,0.95,TString::Format("#varepsilon_{RECO,measured} / #varepsilon_{RECO,fit} in Bin%d",iBin));
+    canvas.Update();
+    canvas.Print(TString::Format("./plots/recoEff_compFit_2D_bin%d.pdf",iBin));
+
+    // Draw projection to cosThetaK
+    TH1D *h_cosk = new TH1D("h_cosk","",5,thetaKBins);
     for (int kBin = 1; kBin <= 5; kBin++) {
         float sumAcc = 0.;
         float sumRec = 0.;
@@ -677,48 +976,29 @@ std::vector<double> efficiency(int iBin) // reconstruction efficiency
             sumRec+=h2_nreco.GetBinContent(lBin,kBin);
         }
         h_cosk->SetBinContent(kBin,sumRec/sumAcc);
+        h_cosk->SetBinError(kBin,sqrt(sumRec*(sumAcc-sumRec)/pow(sumAcc,3)));
     }
     h_cosk->SetStats(0);
     h_cosk->SetMinimum(0.);
     h_cosk->SetMaximum(0.02);
-    h_cosk->Draw("HIST");
-    TF1  *f_cosk = 0;
-    if (iBin == 0){
-        f_cosk = new TF1("f_cosk"
-                        ,"[0]*(1+[1]*x+[2]*x**2+[3]*x**3)/1+[4]*(1+[5]*x+[6]*x**2+[7]*x**3)/3+[8]*(1+[9]*x+[10]*x**2+[11]*x**3)/5+[12]*(1+[13]*x+[14]*x**2+[15]*x**3)/7"
-                        ,-1.,1.);
-        f_cosk->SetParameter( 8,k0l4.getVal());
-        f_cosk->SetParameter( 9,k1l4.getVal());
-        f_cosk->SetParameter(10,k2l4.getVal());
-        f_cosk->SetParameter(11,k3l4.getVal());
-        f_cosk->SetParameter(12,k0l6.getVal());
-        f_cosk->SetParameter(13,k1l6.getVal());
-        f_cosk->SetParameter(14,k2l6.getVal());
-        f_cosk->SetParameter(15,k3l6.getVal());
-    }else if (iBin >= 1 && iBin < 6){
-        f_cosk = new TF1("f_cosk",
-                         "[0]*(1+[1]*x+[2]*x**2+[3]*x**3)/1+[4]*(1+[5]*x+[6]*x**2+[7]*x**3)/3+[8]*(1+[9]*x+[10]*x**2+[11]*x**3)/5"
-                         ,-1.,1.);
-        f_cosk->SetParameter( 8,k0l4.getVal());
-        f_cosk->SetParameter( 9,k1l4.getVal());
-        f_cosk->SetParameter(10,k2l4.getVal());
-        f_cosk->SetParameter(11,k3l4.getVal());
-    }else{
-        f_cosk = new TF1("f_cosk",
-                         "[0]*(1+[1]*x+[2]*x**2+[3]*x**3)/1+[4]*(1+[5]*x+[6]*x**2+[7]*x**3)/3"
-                         ,-1.,1.);
-    }
-    f_cosk->SetParameters(k0l0.getVal(),k1l0.getVal(),k2l0.getVal(),k3l0.getVal(),k0l2.getVal(),k1l2.getVal(),k2l2.getVal(),k3l2.getVal());
+    h_cosk->Draw();
+    latex->DrawLatexNDC(0.32,0.95,TString::Format("Projection to cos#theta_{k} in Bin%d",iBin));
+
+    chi2Val = 0;
+    TF1  *f_cosk = new TF1("f_cosk"
+                          ,"([0]+[1]*x+[2]*x**2+[3]*x**3)+([4]+[5]*x+[6]*x**2+[7]*x**3)/3+([8]+[9]*x+[10]*x**2+[11]*x**3)*0+([12]+[13]*x+[14]*x**2+[15]*x**3)/5+([16]+[17]*x+[18]*x**2+[19]*x**3)/7"
+                          ,-1.,1.);
+    for (int iPar = 0; iPar < nPar; iPar++) f_cosk->SetParameter(iPar,arrPar[iPar]);
     f_cosk->Draw("SAME");
+    for (int kBin = 1; kBin <= 5; kBin++) {
+        chi2Val += pow((f_cosk->Eval(h_cosk->GetBinCenter(kBin))-h_cosk->GetBinContent(kBin))/h_cosk->GetBinError(kBin),2);
+    }
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
     canvas.Update();
     canvas.Print(TString::Format("./plots/recoEff_cosK_bin%d.pdf",iBin));
     
-    
-    //RooPlot* framecosl = genCosThetaL.frame(); 
-    //data->plotOn(framecosl,DataError(RooAbsData::None));
-    //f->plotOn(framecosl); 
-    //framecosl->Draw();
-    TH1D *h_cosl = new TH1D("h_cosl","h_cosl",6,thetaLBins);
+    // Draw projection to cosThetaL
+    TH1D *h_cosl = new TH1D("h_cosl","",6,thetaLBins);
     for ( int lBin = 1; lBin <= 6; lBin++) {
         float sumAcc = 0.;
         float sumRec = 0.;
@@ -727,43 +1007,24 @@ std::vector<double> efficiency(int iBin) // reconstruction efficiency
             sumRec+=h2_nreco.GetBinContent(lBin,kBin);
         }
         h_cosl->SetBinContent(lBin,sumRec/sumAcc);
+        h_cosl->SetBinError(lBin,sqrt(sumRec*(sumAcc-sumRec)/pow(sumAcc,3)));
     }
     h_cosl->SetStats(0);
     h_cosl->SetMinimum(0.);
     h_cosl->SetMaximum(0.02);
-    h_cosl->Draw("HIST");
-    TF1  *f_cosl = 0;
-    if (iBin == 0){
-        f_cosl = new TF1("f_cosl"
-                        ,"[0]*(1+[1]/3)+[2]*(1+[3]/3)*x**2+[4]*(1+[5]/3)*x**4+[6]*(1+[7]/3)*x**6"
-                        ,-1.,1.);
-        f_cosl->SetParameter( 4,k0l4.getVal());
-        f_cosl->SetParameter( 5,k2l4.getVal());
-        f_cosl->SetParameter( 6,k0l6.getVal());
-        f_cosl->SetParameter( 7,k2l6.getVal());
-    }else if (iBin == 1){
-        f_cosl = new TF1("f_cosl"
-                        ,"[0]*(1+[1]/3)+[2]*(1+[3]/3)*x**2+[4]*(1+[5]/3)*x**4"
-                        ,-1.,1.);
-        f_cosl->SetParameter( 4,k0l4.getVal());
-        f_cosl->SetParameter( 5,k2l4.getVal());
-    }else if (iBin > 1 && iBin < 6){
-        f_cosl = new TF1("f_cosl"
-                        ,"[0]*(1+[1]/3)+[2]*(1+[3]/3)*x**2+[4]*(1+[5]/3)*x**3+[6]*(1+[7]/3)*x**4"
-                        ,-1.,1.);
-        f_cosl->SetParameter( 4,k0l3.getVal());
-        f_cosl->SetParameter( 5,k2l3.getVal());
-        f_cosl->SetParameter( 6,k0l4.getVal());
-        f_cosl->SetParameter( 7,k2l4.getVal());
-    }else{
-        f_cosl = new TF1("f_cosl"
-                        ,"[0]*(1+[1]/3)+[2]*(1+[3]/3)*x**2+[4]*(1+[5]/3)*x**3+[6]"
-                        ,-1.,1.);
-        f_cosl->SetParameter( 4,k0l3.getVal());
-        f_cosl->SetParameter( 5,k2l3.getVal());
-    }
-    f_cosl->SetParameters(k0l0.getVal(),k2l0.getVal(),k0l2.getVal(),k2l2.getVal());
+    h_cosl->Draw();
+    latex->DrawLatexNDC(0.32,0.95,TString::Format("Projection to cos#theta_{l} in Bin%d",iBin));
+
+    chi2Val = 0;
+    TF1  *f_cosl = new TF1("f_cosl"
+                          ,"([0]+[1]*x*0+[2]/3+[3]*0)+([4]+[5]*0+[6]/3+[7]*0)*x**2+([8]+[9]*0+[10]/3+[11]*0)*x**3+([12]+[13]*0+[14]/3+[15]*0)*x**4+([16]+[17]*0+[18]/3+[19]*0)*x**6"
+                          ,-1.,1.);
+    for (int iPar = 0; iPar < nPar; iPar++) f_cosl->SetParameter(iPar,arrPar[iPar]);
     f_cosl->Draw("SAME");
+    for (int lBin = 1; lBin <= 6; lBin++) {
+        chi2Val += pow((f_cosl->Eval(h_cosl->GetBinCenter(lBin))-h_cosl->GetBinContent(lBin))/h_cosl->GetBinError(lBin),2);
+    }
+    latex->DrawLatexNDC(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
     canvas.Update();
     canvas.Print(TString::Format("./plots/recoEff_cosL_bin%d.pdf",iBin));
 
@@ -772,55 +1033,14 @@ std::vector<double> efficiency(int iBin) // reconstruction efficiency
     delete h_cosl;
     delete f_cosk;
     delete h_cosk;
-    delete f;
-    delete f_kl6;
-    delete f_kl4;
-    delete f_kl3;
-    delete f_kl2;
-    delete f_kl0;
-    delete data;
+    delete latex;
+    delete gMinuit;
 
     //prepare output
-    output.push_back(k0l0.getVal());
-    output.push_back(k0l0.getError());
-    output.push_back(k1l0.getVal());
-    output.push_back(k1l0.getError());
-    output.push_back(k2l0.getVal());
-    output.push_back(k2l0.getError());
-    output.push_back(k3l0.getVal());
-    output.push_back(k3l0.getError());
-    output.push_back(k0l2.getVal());
-    output.push_back(k0l2.getError());
-    output.push_back(k1l2.getVal());
-    output.push_back(k1l2.getError());
-    output.push_back(k2l2.getVal());
-    output.push_back(k2l2.getError());
-    output.push_back(k3l2.getVal());
-    output.push_back(k3l2.getError());
-    output.push_back(k0l3.getVal());
-    output.push_back(k0l3.getError());
-    output.push_back(k1l3.getVal());
-    output.push_back(k1l3.getError());
-    output.push_back(k2l3.getVal());
-    output.push_back(k2l3.getError());
-    output.push_back(k3l3.getVal());
-    output.push_back(k3l3.getError());
-    output.push_back(k0l4.getVal());
-    output.push_back(k0l4.getError());
-    output.push_back(k1l4.getVal());
-    output.push_back(k1l4.getError());
-    output.push_back(k2l4.getVal());
-    output.push_back(k2l4.getError());
-    output.push_back(k3l4.getVal());
-    output.push_back(k3l4.getError());
-    output.push_back(k0l6.getVal());
-    output.push_back(k0l6.getError());
-    output.push_back(k1l6.getVal());
-    output.push_back(k1l6.getError());
-    output.push_back(k2l6.getVal());
-    output.push_back(k2l6.getError());
-    output.push_back(k3l6.getVal());
-    output.push_back(k3l6.getError());
+    for (int iPar = 0; iPar < nPar; iPar++){
+        output.push_back(arrPar[iPar]);
+        output.push_back(arrParErr[iPar]);
+    }
     for (int i = 0; i < output.size(); i=i+2) {
         printf("%f +- %f\n",output[i],output[i+1]);
     }
@@ -892,12 +1112,13 @@ std::vector<double> angular_bin(int iBin, const char outfile[] = "angular")
 
 }//}}}
 */
+//_________________________________________________________________________________
 
 
 int main(int argc, char** argv) {
     if (argc <= 2) {
         printf("Need at least 2 arguments.\n");
-        printf("./fit [bmass, fl, angular_gen,angular] infile\n");
+        printf("./fit [bmass, fl, angular_gen, acceptance, efficiency, angular] infile\n");
         printf("Outputs will be stored in ./plots.\n");
         return 0;
     }
@@ -930,15 +1151,13 @@ int main(int argc, char** argv) {
     }else if (func == "acceptance") {
         ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
-        const char outfile[] = "acceptance";
-        //for (int iBin = 0; iBin < 8; iBin++) {
-        //    acceptance(iBin);
-        //}
-        acceptance(7);
+        for (int iBin = 0; iBin < 8; iBin++) {
+            acceptance(iBin);
+        }
+        //acceptance(0);
     }else if (func == "efficiency") {
         ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
-        const char outfile[] = "efficiency";
         for (int iBin = 0; iBin < 8; iBin++) {
             efficiency(iBin);
         }
