@@ -2,7 +2,7 @@
 #  variables
 ################
 runMC               = True
-run2012not2011      = False
+run2012not2011      = False  # True for 2012 and False for 2011
 
 print "\n@@@ CMSSW run configuration flags @@@"
 
