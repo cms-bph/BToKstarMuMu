@@ -314,6 +314,7 @@ private:
 
   // gen particle 
   bool   IsMonteCarlo_; 
+  bool   KeepGENOnly_; 
   double TruthMatchMuonMaxR_; 
   double TruthMatchPionMaxR_; 
   double TruthMatchKsMaxVtx_; 
@@ -458,6 +459,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   
   // gen particle
   IsMonteCarlo_(iConfig.getUntrackedParameter<bool>("IsMonteCarlo")),
+  KeepGENOnly_(iConfig.getUntrackedParameter<bool>("KeepGENOnly")),
   TruthMatchMuonMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchMuonMaxR")),
   TruthMatchPionMaxR_(iConfig.getUntrackedParameter<double>("TruthMatchPionMaxR")),
   TruthMatchKsMaxVtx_(iConfig.getUntrackedParameter<double>("TruthMatchKsMaxVtx")),
@@ -557,33 +559,38 @@ BToKstarMuMu::~BToKstarMuMu()
 void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  n_processed_ += 1; 
-  histos[h_events]->Fill(0); 
+    n_processed_ += 1; 
+    histos[h_events]->Fill(0); 
 
-  clearVariables(); 
+    clearVariables(); 
 
-  run = iEvent.id().run() ;
-  event = iEvent.id().event() ;
-  lumiblock = iEvent.luminosityBlock(); 
+    run = iEvent.id().run() ;
+    event = iEvent.id().event() ;
+    lumiblock = iEvent.luminosityBlock(); 
 
-  if (IsMonteCarlo_) saveGenInfo(iEvent);
+    if (IsMonteCarlo_) saveGenInfo(iEvent);
 
-  hltReport(iEvent);
+    if (KeepGENOnly_){
+        tree_->Fill();
+        n_selected_ += 1;
+    }else{
+        hltReport(iEvent);
 
-  if ( hasBeamSpot(iEvent) ) {
-    iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle_);      
-    
-    if ( bFieldHandle_.isValid() && hasPrimaryVertex(iEvent) ) { 
+        if ( hasBeamSpot(iEvent) ) {
+            iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle_);      
       
-      if (  ( BuildBuToKstarMuMu_ && buildBuToKstarMuMu(iEvent) ) ||
-	    ( BuildBdToKstarMuMu_ && buildBdToKstarMuMu(iEvent) ) ) {  
-	
-	if (IsMonteCarlo_) saveTruthMatch(iEvent);
+            if ( bFieldHandle_.isValid() && hasPrimaryVertex(iEvent) ) { 
+        
+                if (  ( BuildBuToKstarMuMu_ && buildBuToKstarMuMu(iEvent) ) ||
+                      ( BuildBdToKstarMuMu_ && buildBdToKstarMuMu(iEvent) ) ) {  
       
-	tree_->Fill();
-	n_selected_ += 1;
-      }
-    }
+                    if (IsMonteCarlo_) saveTruthMatch(iEvent);
+        
+                    tree_->Fill();
+                    n_selected_ += 1;
+                }
+            }
+        }
   }
 
   clearVariables(); 

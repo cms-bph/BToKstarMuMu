@@ -153,7 +153,7 @@ process.localV0Candidates = cms.EDProducer(
  
 process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
-    OutputFileName = cms.string("BToKstarMuMu.root"),
+    OutputFileName = cms.string("BToKstarMuMu2.root"),
 
     BuildBuToKstarMuMu = cms.untracked.bool(True), 
     BuildBdToKstarMuMu = cms.untracked.bool(False), 
@@ -184,6 +184,7 @@ process.ntuple = cms.EDAnalyzer(
 
     # gen particle 
     IsMonteCarlo = cms.untracked.bool(False),
+    KeepGENOnly  = cms.untracked.bool(False),
     TruthMatchMuonMaxR = cms.untracked.double(0.004), # [eta-phi]
     TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
     TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
