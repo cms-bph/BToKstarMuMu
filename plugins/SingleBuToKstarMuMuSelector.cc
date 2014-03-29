@@ -383,6 +383,21 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
                     best_idx = i; 
                 }
             }
+
+	}else if (cut == "cut1") {
+	  for (int i = 0; i< nb; i++) {
+
+	    if ( ! HasGoodDimuon(i) ) continue;
+
+	    if ( !(trkpt->at(i) > 0.6 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 0.2 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.9 
+		   && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 6 && bcosalphabs2d->at(i) > 0.9991 ))  continue;
+
+	    if (bvtxcl->at(i) > best_bvtxcl) {
+	      best_bvtxcl = bvtxcl->at(i);
+	      best_idx = i;
+	    }
+	  }
+
         }else if (cut == "nocut") {
             for (int i = 0; i < nb; i++) {
                 if (bvtxcl->at(i) > best_bvtxcl) {
@@ -566,7 +581,7 @@ void print_usage()
 {//{{{
   cerr << "Usage: SingleBuToKstarMuMuSelector datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
        << "  datatype: data, mc, mc.lite, mc.hlt\n"
-       << "  cut     : cut0, nocut, genonly.\n"
+       << "  cut     : cut0, cut1, nocut, genonly.\n"
        << "Options: \n" 
        << "  -h \t\tPrint this info.\n"
        << "  -n \t\tNumber of entries.\n" 
