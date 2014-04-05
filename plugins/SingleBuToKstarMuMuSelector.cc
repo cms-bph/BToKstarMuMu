@@ -231,6 +231,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
     std::map<string,int> maptype;
     maptype.insert(std::pair<string,int>("data",1));
     maptype.insert(std::pair<string,int>("mc.lite",2));
+    maptype.insert(std::pair<string,int>("mc.hlt",998));
     maptype.insert(std::pair<string,int>("mc",999));
     switch (maptype[datatype]) {
         case 1:
@@ -245,6 +246,28 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
             tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
+            break;
+        case 998:
+            tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
+            tree_->Branch("genBPt"       , &genBPt       , "genBPt/D");
+            tree_->Branch("genBEta"      , &genBEta      , "genBEta/D");
+            tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
+            tree_->Branch("genBVtxX"     , &genBVtxX     , "genBVtxX/D");
+            tree_->Branch("genBVtxY"     , &genBVtxY     , "genBVtxY/D");
+            tree_->Branch("genBVtxZ"     , &genBVtxZ     , "genBVtxZ/D");
+            tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
+            tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+            tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
+            tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
+            tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+            tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+            tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
+            tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
+            tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
+            tree_->Branch("genKVtxX"     , &genKVtxX     , "genKVtxX/D");
+            tree_->Branch("genKVtxY"     , &genKVtxY     , "genKVtxY/D");
+            tree_->Branch("genKVtxZ"     , &genKVtxZ     , "genKVtxZ/D");
+            tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             break;
         case 999:
             tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
@@ -360,6 +383,33 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
                     best_idx = i; 
                 }
             }
+
+	}else if (cut == "cut1") {
+	  for (int i = 0; i< nb; i++) {
+
+	    if ( ! HasGoodDimuon(i) ) continue;
+
+	    if ( !(trkpt->at(i) > 0.6 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 0.2 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.9 
+		   && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 6 && bcosalphabs2d->at(i) > 0.9991 ))  continue;
+
+	    if (bvtxcl->at(i) > best_bvtxcl) {
+	      best_bvtxcl = bvtxcl->at(i);
+	      best_idx = i;
+	    }
+	  }
+
+        }else if (cut == "nocut") {
+            for (int i = 0; i < nb; i++) {
+                if (bvtxcl->at(i) > best_bvtxcl) {
+                    best_bvtxcl = bvtxcl->at(i); 
+                    best_idx = i; 
+                }
+            }
+        }else if (cut == "genonly") {
+            best_idx = -1;
+        }else{
+            printf("WARNING: Unknown cut, apply 'genonly' by default.\n");
+            best_idx = -1;
         }
 
         // if (bvtxcl->at(i) < 0.09) continue; 
@@ -530,8 +580,8 @@ bool option_exists(char** begin, char** end, const std::string& option)
 void print_usage()
 {//{{{
   cerr << "Usage: SingleBuToKstarMuMuSelector datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
-       << "  datatype: data, mc, mc.lite\n"
-       << "  cut     : cut0.\n"
+       << "  datatype: data, mc, mc.lite, mc.hlt\n"
+       << "  cut     : cut0, cut1, nocut, genonly.\n"
        << "Options: \n" 
        << "  -h \t\tPrint this info.\n"
        << "  -n \t\tNumber of entries.\n" 
@@ -582,7 +632,7 @@ int main(int argc, char** argv) {
     }
 
     TString option; 
-    option.Form("datatype=%s;cut=%s;ofile=%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), iStart); 
+    option.Form("datatype=%s;cut=%s;ofile=sel_%s_%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), datatype.Data(), iStart); 
     
     // It's not allowed to run with fat trees!
     if (datatype.Data() == "mc" && (!(s) || !(n))){
