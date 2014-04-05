@@ -91,7 +91,7 @@ const int DSTAR2007_PDG_ID = 423;
 const int DSPLUS_PDG_ID = 431; 
 const int DS1PLUS2460_PDG_ID = 20433; 
 const int SIGMACSTARPLUSPLUS_PDG_ID = 4224; 
-const int DELTAPLUS_PDG_ID = 2224; 
+const int DELTAPLUS_PDG_ID = 2214; 
 const double PI = 3.141592653589793;
 
 // Structures 
