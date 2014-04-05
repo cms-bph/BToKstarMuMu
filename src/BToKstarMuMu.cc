@@ -83,7 +83,7 @@ const int KZERO_PDG_ID = 311;
 const int KSTARPLUS_PDG_ID = 323; 
 const int BPLUS_PDG_ID = 521; 
 const int JPSI_PDG_ID = 443; 
-const int PSI2S_PDG_ID = 10443; 
+const int PSI2S_PDG_ID = 100443; 
 
 const int ETA_PDG_ID = 221; 
 const int DZERO_PDG_ID = 421; 
