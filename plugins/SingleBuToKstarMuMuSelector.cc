@@ -334,7 +334,7 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
 
         int i = SelectB(cut); 
         if ( i != -1 && (datatype == "data" || istruebu->at(i)) ) {
-            printf("Entry#%lld, candidate#%d is seleted.\n",entry,i);
+            printf("Entry#%lld, candidate#%d is selected.\n",entry,i);
             n_selected_ += 1; 
             SaveEvent(i);     
         }
@@ -376,7 +376,7 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
         if (cut == "cut0") {
             for (int i = 0; i < nb; i++) {
 
-                if ( ! HasGoodDimuon(i) ) continue; 
+	      if ( ! HasGoodDimuon(i) ) continue; 
 
                 if (bvtxcl->at(i) > best_bvtxcl) {
                     best_bvtxcl = bvtxcl->at(i); 
@@ -424,21 +424,22 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
 
 bool SingleBuToKstarMuMuSelector::HasGoodDimuon(int i)
 {//{{{
-  if  ( // soft muon 
+ 
+  if ( // soft muon id
        mumisgoodmuon->at(i)
        && mupisgoodmuon->at(i) 
        && mumntrklayers->at(i) > 5  // 2012 Data
        && mupntrklayers->at(i) > 5  // 2012 Data 
        // && mumntrkhits->at(i) > 10 
        // && mupntrkhits->at(i) > 10 
-       && mumnpixlayers->at(i) > 1
-       && mupnpixlayers->at(i) > 1
+       && mumnpixlayers->at(i) > 0  // 1,0 (old,new)
+       && mupnpixlayers->at(i) > 0  // 1,0 (old,new) 
        && mumnormchi2->at(i) < 1.8 
        && mupnormchi2->at(i) < 1.8 
-       && fabs(mumdxyvtx->at(i)) < 3
-       && fabs(mupdxyvtx->at(i)) < 3
-       && fabs(mumdzvtx->at(i)) < 30 
-       && fabs(mupdzvtx->at(i)) < 30 
+       && fabs(mumdxyvtx->at(i)) < 0.3  // 3,0.3 (old,new)
+       && fabs(mupdxyvtx->at(i)) < 0.3  // 3,0.3 (old,new)
+       && fabs(mumdzvtx->at(i)) < 20   // 30,20 (old,new) 
+       && fabs(mupdzvtx->at(i)) < 20   // 30,20 (old,new)
        	) return true; 
   return false; 
 }//}}}
@@ -633,6 +634,7 @@ int main(int argc, char** argv) {
 
     TString option; 
     option.Form("datatype=%s;cut=%s;ofile=sel_%s_%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), datatype.Data(), iStart); 
+
     
     // It's not allowed to run with fat trees!
     if (datatype.Data() == "mc" && (!(s) || !(n))){
