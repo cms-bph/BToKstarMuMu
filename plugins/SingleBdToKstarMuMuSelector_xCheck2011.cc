@@ -423,6 +423,8 @@ int SingleBdToKstarMuMuSelector_xCheck2011::SelectB(string cut)
                 best_idx = i; 
             }
         }
+    }else{
+        printf("ERROR: Unknown cut %s\n",cut.c_str());
     }
     return best_idx;
 }//}}}
@@ -436,19 +438,13 @@ bool SingleBdToKstarMuMuSelector_xCheck2011::HasGoodDimuon(int i)
 void SingleBdToKstarMuMuSelector_xCheck2011::SaveEvent(int i)
 {//{{{
     TLorentzVector B_4vec, Kst_4vec, Mup_4vec, Mum_4vec, Tk_4vec, K_4vec, Pip_4vec, Pim_4vec, buff1, buff2, buff3;
-    B_4vec.SetXYZM(bPx->at(i),bPy->at(i),bPz->at(i),bMass->at(i));
+    B_4vec.SetPtEtaPhiM(B0pT,B0Eta,B0Phi,B0MassArb);
     Mup_4vec.SetXYZM(mupPx->at(i),mupPy->at(i),mupPz->at(i),MUON_MASS);
     Mum_4vec.SetXYZM(mumPx->at(i),mumPy->at(i),mumPz->at(i),MUON_MASS);
     Kst_4vec.SetXYZM(kstPx->at(i),kstPy->at(i),kstPz->at(i),kstMass->at(i));
     // In 2011 analysis, both mass hypothesis are computed.
-    K_4vec.SetXYZM(kstTrkpPx->at(i),kstTrkpPy->at(i),kstTrkpPz->at(i),KAON_MASS);
-    Tk_4vec.SetXYZM(kstTrkmPx->at(i),kstTrkmPy->at(i),kstTrkmPz->at(i),PION_MASS);
-    buff1 = Tk_4vec + K_4vec;
-    Tk_4vec.SetXYZM(kstTrkpPx->at(i),kstTrkpPy->at(i),kstTrkpPz->at(i),PION_MASS);
-    K_4vec.SetXYZM(kstTrkmPx->at(i),kstTrkmPy->at(i),kstTrkmPz->at(i),KAON_MASS);
-    buff2 = Tk_4vec + K_4vec;
-    if ( fabs(buff1.Mag()-KSTAR_MASS) < fabs(buff2.Mag()-KSTAR_MASS) ){
-        K_4vec.SetXYZM(kstTrkpPx->at(i),kstTrkpPy->at(i),kstTrkpPz->at(i),KAON_MASS);
+    if (B0notB0bar){
+        K_4vec.SetXYZM(kstTrkpPx->at(i),kstTrkpPy->at(i),kstTrkpPz->at(i),KAON_MASS);//B0->K^+ + Pi^-
         Tk_4vec.SetXYZM(kstTrkmPx->at(i),kstTrkmPy->at(i),kstTrkmPz->at(i),PION_MASS);
         TrkChg = -1;
         Trkdcasigbs = fabs(kstTrkmDCABS->at(i)/kstTrkmDCABSE->at(i));
@@ -461,7 +457,7 @@ void SingleBdToKstarMuMuSelector_xCheck2011::SaveEvent(int i)
     Pip_4vec.SetXYZM(0,0,0,0);
     Pim_4vec.SetXYZM(0,0,0,0);
 
-    Bmass = bMass->at(i); 
+    Bmass = B0MassArb; 
     Bchg = 0; 
     Bvtxcl = bVtxCL->at(i); 
     Blxysig = (bLBS->at(i)/bLBSE->at(i));
@@ -481,33 +477,15 @@ void SingleBdToKstarMuMuSelector_xCheck2011::SaveEvent(int i)
     Trkpt = Tk_4vec.Pt(); 
 
     Q2 = pow(mumuMass->at(i),2);
-
-    buff1 = B_4vec;
-    buff2 = Mup_4vec+Mum_4vec;
-    buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    if (TrkChg < 0){
-        buff3 = Mum_4vec;//Take mu- to avoid extra minus sign.
-    }else{
-        buff3 = Mup_4vec;
-
-    }
-    buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    CosThetaL = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
-
-    buff1 = B_4vec;
-    buff2 = Kst_4vec;
-    buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    buff3 = Tk_4vec;//Take pion to avoid extra minus.
-    buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    CosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
-    
+    CosThetaL = CosThetaMuArb;
+    CosThetaK = CosThetaKArb;
     EvtWeight = evWeight;
 }//}}}
 
 void SingleBdToKstarMuMuSelector_xCheck2011::SaveGen()
 {//{{{
     TLorentzVector genB_4vec, genKst_4vec, genMup_4vec, genMum_4vec, genTk_4vec, genK_4vec, genPip_4vec, genPim_4vec, buff1, buff2, buff3;
-    genB_4vec.SetXYZM(genB0Px,genB0Py,genB0Pz,5.279);
+    genB_4vec.SetXYZM(genB0Px,genB0Py,genB0Pz,genB0Mass);
     genMup_4vec.SetXYZM(genMupPx,genMupPy,genMupPz,MUON_MASS);
     genMum_4vec.SetXYZM(genMumPx,genMumPy,genMumPz,MUON_MASS);
     genKst_4vec.SetXYZM(genKstPx,genKstPy,genKstPz,KSTAR_MASS);
