@@ -214,30 +214,36 @@ double arrRecParErr2012[8][20] = {{0.018651,0.029866,0.041196,0.048162,0.346595,
 
 //_________________________________________________________________________________
 
-void bmass( const char outfile[] = "bmass")
+void bmass(int iBin, const char outfile[] = "bmass")
 {//{{{
   bool test = false; 
 
-  RooRealVar x("Bmass", "B^{+/-} mass(GeV/c^{2})", 5.27953-0.28, 5.27953+0.28) ;
-  RooDataSet data("data", "data", RooArgSet(x), Import(*ch)) ;
-  data.Print();
+  RooRealVar Bmass("Bmass", "B^{+/-} mass(GeV/c^{2})", 5.27953-0.28, 5.27953+0.28) ;
+  RooRealVar Q2("Q2","q^{2}",0.5,20.);
+  RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass),q2range[iBin],0);
+
+  data->Print();
 
   // Create model and dataset
   // -------------------------------------------------------------------------
   // Gaussian signal 
   RooRealVar mean("mean","mean of gaussians", 5.27, 5.23, 5.32) ;
-  RooRealVar sigma("sigma","width of gaussians", 0.0285, 0, 1) ;
-  RooGaussian sig("sig","Signal component", x, mean, sigma) ;  
+  RooRealVar sigma1("sigma1","width of Gaussian1", 0.0285, 0.01, 0.05) ;
+  RooRealVar sigma2("sigma2","width of Gaussian2", 0.08, 0.05, 0.35) ;
+  RooRealVar sigM_frac("sigM_frac","fraction of Gaussians",0,0.,1.);
+  RooGaussian sigGauss1("siggauss1","Signal component", Bmass, mean, sigma1) ;  
+  RooGaussian sigGauss2("siggauss2","Signal component", Bmass, mean, sigma2) ;  
+  RooAddPdf sig("sig","sig",RooArgList(sigGauss1,sigGauss2),RooArgList(sigM_frac));
 
   // Build Chebychev polynomial p.d.f.  
   RooRealVar a0("a0", "constant", 0.5, -1, 1.) ;
   RooRealVar a1("a1", "linear", 0.6, -1, 1) ;
   RooRealVar a2("a2", "quadratic", 0.1, -1, 1) ;
-  RooChebychev bkg("bkg", "Background", x, RooArgSet(a0, a1, a2)) ;
+  RooChebychev bkg("bkg", "Background", Bmass, RooArgSet(a0, a1, a2)) ;
 
   // Construct signal+background PDF
-  RooRealVar nsig("nsig", "number of signal events", 4648, 0, 1000000); 
-  RooRealVar nbkg("nbkg", "number of background events", 21472, 0, 1000000);
+  RooRealVar nsig("nsig", "number of signal events", 4648, 0, 1E8); 
+  RooRealVar nbkg("nbkg", "number of background events", 21472, 0, 1E8);
   RooAddPdf  model("model", "g+c", RooArgList(bkg, sig), RooArgList(nbkg, nsig)) ;
   
   // Print structure of composite p.d.f.
@@ -247,7 +253,7 @@ void bmass( const char outfile[] = "bmass")
   // ------------------------------------------------------------------------
   RooFitResult* fitres; 
   if (! test) {
-    fitres = model.fitTo(data, Extended(kTRUE), Save(kTRUE)) ;
+    fitres = model.fitTo(*data, Extended(kTRUE), Save(kTRUE)) ;
     fitres->Print("v"); 
   }
   
@@ -255,12 +261,12 @@ void bmass( const char outfile[] = "bmass")
   // ---------------------------------------------------------
   TString title = "B^{+/-} mass";
   int nbins = 50; 
-  RooPlot* xframe = x.frame(Title(title), Bins(nbins));
-  data.plotOn(xframe) ;
-  model.plotOn(xframe) ;
+  RooPlot* frame = Bmass.frame(Title(title), Bins(nbins));
+  data->plotOn(frame) ;
+  model.plotOn(frame) ;
 
   // Overlay the background component of model with a dashed line
-  model.plotOn(xframe,Components("bkg"), LineStyle(kDashed)) ;
+  model.plotOn(frame,Components("bkg"), LineStyle(kDashed)) ;
 
   // Draw the frame on the canvas
   TCanvas* c = new TCanvas("c", "c", 400, 400); 
@@ -268,26 +274,28 @@ void bmass( const char outfile[] = "bmass")
   c->UseCurrentStyle() ;
 
   gPad->SetLeftMargin(0.15) ;
-  xframe->GetYaxis()->SetTitleOffset(1.7) ; 
-  xframe->Draw();
+  frame->GetYaxis()->SetTitleOffset(1.7) ; 
+  frame->Draw();
 
-  TPaveText* paveText = new TPaveText(0.17, 0.80, 0.41, 0.88, "NDC"); 
+  TPaveText* paveText = new TPaveText(0.17, 0.70, 0.41, 0.88, "NDC"); 
   paveText->SetBorderSize(0);
   paveText->SetFillColor(kWhite);
-  paveText->AddText(Form("nsig = %.0f #pm %.0f ", nsig.getVal(), nsig.getError())); 
-  paveText->AddText(Form("nbkg = %.0f #pm %.0f ", nbkg.getVal(), nbkg.getError())); 
-  paveText->AddText(Form("mean = %.3f #pm %.3f ", mean.getVal(), mean.getError())); 
-  paveText->AddText(Form("sigma = %.3f #pm %.3f ", sigma.getVal(), sigma.getError())); 
+  paveText->AddText(Form("nsig = %.0f #pm %.0f " , nsig.getVal()  , nsig.getError())); 
+  paveText->AddText(Form("nbkg = %.0f #pm %.0f " , nbkg.getVal()  , nbkg.getError())); 
+  paveText->AddText(Form("mean = %.3f #pm %.3f " , mean.getVal()  , mean.getError())); 
+  paveText->AddText(Form("sigma1 = %.3f #pm %.3f ", sigma1.getVal(), sigma1.getError())); 
+  paveText->AddText(Form("sigma2 = %.3f #pm %.3f ", sigma2.getVal(), sigma2.getError())); 
+  paveText->AddText(Form("frac = %.3f #pm %.3f ", sigM_frac.getVal(), sigM_frac.getError())); 
   paveText->Draw(); 
 
-  c->Print(TString::Format("./plots/%s.pdf",outfile));
+  c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
   
   // Persist fit result in root file 
   // -------------------------------------------------------------
-  TFile resf(TString::Format("./plots/%s.root",outfile), "RECREATE") ;
-  gPad->Write("plot"); 
-  if (! test) fitres->Write("fitres") ;
-  resf.Close() ;
+  //TFile resf(TString::Format("./plots/%s.root",outfile), "RECREATE") ;
+  //gPad->Write("plot"); 
+  //if (! test) fitres->Write("fitres") ;
+  //resf.Close() ;
 
   // In a clean ROOT session retrieve the persisted fit result as follows:
   // RooFitResult* r = gDirectory->Get("fitres") ;
@@ -1552,8 +1560,8 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgList(Bmass,offset));
     RooExponential f_bkgCombM("f_bkgCombM","f_bkgCombM",Bmass_offset,bkgCombM_c);// exponential decay
     
-    RooRealVar nsig("nsig","nsig",0,1E5);
-    RooRealVar nbkg("nbkg","nbkg",0,1E5);
+    RooRealVar nsig("nsig","nsig",0,1E8);
+    RooRealVar nbkg("nbkg","nbkg",0,1E8);
     RooAddPdf f("f", "f",RooArgList(f_sigM,f_bkgCombM),RooArgList(nsig,nbkg));
 
     // Get data and apply unbinned fit
@@ -2629,7 +2637,7 @@ int main(int argc, char** argv) {
     if (argc <= 2) {
         printf("Usage       : ./fit Function infile\n");
         printf("Functions   :\n");
-        printf("    bmass               Fit to mass spectrum (all q^2 ranges) using a Gaussian signal and Chebyshev bkg.\n");
+        printf("    bmass               Fit to mass spectrum using a double Gaussian signal and Chebyshev bkg.\n");
         printf("    fl_gen              Derive F_{L} from cosThetaK distribution at GEN level.\n");
         printf("    angular_gen         Derive F_{L} and A_{FB} from angular distribution at GEN level.\n");
         printf("    acceptance          Get 2D acceptance map from unfiltered signal GEN, |Mu pT| > 2.5 GeV, |Mu eta| < 2.3.\n");
@@ -2649,18 +2657,19 @@ int main(int argc, char** argv) {
     TString infile  = argv[2];
   
     if (func == "bmass") {
-        if (argc < 6){
-            printf("./fit bmass infile datatype lable cut\n");
+        if (argc != 4){
+            printf("./fit bmass infile binID\n");
+            for (int i = 0; i < 10; i++) {
+                printf("    Bin %d : %s\n",i,q2range[i]);
+            }
+            return 0;
         }
-        TString datatype = argv[3];
-        TString label    = argv[4]; 
-        TString cut      = argv[5]; 
+        int iBin = atoi(argv[3]);
 
-        TChain* ch = add_chain(datatype, label, cut); 
+        ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
-        
         const char outfile[]="bmass";
-        bmass(outfile); 
+        bmass(iBin, outfile); 
     }else if (func == "fl_gen"){
         ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
