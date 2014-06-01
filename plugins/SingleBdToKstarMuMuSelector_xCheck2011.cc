@@ -414,9 +414,9 @@ int SingleBdToKstarMuMuSelector_xCheck2011::SelectB(string cut)
     if (cut == "singleCand") {
         best_idx = 0;
     }else if (cut == "singleCandSig"){
-        if ( fabs(mumuMass->at(0)-3.096916) > 3*mumuMassE->at(0) && fabs(mumuMass->at(0)-3.686109) > 3*mumuMassE->at(0) ) best_idx = 0;
+        if ( (mumuMass->at(0) > 3.096916+3*mumuMassE->at(0) || mumuMass->at(0) < 3.096916-5*mumuMassE->at(0)) && fabs(mumuMass->at(0)-3.686109) > 3*mumuMassE->at(0) ) best_idx = 0;
     }else if (cut == "singleCandBkg"){
-        if ( fabs(mumuMass->at(0)-3.096916) < 3*mumuMassE->at(0) || fabs(mumuMass->at(0)-3.686109) < 3*mumuMassE->at(0) ) best_idx = 0;
+        if ( (mumuMass->at(0) < 3.096916+3*mumuMassE->at(0) && mumuMass->at(0) > 3.096916-5*mumuMassE->at(0)) || fabs(mumuMass->at(0)-3.686109) < 3*mumuMassE->at(0) ) best_idx = 0;
     }else if (cut == "cut0"){
         for (int i = 0; i < nB; i++) {
 
@@ -582,9 +582,8 @@ bool option_exists(char** begin, char** end, const std::string& option)
 void print_usage()
 {//{{{
     cerr << "Usage: ./sel2011 datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
-        << "        Remark that singleCandSig is used in most common case.\n"
-        << "  datatype: data, mc, mc.lite.\n"
-        << "  cut     : singleCand, singleCandSig, singleCandbkg, cut0.\n"
+        << "   datatype: data, mc, mc.lite.\n"
+        << "   cut     : singleCand, singleCandSig, singleCandbkg, cut0.\n"
         << "Options: \n" 
         << "  -h \t\tPrint this info.\n"
         << "  -n \t\tNumber of entries.\n" 
