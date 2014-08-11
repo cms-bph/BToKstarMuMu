@@ -241,8 +241,10 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
             tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
             tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+            tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
             tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
             tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+            tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
             tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
             tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
