@@ -585,15 +585,18 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                       ( BuildBdToKstarMuMu_ && buildBdToKstarMuMu(iEvent) ) ) {  
       
                     if (IsMonteCarlo_) saveTruthMatch(iEvent);
-        
-                    tree_->Fill();
                     n_selected_ += 1;
+
                 }
             }
         }
-  }
+    }
+    
+    if (IsMonteCarlo_ || nb > 0){ // Keep failed events for MC to calculate reconstruction efficiency.
+        tree_->Fill();
+    }
 
-  clearVariables(); 
+    clearVariables(); 
 }
 
 
