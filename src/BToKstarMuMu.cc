@@ -590,12 +590,12 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }
             }
         }
+
+        if (IsMonteCarlo_ || nb > 0){ // Keep failed events for MC to calculate reconstruction efficiency.
+            tree_->Fill();
+        }
     }
     
-    if (IsMonteCarlo_ || nb > 0){ // Keep failed events for MC to calculate reconstruction efficiency.
-        tree_->Fill();
-    }
-
     clearVariables(); 
 }
 
