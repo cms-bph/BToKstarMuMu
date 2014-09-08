@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <string.h>
-#include <regex>
+#include <regex> //c++11
 
 #include <TSystem.h>
 #include <TStyle.h>
@@ -173,36 +173,20 @@ double arrRecParErr2011[8][20] = {
             0,0,0,0,
             0,0,0,0}};
 
-double arrRecPar2012   [8][20] = {{0.021919,-0.004450,-0.002616,-0.001100,-0.059807,0.019826,0.019073,0.002616,0.000000,0.000000,0.000000,0.000000,0.048658,-0.027584,-0.031744,-0.004040,-0.009411,0.012373,0.015701,0.002465},
-                                  {0.019094,-0.003426,-0.001834,-0.000888,-0.038743,0.008491,0.008606,-0.000484,0.000000,0.000000,0.000000,0.000000,0.022049,-0.004965,-0.006944,0.001147,0.000000,0.000000,0.000000,0.000000},
-                                  {0.016368,-0.002788,-0.001018,-0.000793,-0.020119,0.005451,0.003942,-0.000513,0.000367,0.000130,-0.000195,-0.000079,0.008705,-0.003052,-0.002957,0.001105,0.000000,0.000000,0.000000,0.000000},
-                                  {0.002475,-0.000319,0.000090,-0.000126,-0.001488,-0.000683,-0.000081,0.000782,0.000093,-0.000024,-0.000214,-0.000172,0.000278,0.001104,0.000170,-0.000436,0.000000,0.000000,0.000000,0.000000},
-                                  {0.014207,-0.001635,0.000304,-0.000403,-0.003721,0.000886,-0.000631,-0.000930,0.000114,0.000818,-0.000102,-0.000237,0.000025,-0.000390,0.000264,0.001959,0.000000,0.000000,0.000000,0.000000},
-                                  {0.001804,-0.000079,-0.000007,-0.000200,-0.000130,-0.000604,0.000504,-0.000043,0.000245,0.000046,-0.000168,0.000292,-0.000191,0.000438,-0.000433,-0.000318,0.000000,0.000000,0.000000,0.000000},
-                                  {0.014952,-0.001374,0.000281,-0.000101,0.000072,-0.000736,-0.000336,0.000508,0.000301,0.001483,0.000086,0.000385,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000},
-                                  {0.019982,-0.001096,0.000343,-0.000486,0.001105,-0.002041,-0.001616,0.001374,-0.000620,-0.000007,0.000230,-0.001529,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000}};
-double arrRecParErr2012[8][20] = {{0.001135,0.001838,0.002638,0.003080,0.009421,0.016062,0.023813,0.027846,0.000000,0.000000,0.000000,0.000000,0.020916,0.036700,0.054334,0.063446,0.013184,0.023608,0.034639,0.040389},
-                                  {0.000573,0.000912,0.001259,0.001459,0.002702,0.004523,0.006089,0.007070,0.000000,0.000000,0.000000,0.000000,0.002693,0.004601,0.006131,0.007123,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000358,0.000599,0.000809,0.000938,0.001888,0.003320,0.004383,0.005075,0.000387,0.000699,0.000908,0.001051,0.001979,0.003553,0.004646,0.005374,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000252,0.000447,0.000583,0.000678,0.001391,0.002605,0.003368,0.003878,0.000353,0.000668,0.000860,0.000992,0.001498,0.002888,0.003709,0.004254,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000392,0.000711,0.000933,0.001076,0.002240,0.004266,0.005483,0.006295,0.000655,0.001168,0.001556,0.001785,0.002457,0.004784,0.006098,0.006990,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000219,0.000403,0.000527,0.000607,0.001272,0.002469,0.003151,0.003622,0.000385,0.000691,0.000892,0.001043,0.001411,0.002791,0.003519,0.004053,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000399,0.000754,0.000967,0.001138,0.001083,0.002025,0.002588,0.003180,0.000924,0.001725,0.002270,0.002847,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000},
-                                  {0.000430,0.000821,0.001051,0.001206,0.001129,0.002194,0.002775,0.003195,0.000952,0.001865,0.002345,0.002705,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000}};
 std::string f_accXrecoEff_ord0[8] = {
-    "76.637435*((exp(-0.5*((CosThetaL-(-0.001125))/0.421561)**2)*(-0.027922*CosThetaL**2-0.000022*CosThetaL+0.026002))*(0.010083-0.000846*CosThetaK+0.014753*CosThetaK**2-0.001424*CosThetaK**3-0.013006*CosThetaK**4-0.001910*CosThetaK**5-0.003559*CosThetaK**6))",
-    "80.036712*((0.020509+0.000112*CosThetaL-0.046503*CosThetaL**2+0.001045*CosThetaL**3+0.037179*CosThetaL**4-0.001041*CosThetaL**5-0.011163*CosThetaL**6)*(0.009374-0.000138*CosThetaK+0.023015*CosThetaK**2-0.004101*CosThetaK**3-0.036478*CosThetaK**4+0.000861*CosThetaK**5+0.016003*CosThetaK**6))",
-    "110.528399*((0.012585+0.000951*CosThetaL-0.015603*CosThetaL**2-0.001576*CosThetaL**3+0.005612*CosThetaL**4+0.001148*CosThetaL**5-0.001163*CosThetaL**6)*(0.007571-0.000567*CosThetaK+0.011154*CosThetaK**2+0.000546*CosThetaK**3-0.018860*CosThetaK**4-0.002906*CosThetaK**5+0.009528*CosThetaK**6))",
-    "461.476571*((0.002469+0.000225*CosThetaL-0.000676*CosThetaL**2-0.000874*CosThetaL**3-0.000779*CosThetaL**4+0.001016*CosThetaL**5-0.000323*CosThetaL**6)*(0.001929-0.000503*CosThetaK+0.001211*CosThetaK**2+0.000547*CosThetaK**3-0.001014*CosThetaK**4-0.000494*CosThetaK**5+0.000002*CosThetaK**6))",
-    "75.454746*((0.014286+0.001027*CosThetaL-0.003358*CosThetaL**2-0.002559*CosThetaL**3+0.001474*CosThetaL**4+0.002134*CosThetaL**5-0.003858*CosThetaL**6)*(0.012601-0.000826*CosThetaK+0.003595*CosThetaK**2-0.001026*CosThetaK**3-0.003101*CosThetaK**4-0.000333*CosThetaK**5+0.000221*CosThetaK**6))",
-    "551.279776*((0.001797+0.000110*CosThetaL+0.000791*CosThetaL**2+0.000274*CosThetaL**3-0.003945*CosThetaL**4-0.000380*CosThetaL**5+0.003388*CosThetaL**6)*(0.001864+0.000467*CosThetaK-0.001804*CosThetaK**2-0.002188*CosThetaK**3+0.005723*CosThetaK**4+0.001518*CosThetaK**5-0.004205*CosThetaK**6))",
-    "65.806692*((0.014983+0.000288*CosThetaL+0.000503*CosThetaL**2+0.001627*CosThetaL**3-0.003861*CosThetaL**4-0.002529*CosThetaL**5+0.004376*CosThetaL**6)*(0.014860-0.002541*CosThetaK+0.001603*CosThetaK**2+0.004161*CosThetaK**3-0.001351*CosThetaK**4-0.003963*CosThetaK**5+0.000169*CosThetaK**6))",
-    "48.998722*((0.020047-0.001508*CosThetaL+0.001947*CosThetaL**2+0.005356*CosThetaL**3-0.004953*CosThetaL**4-0.004908*CosThetaL**5+0.005197*CosThetaL**6)*(0.020431-0.001608*CosThetaK-0.003238*CosThetaK**2-0.001358*CosThetaK**3+0.012846*CosThetaK**4+0.001144*CosThetaK**5-0.011104*CosThetaK**6))"
+    "11627.982364*((1.195422e-04*exp(-0.5*((CosThetaL-(-1.727343e-01))/2.021796e-01)**2)+1.156964e-04*exp(-0.5*((CosThetaL-(2.507083e-01))/2.478225e-01)**2)+4.629809e-05*exp(-0.5*((CosThetaL-(-5.148565e-01))/1.407258e-01)**2))*(7.165504e-05-2.621913e-05*CosThetaK+1.453609e-04*CosThetaK**2+2.274953e-05*CosThetaK**3-2.398253e-04*CosThetaK**4-4.428545e-05*CosThetaK**5+9.677067e-05*CosThetaK**6))",
+    "9916.540629*((7.278431e-05*exp(-0.5*((CosThetaL-(-4.905860e-01))/1.878949e-01)**2)+7.448700e-05*exp(-0.5*((CosThetaL-(5.058518e-01))/2.003984e-01)**2)+1.425194e-04*exp(-0.5*((CosThetaL-(1.313125e-02))/2.957232e-01)**2))*(8.311598e-05-2.316101e-05*CosThetaK+1.476586e-04*CosThetaK**2-2.367362e-05*CosThetaK**3-1.683845e-04*CosThetaK**4+5.042865e-06*CosThetaK**5+1.243843e-05*CosThetaK**6))",
+    "8.353802e+03*((1.344021e-04+1.980409e-05*CosThetaL+4.029664e-05*CosThetaL**2+1.560540e-05*CosThetaL**3-2.131400e-04*CosThetaL**4-3.310795e-05*CosThetaL**5+5.462426e-05*CosThetaL**6)*(1.136958e-04-3.718097e-05*CosThetaK+6.443598e-05*CosThetaK**2+5.683602e-05*CosThetaK**3-4.802073e-05*CosThetaK**4-7.413557e-05*CosThetaK**5-3.107261e-05*CosThetaK**6))",
+    "4.392777e+04*((2.114489e-05+2.400662e-06*CosThetaL+2.759247e-05*CosThetaL**2+1.100568e-06*CosThetaL**3-4.538219e-05*CosThetaL**4-2.412249e-06*CosThetaL**5+5.307765e-06*CosThetaL**6)*(2.406814e-05-7.583489e-06*CosThetaK-9.968329e-06*CosThetaK**2+1.463576e-05*CosThetaK**3+3.247851e-05*CosThetaK**4-1.619795e-05*CosThetaK**5-2.949584e-05*CosThetaK**6))",
+    "6.506619e+03*((1.349742e-04+1.528919e-05*CosThetaL+8.605597e-05*CosThetaL**2+1.312572e-05*CosThetaL**3-2.948919e-05*CosThetaL**4-9.566140e-06*CosThetaL**5-5.879247e-05*CosThetaL**6)*(1.581494e-04-3.384666e-05*CosThetaK-1.447583e-05*CosThetaK**2+3.758161e-05*CosThetaK**3+6.777260e-05*CosThetaK**4-5.585069e-05*CosThetaK**5-8.495213e-05*CosThetaK**6))",
+    "4.625695e+04*((1.803216e-05+6.423635e-07*CosThetaL+9.704679e-06*CosThetaL**2+1.065779e-05*CosThetaL**3-1.658277e-06*CosThetaL**4-1.799046e-05*CosThetaL**5+6.089049e-06*CosThetaL**6)*(2.270524e-05-9.322913e-06*CosThetaK-1.587276e-05*CosThetaK**2+2.152708e-05*CosThetaK**3+5.615584e-05*CosThetaK**4-1.901528e-05*CosThetaK**5-4.887378e-05*CosThetaK**6))",
+    "5.118383e+03*((1.668313e-04+1.911185e-05*CosThetaL+1.716389e-05*CosThetaL**2-3.192265e-05*CosThetaL**3+2.000329e-04*CosThetaL**4+1.783316e-05*CosThetaL**5-1.334724e-04*CosThetaL**6)*(2.056593e-04-4.151040e-05*CosThetaK-6.658669e-05*CosThetaK**2+3.742139e-05*CosThetaK**3+1.666491e-04*CosThetaK**4-5.072888e-05*CosThetaK**5-1.492963e-04*CosThetaK**6))",
+    "3.837453e+03*((2.362599e-04-4.438020e-06*CosThetaL+3.318080e-05*CosThetaL**2+1.313482e-05*CosThetaL**3+7.878926e-05*CosThetaL**4-3.939653e-06*CosThetaL**5-2.211163e-05*CosThetaL**6)*(2.669904e-04-4.272653e-05*CosThetaK+1.487773e-05*CosThetaK**2+1.983652e-05*CosThetaK**3-9.317172e-05*CosThetaK**4-3.937610e-05*CosThetaK**5+4.831201e-05*CosThetaK**6))"
     };
 //}}}
 //
 
-double readParam(int iBin, const char parName[], int iColumn)
+double readParam(int iBin, const char parName[], int iColumn, double defVal=0.)
 {//{{{
     std::vector<double> output;
     char lineBuff[512];
@@ -226,11 +210,11 @@ double readParam(int iBin, const char parName[], int iColumn)
     fclose(fp);
     
     if (iColumn < output.size() ){
-        printf("INFO: readParam, get %s[%d]=%f\n",parName,iColumn,output.at(iColumn));
+        printf("INFO: readParam, get %s[%d]=%e\n",parName,iColumn,output.at(iColumn));
         return output.at(iColumn);
     }else{
-        printf("ERROR: readParam, empty column! Return 0.\n");
-        return 0.;
+        printf("WARNING: readParam, empty column! Return defVal=%f.\n",defVal);
+        return defVal;
     }
 }//}}}
 void writeParam(int iBin, const char parName[], double *val, int nVal=2, bool overwrite=true)
@@ -255,7 +239,7 @@ void writeParam(int iBin, const char parName[], double *val, int nVal=2, bool ov
             fprintf(fp,"%s",parName);
             int iVal = 0;
             while(iVal < nVal){
-                fprintf(fp," %f",val[iVal]);
+                fprintf(fp," %e",val[iVal]);
                 iVal++;
             }
             fprintf(fp,"\n");
@@ -274,7 +258,7 @@ void writeParam(int iBin, const char parName[], double *val, int nVal=2, bool ov
         fprintf(fp,"%s",parName);
         int iVal = 0;
         while(iVal < nVal){
-            fprintf(fp," %f",val[iVal]);
+            fprintf(fp," %e",val[iVal]);
             iVal++;
         }
         fprintf(fp,"\n");
@@ -319,14 +303,17 @@ void fcn_binnedChi2_2D(int &npar, double *gin, double &f, double *par, int iflag
             double xf = h2_fcn->GetXaxis()->GetBinUpEdge(i);
             double yi = h2_fcn->GetYaxis()->GetBinLowEdge(j);
             double yf = h2_fcn->GetYaxis()->GetBinUpEdge(j);
-            f += pow( (f2_fcn->Integral(xi,xf,yi,yf)/(xf-xi)/(yf-yi)-measure)/error,2);
-
-            //f2_square = 0;
-            //delete f2_square;
+            //f2_fcn->SetRange(xi,xf,yi,yf);
+            //double minX, minY;
+            //f2_fcn->GetMinimumXY(minX,minY);
+            //if (f2_fcn->Eval(minX,minY) < 0){
+            //    f += 100;
+            //}else{
+                f += pow( (f2_fcn->Integral(xi,xf,yi,yf)/(xf-xi)/(yf-yi)-measure)/error,2);
+            //}
         }
     }
     //printf("FCN in calls = %f\n",f);
-    //printf("npar=%d ",npar);
 }//}}}
 
 //_________________________________________________________________________________
@@ -1162,11 +1149,14 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
     double gCosThetaL = 0;
     double gmuppt = 0;
     double gmupeta= 0;
+    double gmupphi= 0;
     double gmumpt = 0;
     double gmumeta= 0;
+    double gmumphi= 0;
 
     TChain *treein=new TChain("tree");
-    treein->Add("./data/2012/sel_BuToKstarMuMu_NoGenFilter_8TeV_part*_mc.lite.root");
+    //treein->Add("./data/2012/sel_BuToKstarMuMu_NoGenFilter_8TeV_part*_mc.lite.root");
+    treein->Add("./data/2012/sel_BuToKstarMuMu_NoGenFilter_8TeV_mc.lite_s*.root");
     if (treein == NULL) gSystem->Exit(0);
     treein->SetBranchStatus("*",0);
     treein->SetBranchStatus("genQ2"         , 1);
@@ -1177,8 +1167,10 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
     treein->SetBranchAddress("genCosThetaL" , &gCosThetaL);
     treein->SetBranchAddress("genMupPt"     , &gmuppt);
     treein->SetBranchAddress("genMupEta"    , &gmupeta);
+    treein->SetBranchAddress("genMupPhi"    , &gmupphi);
     treein->SetBranchAddress("genMumPt"     , &gmumpt);
     treein->SetBranchAddress("genMumEta"    , &gmumeta);
+    treein->SetBranchAddress("genMumPhi"    , &gmumphi);
 
     // Create histograms
     TFile *fout = new TFile("acceptance_8TeV.root","RECREATE");
@@ -1269,7 +1261,10 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
             h2_ngen_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
             h_ngenL_fine[iBin]->Fill(gCosThetaL);
             h_ngenK_fine[iBin]->Fill(gCosThetaK);
-            if ( fabs(gmumeta) < 2.3 && fabs(gmupeta) < 2.3 && gmumpt > 2.8 && gmuppt > 2.8 ){
+            //TLorentzVector mup_4vec, mum_4vec;
+            //mup_4vec.SetPtEtaPhiM(gmuppt,gmupeta,gmupphi,0.105658);
+            //mum_4vec.SetPtEtaPhiM(gmumpt,gmumeta,gmumphi,0.105658);
+            if ( fabs(gmupeta) < 2.3 && gmuppt > 2.8 && fabs(gmumeta) < 2.3 && gmumpt > 2.8){
                 h2_nacc[iBin]->Fill(gCosThetaL,gCosThetaK);
                 h2_nacc_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
                 h_naccL_fine[iBin]->Fill(gCosThetaL);
@@ -1558,7 +1553,6 @@ std::vector<double> accXrecoEff(int iBin) // acceptance*reconstruction efficienc
     // Use Legendre polynomial for better convergance
     // 1,x,(3x^2-1)/2,(5x^3-3x)/2,(35x^4-30x^2+3)/8
     TString f2_model_format = "([0]+[1]*y+[2]*(3*y**2-1)/2+[3]*(5*y**3-3*y)/2)+([4]+[5]*y+[6]*(3*y**2-1)/2+[7]*(5*y**3-3*y)/2)*x**2+([8]+[9]*y+[10]*(3*y**2-1)/2+[11]*(5*y**3-3*y)/2)*x**3+([12]+[13]*y+[14]*(3*y**2-1)/2+[15]*(5*y**3-3*y)/2)*x**4+([16]+[17]*y+[18]*(3*y**2-1)/2+[19]*(5*y**3-3*y)/2)*x**6";
-    if (is7TeVCheck) f2_model_format = "([0]+[1]*y+[2]*y**2+[3]*y**3)+([4]+[5]*y+[6]*y**2+[7]*y**3)*x**2+([8]+[9]*y+[10]*y**2+[11]*y**3)*x**3+([12]+[13]*y+[14]*y**2+[15]*y**3)*x**4+([16]+[17]*y+[18]*y**2+[19]*y**3)*x**6";
     TF2 f2_model("f2_model",f2_model_format,-1.,1.,-1.,1.);
     f2_fcn = &f2_model;
     gMinuit->DefineParameter( 0, "k0l0",  .01,  1E-3,    -1E+1, 1E+1);
@@ -1732,10 +1726,10 @@ std::vector<double> accXrecoEff(int iBin) // acceptance*reconstruction efficienc
     return output;
 }//}}}
 
-std::string accXrecoEff2(int iBin)
+std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
 {//{{{
     printf("Evaluate reconstruction efficiency for bin#%d\n",iBin);
-    double effUpperBound = 0.03;
+    double effUpperBound = 0.00035;
     double BMass = 0;
     double Mumumass = 0;
     double Mumumasserr = 0;
@@ -1744,8 +1738,10 @@ std::string accXrecoEff2(int iBin)
     double gCosThetaL = 0;
     double gmuppt = 0;
     double gmupeta= 0;
+    double gmupphi= 0;
     double gmumpt = 0;
     double gmumeta= 0;
+    double gmumphi= 0;
 
     ch->SetBranchStatus("*",0);
     ch->SetBranchStatus("Bmass"         , 1);
@@ -1762,8 +1758,10 @@ std::string accXrecoEff2(int iBin)
     ch->SetBranchAddress("genCosThetaL" , &gCosThetaL);
     ch->SetBranchAddress("genMupPt"     , &gmuppt);
     ch->SetBranchAddress("genMupEta"    , &gmupeta);
+    ch->SetBranchAddress("genMupPhi"    , &gmupphi);
     ch->SetBranchAddress("genMumPt"     , &gmumpt);
     ch->SetBranchAddress("genMumEta"    , &gmumeta);
+    ch->SetBranchAddress("genMumPhi"    , &gmumphi);
 
     // Load acceptance
     TFile f_acc("acceptance_8TeV.root");
@@ -1804,15 +1802,15 @@ std::string accXrecoEff2(int iBin)
     for (int entry = 0; entry < ch->GetEntries(); entry++) {
         ch->GetEntry(entry);
         if (gQ2 > q2rangeup[iBin] || gQ2 < q2rangedn[iBin]) continue;
-        if ( fabs(gmumeta) < 2.3 && fabs(gmupeta) < 2.3 && gmumpt > 2.8 && gmuppt > 2.8 ){
+        if ( fabs(gmupeta) < 2.3 && gmuppt > 2.8 && fabs(gmumeta) < 2.3 && gmumpt > 2.8){
             h2_nacc.Fill(gCosThetaL,gCosThetaK);
             h_naccL.Fill(gCosThetaL);
             h_naccK.Fill(gCosThetaK);
-        }
-        if (BMass != 0 && ((Mumumass > 3.096916+3.5*Mumumasserr || Mumumass < 3.096916-5.5*Mumumasserr) && (Mumumass > 3.686109+3.5*Mumumasserr || Mumumass < 3.686109-3.5*Mumumasserr)) ){
-            h2_nreco.Fill(gCosThetaL,gCosThetaK);
-            h_nrecoL.Fill(gCosThetaL);
-            h_nrecoK.Fill(gCosThetaK);
+            if (BMass != 0 && ((Mumumass > 3.096916+3.5*Mumumasserr || Mumumass < 3.096916-5.5*Mumumasserr) && (Mumumass > 3.686109+3.5*Mumumasserr || Mumumass < 3.686109-3.5*Mumumasserr)) ){
+                h2_nreco.Fill(gCosThetaL,gCosThetaK);
+                h_nrecoL.Fill(gCosThetaL);
+                h_nrecoK.Fill(gCosThetaK);
+            }
         }
     }
     
@@ -1882,21 +1880,21 @@ std::string accXrecoEff2(int iBin)
     h_effK.SetXTitle("CosThetaK");
     h_effK.SetYTitle("Efficiency");
 
-    // Quick check 0th order (decoupled)
+    // Quick check order0 (decoupled)
     TF1 *f_effK_ord0 = new TF1("f_effK_ord0","pol6",-1,1);//y, pol6
     TF1 *f_effL_ord0 = 0;
-    if (iBin < 1){
-        f_effL_ord0 = new TF1("f_effL_ord0","exp(-0.5*((x-[0])/[1])**2)*([2]*x**2+[3]*x+[4])",-1,1);//x
-        f_effL_ord0->SetParameter(1,1.);
-    }else{
+    if (iBin > 1){
         f_effL_ord0 = new TF1("f_effL_ord0","pol6",-1,1);//x
+    }else{
+        f_effL_ord0 = new TF1("f_effL_ord0","[2]*exp(-0.5*((x-[0])/[1])**2)+[5]*exp(-0.5*((x-[3])/[4])**2)+[8]*exp(-0.5*((x-[6])/[7])**2)",-1,1);//x
+        f_effL_ord0->SetParameter(1,0.5);// width must be non-zero.
+        f_effL_ord0->SetParameter(4,0.5);// width must be non-zero.
+        f_effL_ord0->SetParameter(7,0.5);// width must be non-zero.
     }
     h_effL.Fit("f_effL_ord0","S");
     h_effK.Fit("f_effK_ord0","S");
 
-    
-
-    // Using pure TMinuit for order2
+    // Using pure TMinuit for order1+
     int nPar = 21;
     TMinuit *gMinuit = new TMinuit(nPar);
     h2_fcn = &h2_eff;
@@ -1904,13 +1902,13 @@ std::string accXrecoEff2(int iBin)
     
     // Use Legendre polynomial for better convergance
     // 1,x,(3x^2-1)/2,(5x^3-3x)/2,(35x^4-30x^2+3)/8
-    TString f2_model_format_ord0 = TString::Format("(exp(-0.5*((x-(%f))/%f)**2)*(%f*x**2%+f*x%+f))*(%f%+f*y%+f*y**2%+f*y**3%+f*y**4%+f*y**5%+f*y**6)",f_effL_ord0->GetParameter(0),f_effL_ord0->GetParameter(1),f_effL_ord0->GetParameter(2),f_effL_ord0->GetParameter(3),f_effL_ord0->GetParameter(4),f_effK_ord0->GetParameter(0),f_effK_ord0->GetParameter(1),f_effK_ord0->GetParameter(2),f_effK_ord0->GetParameter(3),f_effK_ord0->GetParameter(4),f_effK_ord0->GetParameter(5),f_effK_ord0->GetParameter(6));
-    if (iBin > 0) f2_model_format_ord0 = TString::Format("(%f%+f*x%+f*x**2%+f*x**3%+f*x**4%+f*x**5%+f*x**6)*(%f%+f*y%+f*y**2%+f*y**3%+f*y**4%+f*y**5%+f*y**6)",f_effL_ord0->GetParameter(0),f_effL_ord0->GetParameter(1),f_effL_ord0->GetParameter(2),f_effL_ord0->GetParameter(3),f_effL_ord0->GetParameter(4),f_effL_ord0->GetParameter(5),f_effL_ord0->GetParameter(6),f_effK_ord0->GetParameter(0),f_effK_ord0->GetParameter(1),f_effK_ord0->GetParameter(2),f_effK_ord0->GetParameter(3),f_effK_ord0->GetParameter(4),f_effK_ord0->GetParameter(5),f_effK_ord0->GetParameter(6));
+    TString f2_model_format_ord0 = TString::Format("(%e*exp(-0.5*((x-(%e))/%e)**2)%+e*exp(-0.5*((x-(%e))/%e)**2)%+e*exp(-0.5*((x-(%e))/%e)**2))*(%e%+e*y%+e*y**2%+e*y**3%+e*y**4%+e*y**5%+e*y**6)",f_effL_ord0->GetParameter(2),f_effL_ord0->GetParameter(0),f_effL_ord0->GetParameter(1),f_effL_ord0->GetParameter(5),f_effL_ord0->GetParameter(3),f_effL_ord0->GetParameter(4),f_effL_ord0->GetParameter(8),f_effL_ord0->GetParameter(6),f_effL_ord0->GetParameter(7),f_effK_ord0->GetParameter(0),f_effK_ord0->GetParameter(1),f_effK_ord0->GetParameter(2),f_effK_ord0->GetParameter(3),f_effK_ord0->GetParameter(4),f_effK_ord0->GetParameter(5),f_effK_ord0->GetParameter(6));
+    if (iBin > 1) f2_model_format_ord0 = TString::Format("(%e%+e*x%+e*x**2%+e*x**3%+e*x**4%+e*x**5%+e*x**6)*(%e%+e*y%+e*y**2%+e*y**3%+e*y**4%+e*y**5%+e*y**6)",f_effL_ord0->GetParameter(0),f_effL_ord0->GetParameter(1),f_effL_ord0->GetParameter(2),f_effL_ord0->GetParameter(3),f_effL_ord0->GetParameter(4),f_effL_ord0->GetParameter(5),f_effL_ord0->GetParameter(6),f_effK_ord0->GetParameter(0),f_effK_ord0->GetParameter(1),f_effK_ord0->GetParameter(2),f_effK_ord0->GetParameter(3),f_effK_ord0->GetParameter(4),f_effK_ord0->GetParameter(5),f_effK_ord0->GetParameter(6));
     //printf("%s\n",f2_model_format_ord0.Data());
     TString f2_model_format_ord1 = "([0]+[1]*y+[2]*(3*y**2-1)/2+[3]*(5*y**3-3*y)/2)+([4]+[5]*y+[6]*(3*y**2-1)/2+[7]*(5*y**3-3*y)/2)*x**2+([8]+[9]*y+[10]*(3*y**2-1)/2+[11]*(5*y**3-3*y)/2)*x**3+([12]+[13]*y+[14]*(3*y**2-1)/2+[15]*(5*y**3-3*y)/2)*x**4+([16]+[17]*y+[18]*(3*y**2-1)/2+[19]*(5*y**3-3*y)/2)*x**6";
     TF2 f2_model_ord0("f2_model_ord0",f2_model_format_ord0,-1.,1.,-1.,1.);
     TF2 f2_model_ord1("f2_model_ord1",f2_model_format_ord1,-1.,1.,-1.,1.);
-    TF2 f2_model("f2_model",TString::Format("[20]*%s+%s",f2_model_format_ord0.Data(),f2_model_format_ord1.Data()).Data(),-1.,1.,-1.,1.);
+    TF2 f2_model("f2_model",TString::Format("[20]*%s*(1+%s)",f2_model_format_ord0.Data(),f2_model_format_ord1.Data()).Data(),-1.,1.,-1.,1.);
     f2_fcn = &f2_model;
     gMinuit->DefineParameter( 0, "k0l0",   0.,  1E-4,    -1E+1, 1E+1);
     gMinuit->DefineParameter( 1, "k1l0",   0.,  1E-4,    -1E+1, 1E+1);
@@ -1932,7 +1930,7 @@ std::string accXrecoEff2(int iBin)
     gMinuit->DefineParameter(17, "k1l6",   0.,  1E-4,    -1E+2, 1E+3);
     gMinuit->DefineParameter(18, "k2l6",   0.,  1E-4,    -1E+2, 1E+3);
     gMinuit->DefineParameter(19, "k3l6",   0.,  1E-4,    -1E+2, 1E+3);
-    gMinuit->DefineParameter(20, "ord0",   0.,  1E-2,       10, 1E+4);
+    gMinuit->DefineParameter(20, "ord0",8000.,  1E-2,       10, 1E+6);
     
     // Calculte normalize factor for 0th order
     for (int i = 1; i < 21; i++) {
@@ -2019,14 +2017,22 @@ std::string accXrecoEff2(int iBin)
     for (int iPar = 0; iPar < nPar; iPar++) gMinuit->GetParameter(iPar,arrPar[iPar],arrParErr[iPar]);
     for (int iPar = 0; iPar < nPar; iPar++) f2_model.SetParameter(iPar,arrPar[iPar]);
     
-    // Draw
-    if (true){
-        TCanvas canvas("canvas");
-        TLatex *latex = new TLatex();
-        double chi2Val=0;
-        fcn_binnedChi2_2D(nPar, 0, chi2Val, arrPar, 0);
-        printf("Chi2(Bin center)=%f \n",chi2Val);
+    // Draw and write config
+    TCanvas canvas("canvas");
+    TLatex *latex = new TLatex();
+    double chi2Val=0;
+    fcn_binnedChi2_2D(nPar, 0, chi2Val, arrPar, 0);
+    printf("Chi2(Bin center)=%f \n",chi2Val);
         
+    h_effL.Draw();
+    if (iBin == 0) h_effL.SetMaximum(0.0002);
+    canvas.Update();
+    canvas.Print(TString::Format("./plots/accXrecoEff2_cosl_order0_bin%d.pdf",iBin));
+    h_effK.Draw();
+    canvas.Update();
+    canvas.Print(TString::Format("./plots/accXrecoEff2_cosk_order0_bin%d.pdf",iBin));
+        
+    if (true){
         //// Draw 1-D
         h_naccL.Draw();
         canvas.Update();
@@ -2042,14 +2048,20 @@ std::string accXrecoEff2(int iBin)
         canvas.Update();
         canvas.Print(TString::Format("./plots/accXrecoEff2_nrecoK_bin%d.pdf",iBin));
         
-        h_effL.Draw();
-        if (iBin == 0) h_effL.SetMaximum(0.03);
+        h_recL.SetStats(0);
+        h_recL.SetMinimum(0.);
+        h_recL.SetXTitle("CosThetaL");
+        h_recL.Draw("TEXT");
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_cosl_order0_bin%d.pdf",iBin));
-        h_effK.Draw();
+        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffL_bin%d.pdf",iBin));
+        
+        h_recK.SetStats(0);
+        h_recK.SetMinimum(0.);
+        h_recK.SetXTitle("CosThetaK");
+        h_recK.Draw("TEXT");
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_cosk_order0_bin%d.pdf",iBin));
-       
+        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffK_bin%d.pdf",iBin));
+        
         TH1F h_theoK("h_theoK" ,"h_theoK" ,nKBins,-1,1); 
         h_theoK.SetStats(0);
         h_theoK.SetMinimum(0.);
@@ -2084,7 +2096,7 @@ std::string accXrecoEff2(int iBin)
         canvas.Update();
         canvas.Print(TString::Format("./plots/accXrecoEff2_theoL_bin%d.pdf",iBin));
         
-        //// Draw efficiency
+        //// Draw 2-D
         h2_eff.SetMinimum(0.);
         h2_eff.SetTitleOffset(2,"XY");
         h2_eff.SetXTitle("genCosThetaL");
@@ -2093,20 +2105,6 @@ std::string accXrecoEff2(int iBin)
         h2_eff.SetMaximum(effUpperBound);
         h2_eff.Draw("LEGO2");
         latex->DrawLatexNDC(0.35,0.95,TString::Format("#varepsilon in Bin%d",iBin));
-
-        h_recL.SetStats(0);
-        h_recL.SetMinimum(0.);
-        h_recL.SetXTitle("CosThetaL");
-        h_recL.Draw("TEXT");
-        canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffL_bin%d.pdf",iBin));
-        
-        h_recK.SetStats(0);
-        h_recK.SetMinimum(0.);
-        h_recK.SetXTitle("CosThetaK");
-        h_recK.Draw("TEXT");
-        canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffK_bin%d.pdf",iBin));
         
         // Draw FitResult
         f2_model.SetTitle("");
@@ -2174,16 +2172,16 @@ std::string accXrecoEff2(int iBin)
         canvas.Print(TString::Format("./plots/accXrecoEff2_sigma_bin%d.pdf",iBin));
 
         delete latex;
+        
     }
     
     //prepare output
     string output;
-    output = TString::Format("%f*(%s)",arrPar[20],f2_model_format_ord0.Data());
-    //output = TString::Format("%f*(%s)+(%f%+f*y%+f*(3*y**2-1)/2%+f*(5*y**3-3*y)/2)+(%f%+f*y%+f*(3*y**2-1)/2%+f*(5*y**3-3*y)/2)*x**2+(%f%+f*y%+f*(3*y**2-1)/2%+f*(5*y**3-3*y)/2)*x**3+(%f%+f*y%+f*(3*y**2-1)/2%+f*(5*y**3-3*y)/2)*x**4+(%f%+f*y%+f*(3*y**2-1)/2%+f*(5*y**3-3*y)/2)*x**6",arrPar[20],f2_model_format_ord0.Data(),arrPar[0],arrPar[1],arrPar[2],arrPar[3],arrPar[4],arrPar[5],arrPar[6],arrPar[7],arrPar[8],arrPar[9],arrPar[10],arrPar[11],arrPar[12],arrPar[13],arrPar[14],arrPar[15],arrPar[16],arrPar[17],arrPar[18],arrPar[19]);
+    output = TString::Format("%e*(%s)",arrPar[20],f2_model_format_ord0.Data());
     printf("\"%s\",\n",output.c_str());
+    writeParam(iBin,"accXrecoEff2",arrPar,20,true);
+    writeParam(iBin,"accXrecoEff2Err",arrParErr,20,true);
 
-    writeParam(iBin,"accXrecoEff2",arrPar,20);
-    writeParam(iBin,"accXrecoEff2Err",arrParErr,20);
     delete gMinuit;// delete before return.
     return output.c_str();
 }//}}}
@@ -2222,19 +2220,14 @@ void getToyFromUnfilterGen(int iBin)
     std::string f2_model_format;
     if (flatModel){
         f2_model_format = TString::Format("0.01+0.*x+0.*y");
-    }else if (is7TeVCheck){
-        f2_model_format = TString::Format("([0]+[1]*CosThetaK+[2]*CosThetaK**2+[3]*CosThetaK**3)+([4]+[5]*CosThetaK+[6]*CosThetaK**2+[7]*CosThetaK**3)*CosThetaL**2+([8]+[9]*CosThetaK+[10]*CosThetaK**2+[11]*CosThetaK**3)*CosThetaL**3+([12]+[13]*CosThetaK+[14]*CosThetaK**2+[15]*CosThetaK**3)*CosThetaL**4+([16]+[17]*CosThetaK+[18]*CosThetaK**2+[19]*CosThetaK**3)*CosThetaL**6");
     }else{
-        f2_model_format = TString::Format("%s+([0]+[1]*CosThetaK+[2]*(3*CosThetaK**2-1)/2+[3]*(5*CosThetaK**3-3*CosThetaK)/2)+([4]+[5]*CosThetaK+[6]*(3*CosThetaK**2-1)/2+[7]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2+([8]+[9]*CosThetaK+[10]*(3*CosThetaK**2-1)/2+[11]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3+([12]+[13]*CosThetaK+[14]*(3*CosThetaK**2-1)/2+[15]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4+([16]+[17]*CosThetaK+[18]*(3*CosThetaK**2-1)/2+[19]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6",f_accXrecoEff_ord0[iBin].data());
+        f2_model_format = TString::Format("%s*(1+([0]+[1]*CosThetaK+[2]*(3*CosThetaK**2-1)/2+[3]*(5*CosThetaK**3-3*CosThetaK)/2)+([4]+[5]*CosThetaK+[6]*(3*CosThetaK**2-1)/2+[7]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2+([8]+[9]*CosThetaK+[10]*(3*CosThetaK**2-1)/2+[11]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3+([12]+[13]*CosThetaK+[14]*(3*CosThetaK**2-1)/2+[15]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4+([16]+[17]*CosThetaK+[18]*(3*CosThetaK**2-1)/2+[19]*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6)",f_accXrecoEff_ord0[iBin].data());
     }
-    f2_model_format = regex_replace(f2_model_format,regex("CosThetaK"),"y");
+    f2_model_format = regex_replace(f2_model_format,regex("CosThetaK"),"y");//use string::replace() for instead
     f2_model_format = regex_replace(f2_model_format,regex("CosThetaL"),"x");
     TF2 f2_model("f2_model",f2_model_format.c_str(),-1.,1.,-1.,1.);
     if (flatModel){
         //Set parameters here.
-    }else if (is7TeVCheck){
-        f2_model.SetParameters(arrRecPar2011[iBin]);
-        f2_model.SetParErrors(arrRecParErr2011[iBin]);
     }else{
         for (int i = 0; i < 20; i++) {
             f2_model.SetParameter(i,readParam(iBin,"accXrecoEff2",i));
@@ -2280,19 +2273,20 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
     RooRealVar fl("fl", "F_{L}", genFl[iBin], 0., 1.);
     RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -1., 1.);
-    RooRealVar fs("fs","F_{S}",0.0129254,-1.,1.);
-    RooRealVar as("as","A_{S}",-0.0975919,-1.,1.);
+    RooRealVar fs("fs","F_{S}",0.0129254,-0.3,0.3);
+    RooRealVar as("as","A_{S}",-0.0975919,-0.3,0.3);
 
     if (iBin != 3 && iBin != 5){
         // 2011 cross check
-        //fs.setVal(0.0129254);
-        //fs.setAsymError(-0.00898344,0.0101371);
-        //as.setVal(-0.0975919);
-        //as.setAsymError(-0.00490805,0.0049092);
-        fs.setVal(0.);
-        as.setVal(0.);
-        fs.setConstant(kTRUE);
-        as.setConstant(kTRUE);
+        fs.setVal(0.0129254);
+        fs.setAsymError(-0.00898344,0.0101371);
+        as.setVal(-0.0975919);
+        as.setAsymError(-0.00490805,0.0049092);
+        
+        //fs.setVal(0.);
+        //as.setVal(0.);
+        //fs.setConstant(kTRUE);
+        //as.setConstant(kTRUE);
 
         // read parameter from datacard
         //fs.setVal(readParam(3,"fs",0));
@@ -2349,34 +2343,26 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
     TString f_rec_ord0 = f_accXrecoEff_ord0[iBin];
     TString f_rec_format, f_rec_L0, f_rec_L2, f_rec_L3, f_rec_L4, f_rec_L6;
-    if (is7TeVCheck){
-        f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*CosThetaK**2+recK3L0*CosThetaK**3)";
-        f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*CosThetaK**2+recK3L2*CosThetaK**3)*CosThetaL**2";
-        f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*CosThetaK**2+recK3L3*CosThetaK**3)*CosThetaL**3";
-        f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*CosThetaK**2+recK3L4*CosThetaK**3)*CosThetaL**4";
-        f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*CosThetaK**2+recK3L6*CosThetaK**3)*CosThetaL**6";
-    }else{
-        f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
-        f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
-        f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
-        f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
-        f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
-    }
+    f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
+    f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
+    f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
+    f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
+    f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
 
     if (iBin == 0) {
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
         f_sigA_argset.add(RooArgSet(recK0L6,recK1L6,recK2L6,recK3L6));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
     }else if (iBin == 1) {
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
     }else if (iBin > 1 && iBin < 6) {
         f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
     }else{
         f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
     }
         // angular map of signal
     RooGenericPdf f_sigA("f_sigA", f_sigA_format, f_sigA_argset);
@@ -2386,7 +2372,8 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     // Get data and apply unbinned fit
     //fs.setConstant(kTRUE); as.setConstant(kTRUE);
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Mumumass, Mumumasserr, CosThetaK,CosThetaL),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[1]),0);
-    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"));
+    f_ext.fitTo(*data,Minimizer("Minuit2"));
+    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit2"));
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -2396,7 +2383,7 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     RooPlot* framecosk = CosThetaK.frame(); 
     data->plotOn(framecosk,Binning(20)); 
     f_ext.plotOn(framecosk); 
-    if (true) {
+    if (true) { // 
         double buffFl = fl.getVal();
         double buffAfb = afb.getVal();
         fl.setVal(genFl[iBin]); afb.setVal(genAfb[iBin]);
@@ -2463,13 +2450,15 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     // Fit to signal simulation by YsSm+YcCm to determine Sm
     RooRealVar Bmass("Bmass","M_{K^{*}#Mu#Mu}",5.,5.56);
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
+    RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
+    RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     
     // Create parameters and PDFs
         // Signal double gaussian
     RooRealVar sigGauss_mean("sigGauss_mean","M_{K*#Mu#Mu}",5.28,5.25,5.30);
-    RooRealVar sigGauss1_sigma("sigGauss1_sigma","#sigma_{1}",.03,.01,.05);
-    RooRealVar sigGauss2_sigma("sigGauss2_sigma","#sigma_{2}",.08,.05,.35);
-    RooRealVar sigM_frac("sigM_frac","sigM_frac",.5,0.,1.);
+    RooRealVar sigGauss1_sigma("sigGauss1_sigma","#sigma_{1}",readParam(iBin,"sigGauss1_sigma",0,0.02),.01,.05);
+    RooRealVar sigGauss2_sigma("sigGauss2_sigma","#sigma_{2}",readParam(iBin,"sigGauss2_sigma",0,0.08),.05,.40);
+    RooRealVar sigM_frac("sigM_frac","sigM_frac",readParam(iBin,"sigM_frac",0,0.5),0.,1.);
     
     // Create signal distribution
         // mass distro of signal
@@ -2477,19 +2466,22 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     RooGaussian f_sigMGauss2("f_sigMGauss2","f_sigMGauss2", Bmass, sigGauss_mean, sigGauss2_sigma);//double gaussian with shared mean
     RooAddPdf f_sigM("f_sigM","f_sigM", f_sigMGauss1, f_sigMGauss2, sigM_frac);
     
-    // Create combinatorial background distribution
-    RooRealVar bkgCombM_c("bkgCombM_c","c1",0,-30,50);
-    RooRealVar offset("offset","offset",-5.);
-    RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgList(Bmass,offset));
-    RooExponential f_bkgCombM("f_bkgCombM","f_bkgCombM",Bmass_offset,bkgCombM_c);// exponential decay
+    //// Create combinatorial background distribution
+    //RooRealVar bkgCombM_c("bkgCombM_c","c1",0,-30,50);
+    //RooRealVar offset("offset","offset",-5.);
+    //RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgList(Bmass,offset));
+    //RooExponential f_bkgCombM("f_bkgCombM","f_bkgCombM",Bmass_offset,bkgCombM_c);// exponential decay
     
-    RooRealVar nsig("nsig","nsig",0,1E8);
-    RooRealVar nbkg("nbkg","nbkg",0,1E8);
-    RooAddPdf f("f", "f",RooArgList(f_sigM,f_bkgCombM),RooArgList(nsig,nbkg));
+    RooRealVar nsig("nsig","nsig",5E4,2000,1E8);
+    //RooRealVar nbkg("nbkg","nbkg",0,1E8);
+    //RooAddPdf f("f", "f",RooArgList(f_sigM,f_bkgCombM),RooArgList(nsig,nbkg));
+    RooExtendPdf f("f","f",f_sigM,nsig);
 
     // Get data and apply unbinned fit
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass),q2range[iBin],0);
-    RooFitResult *f_fitresult = f.fitTo(*data,Save(kTRUE),Minimizer("Minuit"));
+    int mumuMassWindowBin = 1;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    RooFitResult *f_fitresult = f.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"));
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -2497,7 +2489,7 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     data->plotOn(frame,Binning(20)); 
     f.plotOn(frame); 
     f.plotOn(frame,Components(f_sigM),LineColor(2),LineWidth(2));
-    f.plotOn(frame,Components(f_bkgCombM),LineColor(3),LineStyle(2),LineWidth(2));
+    //f.plotOn(frame,Components(f_bkgCombM),LineColor(3),LineStyle(2),LineWidth(2));
 
     frame->SetTitle("");
     frame->SetMinimum(0);
@@ -2516,60 +2508,58 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     delete data;
 
     // Prepare datacard
-    if (keepParam){
-        double val[3]={0,0,0};
-        writeParam(iBin, "iBin", new double((double)iBin), 1);
-        if (is7TeVCheck){
-            writeParam(iBin, "mode", new double(2011), 1);
-        }else{
-            writeParam(iBin, "mode", new double(2012), 1);
-        }
-        val[0]=sigGauss1_sigma.getVal();val[1]=sigGauss1_sigma.getError();
-        writeParam(iBin, "sigGauss1_sigma", val);
-        val[0]=sigGauss2_sigma.getVal();val[1]=sigGauss2_sigma.getError();
-        writeParam(iBin, "sigGauss2_sigma", val);
-        val[0]=sigM_frac.getVal();val[1]=sigM_frac.getError();
-        writeParam(iBin, "sigM_frac", val);
+    double val[3]={0,0,0};
+    writeParam(iBin, "iBin", new double((double)iBin), 1,keepParam);
+    if (is7TeVCheck){
+        writeParam(iBin, "mode", new double(2011), 1, keepParam);
+    }else{
+        writeParam(iBin, "mode", new double(2012), 1, keepParam);
     }
+    val[0]=sigGauss1_sigma.getVal();val[1]=sigGauss1_sigma.getError();
+    writeParam(iBin, "sigGauss1_sigma", val, keepParam);
+    val[0]=sigGauss2_sigma.getVal();val[1]=sigGauss2_sigma.getError();
+    writeParam(iBin, "sigGauss2_sigma", val, keepParam);
+    val[0]=sigM_frac.getVal();val[1]=sigM_frac.getError();
+    writeParam(iBin, "sigM_frac", val, keepParam);
 }//}}}
 void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
 {//{{{
     if (iBin ==0 || iBin%2 == 1){
-        if (keepParam){
-            double val[3]={1,0,0};
-            writeParam(iBin, "bkgGauss1_mean1", val);
-            writeParam(iBin, "bkgGauss1_mean2", val);
-            writeParam(iBin, "bkgGauss1_sigma1", val);
-            writeParam(iBin, "bkgGauss1_sigma2", val);
-            writeParam(iBin, "bkgM_frac1", val);
-            writeParam(iBin, "bkgGauss2_mean1", val);
-            writeParam(iBin, "bkgGauss2_mean2", val);
-            writeParam(iBin, "bkgGauss2_sigma1", val);
-            writeParam(iBin, "bkgGauss2_sigma2", val);
-            writeParam(iBin, "bkgM_frac2", val);
-            writeParam(iBin, "bkgM_frac12", val);
-            val[0]=0;
-            writeParam(iBin, "nbkgPeak", val);
-        }
+        double val[3]={1,0,0};
+        writeParam(iBin , "bkgGauss1_mean1"  , val , keepParam);
+        writeParam(iBin , "bkgGauss1_mean2"  , val , keepParam);
+        writeParam(iBin , "bkgGauss1_sigma1" , val , keepParam);
+        writeParam(iBin , "bkgGauss1_sigma2" , val , keepParam);
+        writeParam(iBin , "bkgM_frac1"       , val , keepParam);
+        writeParam(iBin , "bkgGauss2_mean1"  , val , keepParam);
+        writeParam(iBin , "bkgGauss2_mean2"  , val , keepParam);
+        writeParam(iBin , "bkgGauss2_sigma1" , val , keepParam);
+        writeParam(iBin , "bkgGauss2_sigma2" , val , keepParam);
+        writeParam(iBin , "bkgM_frac2"       , val , keepParam);
+        writeParam(iBin , "bkgM_frac12"      , val , keepParam);
+        val[0]=0;
+        writeParam(iBin , "nbkgPeak"         , val , keepParam);
         return;
     }
 
     // Fit to control channel simulations by YpPm to determine Yp,Pm.
     RooRealVar Bmass("Bmass","M_{K^{*}#Mu#Mu}",5.,5.56);
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
+    RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
+    RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     
     // Create peak background distribution
-    RooRealVar bkgGauss1_mean1("bkgGauss1_mean1","M_{K*#Mu#Mu}",5.05,5.,5.12);
-    RooRealVar bkgGauss1_mean2("bkgGauss1_mean2","M_{K*#Mu#Mu}",5.0,4.8,5.20);
-    RooRealVar bkgGauss2_mean1("bkgGauss2_mean1","M_{K*#Mu#Mu}",5.40,5.35,5.45);
-    RooRealVar bkgGauss2_mean2("bkgGauss2_mean2","M_{K*#Mu#Mu}",5.40,5.35,5.45);
-    RooRealVar bkgGauss1_sigma1("bkgGauss1_sigma1","#sigma_{11}",.03,.01,.08);
-    RooRealVar bkgGauss1_sigma2("bkgGauss1_sigma2","#sigma_{12}",.12,.08,.50);
-    RooRealVar bkgGauss2_sigma1("bkgGauss2_sigma1","#sigma_{21}",.03,.01,.05);
-    RooRealVar bkgGauss2_sigma2("bkgGauss2_sigma2","#sigma_{22}",.12,.05,.50);
-    RooRealVar bkgM_frac1("bkgM_frac1","bkgM_frac1",1.,0.,1.);
-    RooRealVar bkgM_frac2("bkgM_frac2","bkgM_frac2",1.,0.,1.);
-    RooRealVar bkgM_frac12("bkgM_frac12","bkgM_frac12",0.,0.,1.);
+    RooRealVar bkgGauss1_mean1("bkgGauss1_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgGauss1_mean1",0,5.05),5.,5.12);
+    RooRealVar bkgGauss1_mean2("bkgGauss1_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgGauss1_mean2",0,5.00),4.8,5.20);
+    RooRealVar bkgGauss2_mean1("bkgGauss2_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgGauss2_mean1",0,5.40),5.35,5.45);
+    RooRealVar bkgGauss2_mean2("bkgGauss2_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgGauss2_mean2",0,5.40),5.35,5.45);
+    RooRealVar bkgGauss1_sigma1("bkgGauss1_sigma1","#sigma_{11}",readParam(iBin,"bkgGauss1_sigma1",0,.03),.01,.08);
+    RooRealVar bkgGauss1_sigma2("bkgGauss1_sigma2","#sigma_{12}",readParam(iBin,"bkgGauss1_sigma2",0,.12),.08,.50);
+    RooRealVar bkgGauss2_sigma1("bkgGauss2_sigma1","#sigma_{21}",readParam(iBin,"bkgGauss2_sigma1",0,.03),.01,.05);
+    RooRealVar bkgGauss2_sigma2("bkgGauss2_sigma2","#sigma_{22}",readParam(iBin,"bkgGauss2_sigma2",0,.12),.05,.50);
+    RooRealVar bkgM_frac1("bkgM_frac1","bkgM_frac1",readParam(iBin,"bkgM_frac1",0,1.),0.,1.);
+    RooRealVar bkgM_frac2("bkgM_frac2","bkgM_frac2",readParam(iBin,"bkgM_frac2",0,1.),0.,1.);
+    RooRealVar bkgM_frac12("bkgM_frac12","bkgM_frac12",readParam(iBin,"bkgM_frac12",0,0.),0.,1.);
     RooGaussian f_bkgPeakMGauss11("f_bkgPeakMGauss11","f_bkgPeakMGauss11", Bmass, bkgGauss1_mean1, bkgGauss1_sigma1);
     RooGaussian f_bkgPeakMGauss12("f_bkgPeakMGauss12","f_bkgPeakMGauss12", Bmass, bkgGauss1_mean2, bkgGauss1_sigma2);
     RooGaussian f_bkgPeakMGauss21("f_bkgPeakMGauss21","f_bkgPeakMGauss21", Bmass, bkgGauss2_mean1, bkgGauss2_sigma1);
@@ -2598,7 +2588,9 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     }
 
     // Get data and apply unbinned fit
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass),q2range[iBin],0);
+    int mumuMassWindowBin = 1;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
     RooFitResult *f_fitresult = f->fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Extended());
 
     // Draw the frame on the canvas
@@ -2622,96 +2614,94 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     delete c;
     delete data;
 
-    if (keepParam){
-        double val[3]={0,0,0};
-        val[0] = bkgGauss1_mean1.getVal();val[1] = bkgGauss1_mean1.getError();
-        writeParam(iBin, "bkgGauss1_mean1", val);
-        val[0] = bkgGauss1_mean2.getVal();val[1] = bkgGauss1_mean2.getError();
-        writeParam(iBin, "bkgGauss1_mean2", val);
-        val[0] = bkgGauss1_sigma1.getVal();val[1] = bkgGauss1_sigma1.getError();
-        writeParam(iBin, "bkgGauss1_sigma1", val);
-        val[0] = bkgGauss1_sigma2.getVal();val[1] = bkgGauss1_sigma2.getError();
-        writeParam(iBin, "bkgGauss1_sigma2", val);
-        val[0] = bkgM_frac1.getVal();val[1] = bkgM_frac1.getError();
-        writeParam(iBin, "bkgM_frac1", val);
-        val[0] = bkgGauss2_mean1.getVal();val[1] = bkgGauss2_mean1.getError();
-        writeParam(iBin, "bkgGauss2_mean1", val);
-        val[0] = bkgGauss2_mean2.getVal();val[1] = bkgGauss2_mean2.getError();
-        writeParam(iBin, "bkgGauss2_mean2", val);
-        val[0] = bkgGauss2_sigma1.getVal();val[1] = bkgGauss2_sigma1.getError();
-        writeParam(iBin, "bkgGauss2_sigma1", val);
-        val[0] = bkgGauss2_sigma2.getVal();val[1] = bkgGauss2_sigma2.getError();
-        writeParam(iBin, "bkgGauss2_sigma2", val);
-        val[0] = bkgM_frac2.getVal();val[1] = bkgM_frac2.getError();
-        writeParam(iBin, "bkgM_frac2", val);
-        val[0] = bkgM_frac12.getVal();val[1] = bkgM_frac12.getError();
-        writeParam(iBin, "bkgM_frac12", val);
-        if (is7TeVCheck){
-            switch (iBin) {
-                case 2:
-                    val[0]=470;val[1]=11;
-                    break;
-                case 4:
-                    val[0]=155;val[1]=6.9;
-                    break;
-                case 6:
-                    val[0]=6.8;val[1]=1.4;
-                    break;
-                default:
-                    val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
-            }
-        }else{
-            switch (iBin) {
-                case 2:
-                    val[0]=1410;val[1]=33;
-                    break;
-                case 4:
-                    val[0]=465;val[1]=20.7;
-                    break;
-                case 6:
-                    val[0]=20.4;val[1]=4.2;
-                    break;
-                default:
-                    val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
-            }
-            val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
+    double val[3]={0,0,0};
+    val[0] = bkgGauss1_mean1.getVal();val[1] = bkgGauss1_mean1.getError();
+    writeParam(iBin, "bkgGauss1_mean1", val, keepParam);
+    val[0] = bkgGauss1_mean2.getVal();val[1] = bkgGauss1_mean2.getError();
+    writeParam(iBin, "bkgGauss1_mean2", val, keepParam);
+    val[0] = bkgGauss1_sigma1.getVal();val[1] = bkgGauss1_sigma1.getError();
+    writeParam(iBin, "bkgGauss1_sigma1", val, keepParam);
+    val[0] = bkgGauss1_sigma2.getVal();val[1] = bkgGauss1_sigma2.getError();
+    writeParam(iBin, "bkgGauss1_sigma2", val, keepParam);
+    val[0] = bkgM_frac1.getVal();val[1] = bkgM_frac1.getError();
+    writeParam(iBin, "bkgM_frac1", val, keepParam);
+    val[0] = bkgGauss2_mean1.getVal();val[1] = bkgGauss2_mean1.getError();
+    writeParam(iBin, "bkgGauss2_mean1", val, keepParam);
+    val[0] = bkgGauss2_mean2.getVal();val[1] = bkgGauss2_mean2.getError();
+    writeParam(iBin, "bkgGauss2_mean2", val, keepParam);
+    val[0] = bkgGauss2_sigma1.getVal();val[1] = bkgGauss2_sigma1.getError();
+    writeParam(iBin, "bkgGauss2_sigma1", val, keepParam);
+    val[0] = bkgGauss2_sigma2.getVal();val[1] = bkgGauss2_sigma2.getError();
+    writeParam(iBin, "bkgGauss2_sigma2", val, keepParam);
+    val[0] = bkgM_frac2.getVal();val[1] = bkgM_frac2.getError();
+    writeParam(iBin, "bkgM_frac2", val, keepParam);
+    val[0] = bkgM_frac12.getVal();val[1] = bkgM_frac12.getError();
+    writeParam(iBin, "bkgM_frac12", val, keepParam);
+    if (is7TeVCheck){
+        switch (iBin) {
+            case 2:
+                val[0]=470;val[1]=11;
+                break;
+            case 4:
+                val[0]=155;val[1]=6.9;
+                break;
+            case 6:
+                val[0]=6.8;val[1]=1.4;
+                break;
+            default:
+                val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
         }
-        writeParam(iBin, "nbkgPeak", val);
+    }else{
+        switch (iBin) {
+            case 2:
+                val[0]=1410;val[1]=33;
+                break;
+            case 4:
+                val[0]=465;val[1]=20.7;
+                break;
+            case 6:
+                val[0]=20.4;val[1]=4.2;
+                break;
+            default:
+                val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
+        }
+        val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
     }
+    writeParam(iBin, "nbkgPeak", val, keepParam);
 }//}}}
 void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", bool keepParam = false)
 {//{{{
     // Gaussian constraint on yields and mass is needed.
     if (iBin ==0 || iBin%2 == 1){
         // Pm is flat(and the yield is 0) for bins other than 2,4,6
-        if (keepParam){
-            double val[3]={0,0,0};
-            writeParam(iBin, "bkgPeakL_c1", val);
-            writeParam(iBin, "bkgPeakL_c2", val);
-            writeParam(iBin, "bkgPeakL_c3", val);
-            writeParam(iBin, "bkgPeakL_c4", val);
-            writeParam(iBin, "bkgPeakK_c1", val);
-            writeParam(iBin, "bkgPeakK_c2", val);
-            writeParam(iBin, "bkgPeakK_c3", val);
-            writeParam(iBin, "bkgPeakK_c4", val);
-        }
+        double val[3]={0,0,0};
+        writeParam(iBin, "bkgPeakL_c1", val , keepParam);
+        writeParam(iBin, "bkgPeakL_c2", val , keepParam);
+        writeParam(iBin, "bkgPeakL_c3", val , keepParam);
+        writeParam(iBin, "bkgPeakL_c4", val , keepParam);
+        writeParam(iBin, "bkgPeakK_c1", val , keepParam);
+        writeParam(iBin, "bkgPeakK_c2", val , keepParam);
+        writeParam(iBin, "bkgPeakK_c3", val , keepParam);
+        writeParam(iBin, "bkgPeakK_c4", val , keepParam);
         return;
     }
 
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
     RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
     RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
+    RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
+    RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     
     RooArgSet f_bkgPeakL_argset;
     RooArgSet f_bkgPeakK_argset;
-    RooRealVar bkgPeakL_c1("bkgPeakL_c1","c1",0,-5,5);
-    RooRealVar bkgPeakL_c2("bkgPeakL_c2","c2",0,-5,5);
-    RooRealVar bkgPeakL_c3("bkgPeakL_c3","c3",0,-5,5);
-    RooRealVar bkgPeakL_c4("bkgPeakL_c4","c4",0,-5,5);
-    RooRealVar bkgPeakK_c1("bkgPeakK_c1","c1",0,-5,5);
-    RooRealVar bkgPeakK_c2("bkgPeakK_c2","c2",0,-5,5);
-    RooRealVar bkgPeakK_c3("bkgPeakK_c3","c3",0,-5,5);
-    RooRealVar bkgPeakK_c4("bkgPeakK_c4","c4",0,-5,5);
+    RooRealVar bkgPeakL_c1("bkgPeakL_c1","c1",readParam(iBin,"bkgPeakL_c1",0),-5,5);
+    RooRealVar bkgPeakL_c2("bkgPeakL_c2","c2",readParam(iBin,"bkgPeakL_c2",0),-5,5);
+    RooRealVar bkgPeakL_c3("bkgPeakL_c3","c3",readParam(iBin,"bkgPeakL_c3",0),-5,5);
+    RooRealVar bkgPeakL_c4("bkgPeakL_c4","c4",readParam(iBin,"bkgPeakL_c4",0),-5,5);
+    RooRealVar bkgPeakK_c1("bkgPeakK_c1","c1",readParam(iBin,"bkgPeakK_c1",0),-5,5);
+    RooRealVar bkgPeakK_c2("bkgPeakK_c2","c2",readParam(iBin,"bkgPeakK_c2",0),-5,5);
+    RooRealVar bkgPeakK_c3("bkgPeakK_c3","c3",readParam(iBin,"bkgPeakK_c3",0),-5,5);
+    RooRealVar bkgPeakK_c4("bkgPeakK_c4","c4",readParam(iBin,"bkgPeakK_c4",0),-5,5);
     switch (iBin) {
         case 2:
             //1 double guassian ,4+4 deg. ploy
@@ -2738,11 +2728,14 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     RooExtendPdf f_bkgPeakA_ext("f_bkgPeakA_ext","f_bkgPeakA_ext",f_bkgPeakA,nbkgPeak);
 
     // Gaussian Constraint
-    RooGaussian gaus_nbkgPeak("gaus_nbkgPeak","gaus_nbkgPeak",nbkgPeak,RooConst(readParam(iBin,"nbkgPeak", 0)),RooConst(readParam(iBin, "nbkgPeak", 1)));
+    //RooGaussian gaus_nbkgPeak("gaus_nbkgPeak","gaus_nbkgPeak",nbkgPeak,RooConst(readParam(iBin,"nbkgPeak", 0)),RooConst(readParam(iBin, "nbkgPeak", 1)));
     
     // Get data
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK,CosThetaL,Q2),q2range[iBin],0);
-    RooFitResult *f_fitresult = f_bkgPeakA_ext.fitTo(*data,Save(kTRUE),Extended(),Minimizer("Minuit"),ExternalConstraints(gaus_nbkgPeak));
+    int mumuMassWindowBin = 1;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, CosThetaK, CosThetaL ,Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    //RooFitResult *f_fitresult = f_bkgPeakA_ext.fitTo(*data,Save(kTRUE),Extended(),Minimizer("Minuit"),ExternalConstraints(gaus_nbkgPeak));
+    RooFitResult *f_fitresult = f_bkgPeakA_ext.fitTo(*data,Save(kTRUE),Extended(kTRUE),Minimizer("Minuit"));
 
     // Draw CosThetaK
     TCanvas* c = new TCanvas("c");
@@ -2784,25 +2777,23 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     delete c;
     delete data;
 
-    if (keepParam){
-        double val[3] = {0,0,0};
-        val[0] = bkgPeakL_c1.getVal();val[1] = bkgPeakL_c1.getError();
-        writeParam(iBin, "bkgPeakL_c1", val);
-        val[0] = bkgPeakL_c2.getVal();val[1] = bkgPeakL_c2.getError();
-        writeParam(iBin, "bkgPeakL_c2", val);
-        val[0] = bkgPeakL_c3.getVal();val[1] = bkgPeakL_c3.getError();
-        writeParam(iBin, "bkgPeakL_c3", val);
-        val[0] = bkgPeakL_c4.getVal();val[1] = bkgPeakL_c4.getError();
-        writeParam(iBin, "bkgPeakL_c4", val);
-        val[0] = bkgPeakK_c1.getVal();val[1] = bkgPeakK_c1.getError();
-        writeParam(iBin, "bkgPeakK_c1", val);
-        val[0] = bkgPeakK_c2.getVal();val[1] = bkgPeakK_c2.getError();
-        writeParam(iBin, "bkgPeakK_c2", val);
-        val[0] = bkgPeakK_c3.getVal();val[1] = bkgPeakK_c3.getError();
-        writeParam(iBin, "bkgPeakK_c3", val);
-        val[0] = bkgPeakK_c4.getVal();val[1] = bkgPeakK_c4.getError();
-        writeParam(iBin, "bkgPeakK_c4", val);
-    }
+    double val[3] = {0,0,0};
+    val[0] = bkgPeakL_c1.getVal();val[1] = bkgPeakL_c1.getError();
+    writeParam(iBin, "bkgPeakL_c1", val , keepParam);
+    val[0] = bkgPeakL_c2.getVal();val[1] = bkgPeakL_c2.getError();
+    writeParam(iBin, "bkgPeakL_c2", val , keepParam);
+    val[0] = bkgPeakL_c3.getVal();val[1] = bkgPeakL_c3.getError();
+    writeParam(iBin, "bkgPeakL_c3", val , keepParam);
+    val[0] = bkgPeakL_c4.getVal();val[1] = bkgPeakL_c4.getError();
+    writeParam(iBin, "bkgPeakL_c4", val , keepParam);
+    val[0] = bkgPeakK_c1.getVal();val[1] = bkgPeakK_c1.getError();
+    writeParam(iBin, "bkgPeakK_c1", val , keepParam);
+    val[0] = bkgPeakK_c2.getVal();val[1] = bkgPeakK_c2.getError();
+    writeParam(iBin, "bkgPeakK_c2", val , keepParam);
+    val[0] = bkgPeakK_c3.getVal();val[1] = bkgPeakK_c3.getError();
+    writeParam(iBin, "bkgPeakK_c3", val , keepParam);
+    val[0] = bkgPeakK_c4.getVal();val[1] = bkgPeakK_c4.getError();
+    writeParam(iBin, "bkgPeakK_c4", val , keepParam);
 }//}}}
 void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool keepParam = false)
 {//{{{
@@ -2811,12 +2802,14 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
     RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
     RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
+    RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
+    RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     
     // Create combinatorial background distribution
-    RooRealVar bkgCombL_c1("bkgCombL_c1","c1",0.,-2.5,2.5);
-    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",0.,-2.5,2.5);
-    RooRealVar bkgCombL_c3("bkgCombL_c3","c3",0.,-2.5,2.5);
-    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",0.,-2.5,2.5);
+    RooRealVar bkgCombL_c1("bkgCombL_c1","c1",readParam(iBin,"bkgCombL_c1",0),-2.5,2.5);
+    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0),-2.5,2.5);
+    RooRealVar bkgCombL_c3("bkgCombL_c3","c3",readParam(iBin,"bkgCombL_c3",0),-2.5,2.5);
+    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0),-2.5,2.5);
     RooArgSet f_bkgCombL_argset;
     switch (iBin) {
         case 7:
@@ -2848,10 +2841,10 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             break;
     }
     RooPolynomial f_bkgCombL("f_bkgCombL","f_bkgCombL",CosThetaL,f_bkgCombL_argset);
-    RooRealVar bkgCombK_c1("bkgCombK_c1","c1",0.,-2.5,2.5);
-    RooRealVar bkgCombK_c2("bkgCombK_c2","c2",0.,-2.5,2.5);
-    RooRealVar bkgCombK_c3("bkgCombK_c3","c3",0.,-5,5);
-    RooRealVar bkgCombK_c4("bkgCombK_c4","c4",0.,-5,5);
+    RooRealVar bkgCombK_c1("bkgCombK_c1","c1",readParam(iBin,"bkgCombK_c1",0),-2.5,2.5);
+    RooRealVar bkgCombK_c2("bkgCombK_c2","c2",readParam(iBin,"bkgCombK_c2",0),-2.5,2.5);
+    RooRealVar bkgCombK_c3("bkgCombK_c3","c3",readParam(iBin,"bkgCombK_c3",0),-5,5);
+    RooRealVar bkgCombK_c4("bkgCombK_c4","c4",readParam(iBin,"bkgCombK_c4",0),-5,5);
     RooArgSet f_bkgCombK_argset;
     switch (iBin) {
         case 2:
@@ -2882,7 +2875,9 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     RooProdPdf f_bkgCombA("f_bkgCombA", "f_bckCombA",f_bkgCombK,f_bkgCombL);
     
     // Get data and apply unbinned fit
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass,CosThetaK,CosThetaL),TString::Format("%s && (Bmass > 5.38 || Bmass < 5.18)",q2range[iBin]),0);
+    int mumuMassWindowBin = 1;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, CosThetaK, CosThetaL, Mumumass, Mumumasserr),TString::Format("(%s) && (%s) && (Bmass > 5.38 || Bmass < 5.18)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
     RooFitResult *f_fitresult = f_bkgCombA.fitTo(*data,Save(kTRUE),Minimizer("Minuit"));
 
     // Draw the frame on the canvas
@@ -2920,25 +2915,27 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     delete data;
 
     // Prepare datacard
-    if (keepParam){
-        double val[3] = {0,0,0};
-        val[0] = bkgCombL_c1.getVal();val[1] = bkgCombL_c1.getError();
-        writeParam(iBin, "bkgCombL_c1", val);
-        val[0] = bkgCombL_c2.getVal();val[1] = bkgCombL_c2.getError();
-        writeParam(iBin, "bkgCombL_c2", val);
-        val[0] = bkgCombL_c3.getVal();val[1] = bkgCombL_c3.getError();
-        writeParam(iBin, "bkgCombL_c3", val);
-        val[0] = bkgCombL_c4.getVal();val[1] = bkgCombL_c4.getError();
-        writeParam(iBin, "bkgCombL_c4", val);
-        val[0] = bkgCombK_c1.getVal();val[1] = bkgCombK_c1.getError();
-        writeParam(iBin, "bkgCombK_c1", val);
-        val[0] = bkgCombK_c2.getVal();val[1] = bkgCombK_c2.getError();
-        writeParam(iBin, "bkgCombK_c2", val);
-        val[0] = bkgCombK_c3.getVal();val[1] = bkgCombK_c3.getError();
-        writeParam(iBin, "bkgCombK_c3", val);
-        val[0] = bkgCombK_c4.getVal();val[1] = bkgCombK_c4.getError();
-        writeParam(iBin, "bkgCombK_c4", val);
-    }
+    double val[3] = {0,0,0};
+    val[0] = bkgCombL_c1.getVal();val[1] = bkgCombL_c1.getError();
+    writeParam(iBin, "bkgCombL_c1", val , keepParam);
+    val[0] = bkgCombL_c2.getVal();val[1] = bkgCombL_c2.getError();
+    writeParam(iBin, "bkgCombL_c2", val , keepParam);
+    val[0] = bkgCombL_c3.getVal();val[1] = bkgCombL_c3.getError();
+    writeParam(iBin, "bkgCombL_c3", val , keepParam);
+    val[0] = bkgCombL_c4.getVal();val[1] = bkgCombL_c4.getError();
+    writeParam(iBin, "bkgCombL_c4", val , keepParam);
+    val[0] = bkgCombK_c1.getVal();val[1] = bkgCombK_c1.getError();
+    writeParam(iBin, "bkgCombK_c1", val , keepParam);
+    val[0] = bkgCombK_c2.getVal();val[1] = bkgCombK_c2.getError();
+    writeParam(iBin, "bkgCombK_c2", val , keepParam);
+    val[0] = bkgCombK_c3.getVal();val[1] = bkgCombK_c3.getError();
+    writeParam(iBin, "bkgCombK_c3", val , keepParam);
+    val[0] = bkgCombK_c4.getVal();val[1] = bkgCombK_c4.getError();
+    writeParam(iBin, "bkgCombK_c4", val , keepParam);
+}//}}}
+
+void genToyCombBkg(int iBin, int nEvents)
+{//{{{
 }//}}}
 
 std::vector<double> angular3D_bin(int iBin, const char outfile[] = "angular3D")
@@ -2948,10 +2945,12 @@ std::vector<double> angular3D_bin(int iBin, const char outfile[] = "angular3D")
     // Need some modification for accXrecoEff2.
     
     // Read data
-    RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
-    RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
-    RooRealVar Bmass("Bmass","M_{K^{*}#Mu#Mu}",5.,5.56);
-    RooRealVar Q2("Q2","q^{2}",0.5,20.);
+    RooRealVar CosThetaK("CosThetaK"     , "cos#theta_{K}"       , -1. , 1.   ) ;
+    RooRealVar CosThetaL("CosThetaL"     , "cos#theta_{L}"       , -1. , 1.   ) ;
+    RooRealVar Bmass("Bmass"             , "M_{K^{*}#Mu#Mu}"     , 5.  , 5.56 ) ;
+    RooRealVar Mumumass("Mumumass"       , "M^{#mu#mu}"          , 0.  , 10.  ) ;
+    RooRealVar Mumumasserr("Mumumasserr" , "Error of M^{#mu#mu}" , 0.  , 10.  ) ;
+    RooRealVar Q2("Q2"                   , "q^{2}"               , 0.5 , 20.  ) ;
 
     // Create parameters and PDFs
         // Signal double gaussian
@@ -2963,10 +2962,10 @@ std::vector<double> angular3D_bin(int iBin, const char outfile[] = "angular3D")
     RooRealVar sigM_frac("sigM_frac","sigM_frac",readParam(iBin,"sigM_frac",0));
     sigM_frac.setError(readParam(iBin,"sigM_frac",1));
         // Angular parameters
-    RooRealVar afb("afb", "A_{FB}", 0., -1., 1.);
-    RooRealVar fl("fl", "F_{L}", 0.8, 0., 1.);
-    RooRealVar fs("fs","F_{S}",0.01,0.,1.);//Derive from B0ToKstarJpsi, Bin3
-    RooRealVar as("as","A_{S}",-0.1,-1.,1.);//Derive from B0ToKstarJpsi, Bin3
+    RooRealVar afb("afb" , "A_{FB}" , 0.   , -1. , 1.);
+    RooRealVar fl("fl"   , "F_{L}"  , 0.8  , 0.  , 1.);
+    RooRealVar fs("fs"   , "F_{S}"  , 0.01 , 0.  , 1.);//Derive from B0ToKstarJpsi , Bin3
+    RooRealVar as("as"   , "A_{S}"  , -0.1 , -1. , 1.);//Derive from B0ToKstarJpsi , Bin3
     if (iBin != 3 && iBin != 5){
         // 2011 cross check
         fs.setVal(0.0129254);
@@ -3028,34 +3027,26 @@ std::vector<double> angular3D_bin(int iBin, const char outfile[] = "angular3D")
     TString f_sigA_format;
     TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
     TString f_rec_format, f_rec_L0, f_rec_L2, f_rec_L3, f_rec_L4, f_rec_L6;
-    if (is7TeVCheck){
-        f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*CosThetaK**2+recK3L0*CosThetaK**3)";
-        f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*CosThetaK**2+recK3L2*CosThetaK**3)*CosThetaL**2";
-        f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*CosThetaK**2+recK3L3*CosThetaK**3)*CosThetaL**3";
-        f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*CosThetaK**2+recK3L4*CosThetaK**3)*CosThetaL**4";
-        f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*CosThetaK**2+recK3L6*CosThetaK**3)*CosThetaL**6";
-    }else{
-        f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
-        f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
-        f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
-        f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
-        f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
-    }
+    f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
+    f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
+    f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
+    f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
+    f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
 
     if (iBin == 0) {
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
         f_sigA_argset.add(RooArgSet(recK0L6,recK1L6,recK2L6,recK3L6));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
     }else if (iBin == 1) {
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("(%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
     }else if (iBin > 1 && iBin < 6) {
         f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
         f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("(%s+%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
     }else{
         f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_format = TString::Format("(%s+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
+        f_sigA_format = TString::Format("%s*(1+%s+%s)*%s",f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
     }
         // angular map of signal
     RooGenericPdf f_sigA("f_sigA", f_sigA_format,f_sigA_argset);
@@ -3341,7 +3332,9 @@ std::vector<double> angular3D_bin(int iBin, const char outfile[] = "angular3D")
     if (iBin == 3 || iBin == 5) gausConstraints.add(RooArgSet(gaus_fs,gaus_as));
     
     // Get data and apply unbinned fit
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Bmass,CosThetaK,CosThetaL,Q2),q2range[iBin],0);
+    int mumuMassWindowBin = 1;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, CosThetaK, CosThetaL, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
     f.fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"));
 
     // Draw the frame on the canvas
@@ -3493,8 +3486,6 @@ int main(int argc, char** argv) {
         printf("    bmass               Fit to mass spectrum using a double Gaussian signal and Chebyshev bkg.\n");
         printf("    fl_gen              Derive F_{L} from cosThetaK distribution at GEN level.\n");
         printf("    angular_gen         Derive F_{L} and A_{FB} from angular distribution at GEN level.\n");
-        //printf("    acceptance          Get 2D acceptance map from unfiltered signal GEN, |Mu pT| > 2.8 GeV, |Mu eta| < 2.3.\n");
-        //printf("    recoEff             Get 2D reconstruction efficiency map from signal simulation.\n");
         printf("    accXrecoEff         Get 2D efficiency map from signal simulation.\n");
         printf("    angular2D           Same as angular_gen, but fit to data with efficiency correction, bkg component is NOT considered.\n");
         printf("    angular3D_1a_Sm     Leading step1 to angular3D, determine signal shape from simulation.\n");
@@ -3535,24 +3526,12 @@ int main(int argc, char** argv) {
         if (ch == NULL) gSystem->Exit(0);
         const char outfile[]="angular_gen";
         angular_gen(outfile);
-    //}else if (func == "acceptance") {
-    //    ch->Add(infile.Data());
-    //    if (ch == NULL) gSystem->Exit(0);
-    //    for (int iBin = 0; iBin < 8; iBin++) {
-    //        acceptance(iBin);
-    //    }
-    //}else if (func == "recoEff") {
-    //    ch->Add(infile.Data());
-    //    if (ch == NULL) gSystem->Exit(0);
-    //    for (int iBin = 0; iBin < 8; iBin++) {
-    //        recoEff(iBin);
-    //    }
     }else if (func == "accXrecoEff") {
-        if (false) createAccptanceHist(); // Set to true if no given acceptance_8TeV.root
+        if (false) createAccptanceHist(); // For experts only. Set to true if no given acceptance_8TeV.root
         ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
         for (int iBin = 0; iBin < 8; iBin++) {
-            //accXrecoEff(iBin);//old style efficiency fitter
+            //accXrecoEff(iBin); //old style efficiency fitter, should be buggy
             accXrecoEff2(iBin);
         }
     }else if (func == "angular2D"){
@@ -3577,7 +3556,8 @@ int main(int argc, char** argv) {
         ch->Add(infile.Data());
         if (ch == NULL) gSystem->Exit(0);
         for (int iBin = 0; iBin < 8; iBin++) {
-            fx(iBin,func,true);// By default overwrite exist parameters.
+            // By default overwrite exist parameters.
+            fx(iBin,func,true);
         }
     }else if (func == "angular3D"){
         if (argc != 4){
@@ -3598,13 +3578,14 @@ int main(int argc, char** argv) {
         if (ch == NULL) gSystem->Exit(0);
         const char outfile[]="test";
         for (int iBin = 0; iBin < 8; iBin++) {
+            if (iBin != 3 && iBin != 5) continue;
+            //if (iBin == 3 || iBin == 5) continue;
             //getToyFromUnfilterGen(iBin);
             //createRecoEffHist(iBin);
             //accXrecoEff2(iBin);
-            //angular2D_bin(iBin);
+            angular2D_bin(iBin);
         }
         //createAccptanceHist();
-        //angular2D_bin(0);
     }else{ 
         cerr << "No function available for: " << func.Data() << endl; 
     }
