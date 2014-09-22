@@ -160,7 +160,7 @@ process.ntuple = cms.EDAnalyzer(
 
     # particle properties  ////// MassErr values have to be CORRECTED ==> DONE  //////
     MuonMass = cms.untracked.double(0.10565837), 
-    MuonMassErr = cms.untracked.double(3.5e-9),   
+    MuonMassErr = cms.untracked.double(3.5e-9),   # 0.10565837*1e-6 <== uncertainty in pdg mass for muon
     PionMass = cms.untracked.double(0.13957018), 
     PionMassErr = cms.untracked.double(3.5e-7),
     KaonMass = cms.untracked.double(0.493677), 
@@ -205,7 +205,7 @@ process.ntuple = cms.EDAnalyzer(
 
     # pre-selection cuts 
     TrkMinPt = cms.untracked.double(0.4), # 0.6 [GeV/c]
-    TrkMinDcaSigBs = cms.untracked.double(0.8), # 1.2 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
+    TrkMinDcaSigBs = cms.untracked.double(0.8), # 1.0 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
 
