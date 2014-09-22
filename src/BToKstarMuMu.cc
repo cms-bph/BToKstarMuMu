@@ -150,7 +150,7 @@ HistArgs hist_args[kHistNameSize] = {
 
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
-  {"h_trkdcabssig", "Pion track DCA/#sigma beam spot; DCA/#sigma", 100, 0, 10},
+  {"h_trkdcasigbs", "Pion track DCA/#sigma beam spot; DCA/#sigma", 1000, 0, 100},  /////// to be modified ==> DONE ///////
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
   {"h_bvtxcl", "B decay vertex CL", 100, 0, 1},
 
@@ -324,7 +324,7 @@ private:
   double MuonMaxEta_; 
   double MuonMaxDcaBs_; 
   double TrkMinPt_; 
-  double TrkMaxDcaSigBs_; 
+  double TrkMinDcaSigBs_;     /////////  to be modified ==> DONE ///////
   double TrkMaxR_;
   double TrkMaxZ_; 
   double MuMuMaxDca_; 
@@ -470,7 +470,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
 
   TrkMinPt_(iConfig.getUntrackedParameter<double>("TrkMinPt")),
-  TrkMaxDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMaxDcaSigBs")),
+  TrkMinDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMinDcaSigBs")),     /////// to be modified ==> DONE ////// 
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
 
@@ -1038,7 +1038,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	 (muTrackm->pt() < MuonMinPt_) ||
 	 (fabs(muTrackm->eta()) > MuonMaxEta_)) continue;
     
-    // check mu- DCA to beam spot 
+    ////// check mu- DCA to beam spot //////
     const reco::TransientTrack muTrackmTT(muTrackm, &(*bFieldHandle_));   
     passed = hasGoodMuonDcaBs(muTrackmTT, DCAmumBS, DCAmumBSErr) ;
     histos[h_mumdcabs]->Fill(DCAmumBS); 
@@ -1056,12 +1056,12 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	   (muTrackp->pt() < MuonMinPt_) ||
 	   (fabs(muTrackp->eta()) > MuonMaxEta_)) continue;
       
-      // check mu+ DCA to beam spot 
+      ////// check mu+ DCA to beam spot //////
       const reco::TransientTrack muTrackpTT(muTrackp, &(*bFieldHandle_)); 
       passed = hasGoodMuonDcaBs(muTrackpTT, DCAmupBS, DCAmupBSErr); 
       if ( ! passed ) continue; 
       
-      // check goodness of muons closest approach and the 3D-DCA
+      ////// check goodness of muons closest approach and the 3D-DCA //////
       // passed = hasGoodClosestApproachTracks(muTrackpTT, muTrackmTT,
       // 					    mumutrk_R, mumutrk_Z, DCAmumu); 
       if (! calClosestApproachTracks(muTrackpTT, muTrackmTT,
@@ -1075,7 +1075,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	   mumutrk_Z > TrkMaxZ_ || 
 	   DCAmumu > MuMuMaxDca_ ) continue; 
 
-      // check dimuon vertex 
+      ///// check dimuon vertex /////
       passed = hasGoodMuMuVertex(muTrackpTT, muTrackmTT, refitMupTT, refitMumTT, 
 				 mu_mu_vtx_cl, mu_mu_pt, 
 				 mu_mu_mass, mu_mu_mass_err, 
@@ -1115,7 +1115,7 @@ BToKstarMuMu::buildBuToKstarMuMu(const edm::Event& iEvent)
 	  if (!passed) continue; 
 	  
 
-	  // compute track DCA to beam spot 
+	  ////// compute track DCA to beam spot //////
 	  reco::TrackRef pionTrack = iTrack->track(); 
 	  const reco::TransientTrack theTrackTT(pionTrack, &(*bFieldHandle_));   
 	  passed = hasGoodTrackDcaBs(theTrackTT, DCAKstTrkBS, DCAKstTrkBSErr); 
@@ -1491,7 +1491,7 @@ BToKstarMuMu::hasGoodMuonDcaBs (const reco::TransientTrack muTrackTT,
   
   muDcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   muDcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( muDcaBs > MuonMaxDcaBs_ )   return false; 
+  if ( fabs(muDcaBs) > MuonMaxDcaBs_ )   return false;                               ////////  to be modified ==> DONE ////////  
   return true; 
 }
 
@@ -1508,7 +1508,7 @@ BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack TrackTT,
   
   DcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   DcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( DcaBs/DcaBsErr > TrkMaxDcaSigBs_ )   return false; 
+  if ( fabs(DcaBs/DcaBsErr) < TrkMinDcaSigBs_ )   return false;                      ////////  to be modified ==> DONE //////// 
   return true; 
 }
 
