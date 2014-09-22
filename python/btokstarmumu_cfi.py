@@ -153,20 +153,20 @@ process.localV0Candidates = cms.EDProducer(
  
 process.ntuple = cms.EDAnalyzer(
     'BToKstarMuMu',
-    OutputFileName = cms.string("BToKstarMuMu2.root"),
+    OutputFileName = cms.string("BToKstarMuMu.root"),
 
     BuildBuToKstarMuMu = cms.untracked.bool(True), 
     BuildBdToKstarMuMu = cms.untracked.bool(False), 
 
-    # particle properties 
+    # particle properties  ////// MassErr values have to be CORRECTED ==> DONE  //////
     MuonMass = cms.untracked.double(0.10565837), 
-    MuonMassErr = cms.untracked.double(0.10565837*1e-6), 
+    MuonMassErr = cms.untracked.double(3.5e-9),   
     PionMass = cms.untracked.double(0.13957018), 
     PionMassErr = cms.untracked.double(3.5e-7),
     KaonMass = cms.untracked.double(0.493677), 
     KaonMassErr = cms.untracked.double(1.6e-5),
     KshortMass = cms.untracked.double(0.497614), 
-    KshortMassErr = cms.untracked.double(0.000024),
+    KshortMassErr = cms.untracked.double(2.4e-5),
     BuMass = cms.untracked.double(5.27925),
 
     # labels
@@ -204,8 +204,8 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
     # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.6), # 0.4 [GeV/c]
-    TrkMaxDcaSigBs = cms.untracked.double(1.0), # 1.2 hadron DCA/sigma w/respect to BS 
+    TrkMinPt = cms.untracked.double(0.4), # 0.6 [GeV/c]
+    TrkMinDcaSigBs = cms.untracked.double(0.8), # 1.2 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
     TrkMaxR = cms.untracked.double(110.0), # [cm]
     TrkMaxZ = cms.untracked.double(280.0), # [cm]
 
