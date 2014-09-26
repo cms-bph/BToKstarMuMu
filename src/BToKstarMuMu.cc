@@ -150,7 +150,7 @@ HistArgs hist_args[kHistNameSize] = {
 
   {"h_mumucosalphabs", "#mu^{+}#mu^{-} cos #alpha beam spot", 100, 0, 1},
   {"h_trkpt", "Pion track pT; pT [GeV]", 100, 0, 20},
-  {"h_trkdcasigbs", "Pion track DCA/#sigma beam spot; DCA/#sigma", 1000, 0, 100},  /////// to be modified ==> DONE ///////
+  {"h_trkdcasigbs", "Pion track DCA/#sigma beam spot; DCA/#sigma", 1000, 0, 100},  
   {"h_bvtxchisq", "B decay vertex chisq", 100, 0, 1000},
   {"h_bvtxcl", "B decay vertex CL", 100, 0, 1},
 
@@ -324,7 +324,7 @@ private:
   double MuonMaxEta_; 
   double MuonMaxDcaBs_; 
   double TrkMinPt_; 
-  double TrkMinDcaSigBs_;     /////////  to be modified ==> DONE ///////
+  double TrkMinDcaSigBs_;     
   double TrkMaxR_;
   double TrkMaxZ_; 
   double MuMuMaxDca_; 
@@ -470,7 +470,7 @@ BToKstarMuMu::BToKstarMuMu(const edm::ParameterSet& iConfig):
   MuonMaxDcaBs_(iConfig.getUntrackedParameter<double>("MuonMaxDcaBs")),
 
   TrkMinPt_(iConfig.getUntrackedParameter<double>("TrkMinPt")),
-  TrkMinDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMinDcaSigBs")),     /////// to be modified ==> DONE ////// 
+  TrkMinDcaSigBs_(iConfig.getUntrackedParameter<double>("TrkMinDcaSigBs")),      
   TrkMaxR_(iConfig.getUntrackedParameter<double>("TrkMaxR")),
   TrkMaxZ_(iConfig.getUntrackedParameter<double>("TrkMaxZ")),
 
@@ -1491,7 +1491,7 @@ BToKstarMuMu::hasGoodMuonDcaBs (const reco::TransientTrack muTrackTT,
   
   muDcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   muDcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( fabs(muDcaBs) > MuonMaxDcaBs_ )   return false;                               ////////  to be modified ==> DONE ////////  
+  if ( fabs(muDcaBs) > MuonMaxDcaBs_ )   return false;                                
   return true; 
 }
 
@@ -1508,7 +1508,7 @@ BToKstarMuMu::hasGoodTrackDcaBs (const reco::TransientTrack TrackTT,
   
   DcaBs = theDCAXBS.perigeeParameters().transverseImpactParameter();
   DcaBsErr = theDCAXBS.perigeeError().transverseImpactParameterError();
-  if ( fabs(DcaBs/DcaBsErr) < TrkMinDcaSigBs_ )   return false;                      ////////  to be modified ==> DONE //////// 
+  if ( fabs(DcaBs/DcaBsErr) < TrkMinDcaSigBs_ )   return false;                      
   return true; 
 }
 
