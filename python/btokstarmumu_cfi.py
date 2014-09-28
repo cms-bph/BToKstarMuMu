@@ -206,8 +206,8 @@ process.ntuple = cms.EDAnalyzer(
     # pre-selection cuts 
     TrkMinPt = cms.untracked.double(0.4), # 0.6 [GeV/c]
     TrkMinDcaSigBs = cms.untracked.double(0.8), # 1.0 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
-    TrkMaxR = cms.untracked.double(110.0), # [cm]
-    TrkMaxZ = cms.untracked.double(280.0), # [cm]
+    TrkMaxR = cms.untracked.double(110.0), # [cm] ==> size of tracker volume in radial direction
+    TrkMaxZ = cms.untracked.double(280.0), # [cm] ==> size of tracker volume in Z direction
 
     # K*+ mass = 891.66 +/- 0.26 MeV, full width = 50.8 +/- 0.9 MeV 
     KstarMinMass = cms.untracked.double(0.74), # [GeV/c2]  - 3 sigma of the width
