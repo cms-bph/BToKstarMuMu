@@ -1,3 +1,4 @@
+
 =========================================
  Package for B To Kstar Mu Mu Analysis
 =========================================
@@ -15,9 +16,9 @@ Once you do "git clone" , go to the BToKstarMuMu directory
 
 $ cd BToKstarMuMu
 
-you can check all the available tags by typing the command
+you can list all the available tags by typing the command
 
-$ git tag
+$ git tag -l
 
 To checkout a particular tag version(let's say v3.1), you have to do 
 
