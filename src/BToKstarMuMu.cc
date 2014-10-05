@@ -570,7 +570,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (IsMonteCarlo_) {
         saveGenInfo(iEvent);
-        if (decname = "") return;
+        if (decname == "") return;
     }
 
     if (IsMonteCarlo_ && KeepGENOnly_){
