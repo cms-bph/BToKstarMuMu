@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <string.h>
-#include <regex> //c++11 feature should be fine using SLC6, gcc482.
+#include <regex> //c++11 feature should be fine using gcc491.
 
 #include <TSystem.h>
 #include <TStyle.h>
@@ -3329,7 +3329,7 @@ int main(int argc, char** argv) {
         const char outfile[]="test";
         for (int iBin = 0; iBin < 8; iBin++) {
             //if (iBin != 3 && iBin != 5) continue;
-            if (iBin == 3 || iBin == 5) continue;
+            //if (iBin == 3 || iBin == 5) continue;
             //getToyFromUnfilterGen(iBin);
             //createRecoEffHist(iBin);
             //accXrecoEff2(iBin);
