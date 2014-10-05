@@ -568,9 +568,12 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     event = iEvent.id().event() ;
     lumiblock = iEvent.luminosityBlock();
 
-    if (IsMonteCarlo_) saveGenInfo(iEvent);
+    if (IsMonteCarlo_) {
+        saveGenInfo(iEvent);
+        if (decname = "") return;
+    }
 
-    if (KeepGENOnly_ && decname != ""){
+    if (IsMonteCarlo_ && KeepGENOnly_){
         tree_->Fill();
         n_selected_ += 1;
     }else{
@@ -591,7 +594,7 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
         }
 
-        if ( (IsMonteCarlo_ && decname != "") || nb > 0){ // Keep failed events for MC to calculate reconstruction efficiency.
+        if ( IsMonteCarlo_ || nb > 0){ // Keep failed events for MC to calculate reconstruction efficiency.
             tree_->Fill();
         }
     }
