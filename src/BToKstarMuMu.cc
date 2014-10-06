@@ -559,8 +559,6 @@ BToKstarMuMu::~BToKstarMuMu()
 void
 BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-    n_processed_ += 1;
-    histos[h_events]->Fill(0);
 
     clearVariables();
 
@@ -569,9 +567,13 @@ BToKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     lumiblock = iEvent.luminosityBlock();
 
     if (IsMonteCarlo_) {
+        // PythiaDauFilter conditions is implemented in saveGenInfo, don't keep anything before this section.
         saveGenInfo(iEvent);
         if (decname == "") return;
     }
+
+    n_processed_ += 1;
+    histos[h_events]->Fill(0);
 
     if (IsMonteCarlo_ && KeepGENOnly_){
         tree_->Fill();
@@ -2360,6 +2362,11 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     }
 
     if ( mum == NULL || mup == NULL) continue;
+    if ( !KeepGENOnly_ && (mup->pt() < 2.8 || mum->pt() < 2.8 || fabs(mup->eta()) > 2.33 || fabs(mum->eta()) > 2.3) ){
+        // Remedy of PythiaDauFilter, don't apply this to unfiltered MC.
+        decname = "";
+        continue;
+    }
 
     // save gen info
     genbchg = b.charge();
