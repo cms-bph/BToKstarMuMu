@@ -6,7 +6,6 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
 process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring('root://eoscms//store/user/pchen/BToKstarMuMu/dat/AOD/MuOnia_Run2012D-22Jan2013-v1_AOD_004C60F9-188F-E211-B43F-001E6849D384.root' )
     )
-#process.GlobalTag.globaltag = cms.string('FT_R_53_V18::All')
 process.GlobalTag.globaltag = cms.string('FT53_V21A_AN6::All')
 
 # do trigger matching for muons
