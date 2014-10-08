@@ -2362,7 +2362,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     }
 
     if ( mum == NULL || mup == NULL) continue;
-    if ( !KeepGENOnly_ && (mup->pt() < 2.8 || mum->pt() < 2.8 || fabs(mup->eta()) > 2.33 || fabs(mum->eta()) > 2.3) ){
+    if ( !KeepGENOnly_ && (mup->pt() < 2.8 || mum->pt() < 2.8 || fabs(mup->eta()) > 2.3 || fabs(mum->eta()) > 2.3) ){
         // Remedy of PythiaDauFilter, don't apply this to unfiltered MC.
         decname = "";
         continue;
