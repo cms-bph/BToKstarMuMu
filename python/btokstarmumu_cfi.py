@@ -231,7 +231,7 @@ process.patDefaultSequence.remove(process.patJetCharge)
 process.patDefaultSequence.remove(process.patJetPartonMatch)
 process.patDefaultSequence.remove(process.patJetGenJetMatch)
 process.patDefaultSequence.remove(process.patJetPartons)
-process.patDefaultSequence.remove(process.patJetPartonAssociation)
+#process.patDefaultSequence.remove(process.patJetPartonAssociation) #Uncomment this line for SW version <= 5_3_12
 process.patDefaultSequence.remove(process.patJetFlavourAssociation)
 process.patDefaultSequence.remove(process.patJets)
 

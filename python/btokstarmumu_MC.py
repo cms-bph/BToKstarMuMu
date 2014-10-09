@@ -2,7 +2,7 @@
 #  variables
 ################
 runMC               = True
-run2012not2011      = False  # True for 2012 and False for 2011
+run2012not2011      = True  # True for 2012 and False for 2011
 
 print "\n@@@ CMSSW run configuration flags @@@"
 
@@ -26,27 +26,11 @@ import FWCore.ParameterSet.Config as cms
 from btokstarmumu_cfi import process 
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring(
-                               #'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6.root', 
-# 'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6_1_1_96m.root', 
-# 'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6_2_1_dfI.root', 
-# 'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6_3_1_ud5.root', 
-# 'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6_4_1_neu.root', 
-# 'file:/afs/cern.ch/user/x/xshi/work/cms/afb/dat/aod/mc/BuToKstarMuMu_7TeV_PYTHIA6_5_1_8Kc.root', 
-#                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2012_test_BuToKstarJPsi_500.root',
-#                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2012_test_BuToKstarMuMu_500.root',
-#                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2012_test_BuToKstarPsi2S_500.root',
-#                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2011_test_BuToKstarMuMu_500.root',
-#                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2011_test_BuToKstarJPsi_500.root',
-                                'file:/afs/cern.ch/work/n/nsahoo/BPH-ANALYSIS/afb/SE/aod/mc/2011_test_BuToKstarPsi2S_500.root',
-                            )
+        fileNames = cms.untracked.vstring('root://eoscms//store/user/pchen/BToKstarMuMu/dat/AOD/BuToKstarMuMu_EtaPtFilter_8TeV-pythia6-evtgen_PU_RD2_START53_V19F-v2_AODSIM_FC45B39F-A5BC-E311-B2F8-0025901D4864.root' )
                         )
-#process.GlobalTag.globaltag = cms.string('GR_R_42_V25::All')r
-#process.GlobalTag.globaltag = cms.string('START42_V14A::All')
-#process.GlobalTag.globaltag = cms.string('START53_V19F::All')
+
 if (run2012not2011 == True):
     process.GlobalTag.globaltag = cms.string('START53_V19F::All')
     print "\nGlobalTag : START53_V19F::All\n"

@@ -23,15 +23,13 @@ print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 ##################
 
 import FWCore.ParameterSet.Config as cms
-from btokstarmumu_cfi import process 
+from btokstarmumu_cfi import process
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring(
-'file:/wk2/pchen/work/BToKstarMuMu/localResources/dpm/BuToKstarMuMu_NoFilter_8TeV_GENSIM_v1/BuToKstarMuMu_NoFilter_8TeV_GENSIM_v1/fb03d90927ce761d45f353f0dd279fce/BuToKstarMuMu_NoFilter_8TeV-pythia6-evtgen_GENSIM_100_1_iUG.root',
-                            )
-                        )
+        fileNames = cms.untracked.vstring('root://eoscms//store/user/pchen/BToKstarMuMu/dat/GEN/PYTHIA6_BuToKstarMuMu_TuneZ2star_8TeV_GEN_NoFilter_999_2_3Yn.root' )
+        )
 if (run2012not2011 == True):
     process.GlobalTag.globaltag = cms.string('START53_V19F::All')
     print "\nGlobalTag : START53_V19F::All\n"
@@ -42,4 +40,3 @@ else:
 process.ntuple.IsMonteCarlo = cms.untracked.bool(True)
 process.ntuple.KeepGENOnly  = cms.untracked.bool(True)
 process.p = cms.Path(process.ntuple)
- 
