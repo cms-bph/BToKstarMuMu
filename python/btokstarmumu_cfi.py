@@ -189,8 +189,8 @@ process.ntuple = cms.EDAnalyzer(
     TruthMatchPionMaxR = cms.untracked.double(0.3), # [eta-phi]
     TruthMatchKsMaxVtx = cms.untracked.double(10.0), 
 
-    # HLT-trigger cuts 
-    MuonMinPt = cms.untracked.double(3.0), # [GeV]
+    # HLT-trigger cuts (for reference https://espace.cern.ch/cms-quarkonia/trigger-bph/SitePages/2012-LowMass.aspx)
+    MuonMinPt = cms.untracked.double(3.5), # 3.0 [GeV]
     MuonMaxEta = cms.untracked.double(2.2),  
     MuonMaxDcaBs = cms.untracked.double(2.0), # [cm]
 
@@ -198,14 +198,14 @@ process.ntuple = cms.EDAnalyzer(
     MuMuMinInvMass = cms.untracked.double(1.0), # [GeV/c2]
     MuMuMaxInvMass = cms.untracked.double(4.8), # [GeV/c2]
 
-    MuMuMinVtxCl = cms.untracked.double(0.05), 
+    MuMuMinVtxCl = cms.untracked.double(0.10), # 0.05
     MuMuMinLxySigmaBs = cms.untracked.double(3.0), 
     MuMuMaxDca = cms.untracked.double(0.5), # [cm]
     MuMuMinCosAlphaBs = cms.untracked.double(0.9),
 
     # pre-selection cuts 
-    TrkMinPt = cms.untracked.double(0.4), # 0.6 [GeV/c]
-    TrkMinDcaSigBs = cms.untracked.double(0.8), # 1.0 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
+    TrkMinPt = cms.untracked.double(0.2), # 0.4 [GeV/c]
+    TrkMinDcaSigBs = cms.untracked.double(0.1), # 0.8 hadron DCA/sigma w/respect to BS (=>changed Max to Min)
     TrkMaxR = cms.untracked.double(110.0), # [cm] ==> size of tracker volume in radial direction
     TrkMaxZ = cms.untracked.double(280.0), # [cm] ==> size of tracker volume in Z direction
 
