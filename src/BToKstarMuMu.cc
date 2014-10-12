@@ -2259,6 +2259,7 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
     int imum(-1), imup(-1), ikst(-1), iks(-1), ipi(-1), ipip(-1), ipim(-1);
     int ijpsi(-1), ipsi2s(-1), ikz(-1);
 
+
     // loop over all B+/- daughters
     for ( size_t j = 0; j < b.numberOfDaughters(); ++j){
       const reco::Candidate  &dau = *(b.daughter(j));
@@ -2268,12 +2269,18 @@ BToKstarMuMu::saveGenInfo(const edm::Event& iEvent){
       if (abs(dau.pdgId()) == KSTARPLUS_PDG_ID) ikst = j;
       if (dau.pdgId() == JPSI_PDG_ID ) ijpsi = j;
       if (dau.pdgId() == PSI2S_PDG_ID ) ipsi2s = j;
+
     }
 
     if ( ikst == -1 ) continue;
-    if ( ijpsi  != -1 && b.numberOfDaughters() != 2 ) continue;//JpsiKstar
-    if ( ipsi2s != -1 && b.numberOfDaughters() != 2 ) continue;//Psi2sKstar
-    if ( imum != -1 && imup != -1 && b.numberOfDaughters() != 3 ) continue;//KstarMuMu
+
+    // consider the additional photons(due to QED radiation in the final state) 
+    if ( ijpsi  != -1 && b.numberOfDaughters() < 2 ) continue;//JpsiKstar
+    
+    if ( ipsi2s != -1 && b.numberOfDaughters() < 2 ) continue;//Psi2sKstar
+    
+    if ( imum != -1 && imup != -1 && b.numberOfDaughters() < 3 ) continue;//KstarMuMu
+    
     if ( decname != "") {//skip events with multiple candidates
         decname = "";
         break;
