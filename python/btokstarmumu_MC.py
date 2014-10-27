@@ -2,7 +2,7 @@
 #  variables
 ################
 runMC               = True
-run2012not2011      = True  # True for 2012 and False for 2011
+run2012not2011      = False  # True for 2012 and False for 2011
 
 print "\n@@@ CMSSW run configuration flags @@@"
 
@@ -25,18 +25,19 @@ print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 import FWCore.ParameterSet.Config as cms
 from btokstarmumu_cfi import process 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = cms.Source("PoolSource",
-        fileNames = cms.untracked.vstring('root://eoscms//store/user/pchen/BToKstarMuMu/dat/AOD/BuToKstarMuMu_EtaPtFilter_8TeV-pythia6-evtgen_PU_RD2_START53_V19F-v2_AODSIM_FC45B39F-A5BC-E311-B2F8-0025901D4864.root' )
+       # fileNames = cms.untracked.vstring('root://eoscms//store/user/pchen/BToKstarMuMu/dat/AOD/BuToKstarMuMu_EtaPtFilter_8TeV-pythia6-evtgen_PU_RD2_START53_V19F-v2_AODSIM_FC45B39F-A5BC-E311-B2F8-0025901D4864.root' )
+         fileNames = cms.untracked.vstring('/store/mc/Summer11LegDR/BuToKstarMuMuV2_EtaPtFilter_7TeV-pythia6-evtgen/AODSIM/PU_S13_START53_LV6-v1/00000/000043B3-0E0B-E411-B2FE-0026189438E9.root')
                         )
 
 if (run2012not2011 == True):
-    process.GlobalTag.globaltag = cms.string('START53_V19F::All')
-    print "\nGlobalTag : START53_V19F::All\n"
+    process.GlobalTag.globaltag = cms.string('START53_V19F::All') # run dependent MC: START53_V19F , Jpsi X MC: START53_V7G
+    print "\n=> Global Tag : START53_V19F::All\n"
 else:
-    process.GlobalTag.globaltag = cms.string('START42_V14B::All')
-    print "\nGlobalTag : START42_V14B::All\n"
+    process.GlobalTag.globaltag = cms.string('START53_LV6A1::All') # GT for 7TeV legacy samples reprocessed in cmssw_5_3_X
+    print "\n=> Global Tag : START53_LV6A1::All\n"
 
 # do trigger matching for muons
 triggerProcessName = 'HLT'
@@ -57,27 +58,17 @@ if (run2012not2011 == True):
                 # take best match found per reco object (by DeltaR here, see above)
                 resolveByMatchQuality = cms.bool(False))
 else:
-    process.cleanMuonTriggerMatchHLT0 = cms.EDProducer(
-            # match by DeltaR only (best match by DeltaR)
-            'PATTriggerMatcherDRLessByR',
-                src = cms.InputTag('cleanPatMuons'),
-                # default producer label as defined in
-                # PhysicsTools/PatAlgos/python/triggerLayer1/triggerProducer_cfi.py
-                matched = cms.InputTag('patTrigger'),
-                matchedCuts = cms.string('path("HLT_Dimuon6p5_LowMass_Displaced_v*",0,0)'),
-                maxDeltaR = cms.double(0.1),
-                # only one match per trigger object
-                resolveAmbiguities = cms.bool(True),
-                # take best match found per reco object (by DeltaR here, see above)
-                resolveByMatchQuality = cms.bool(False))
-   
     process.cleanMuonTriggerMatchHLT1 = cms.EDProducer(
             'PATTriggerMatcherDRLessByR',
                 src = cms.InputTag('cleanPatMuons'),
+                # default producer label as defined in                                                                                                               
+                # PhysicsTools/PatAlgos/python/triggerLayer1/triggerProducer_cfi.py 
                 matched = cms.InputTag('patTrigger'),
                 matchedCuts = cms.string('path("HLT_Dimuon7_LowMass_Displaced_v*")'),
                 maxDeltaR = cms.double(0.1),
+                # only one match per trigger object
                 resolveAmbiguities = cms.bool(True),
+                # take best match found per reco object (by DeltaR here, see above) 
                 resolveByMatchQuality = cms.bool(False))
 
     process.cleanMuonTriggerMatchHLT2 = cms.EDProducer(
@@ -119,12 +110,9 @@ if (run2012not2011 == True):
         ]
     
 else:
-    switchOnTriggerMatchEmbedding(process, triggerMatchers = ['cleanMuonTriggerMatchHLT0','cleanMuonTriggerMatchHLT1','cleanMuonTriggerMatchHLT2','cleanMuonTriggerMatchHLT3','cleanMuonTriggerMatchHLT4'], hltProcess = triggerProcessName, outputModule = '')
+    switchOnTriggerMatchEmbedding(process, triggerMatchers = ['cleanMuonTriggerMatchHLT1','cleanMuonTriggerMatchHLT2','cleanMuonTriggerMatchHLT3','cleanMuonTriggerMatchHLT4'], hltProcess = triggerProcessName, outputModule = '')
     
     g_TriggerNames_LastFilterNames = [
-            ('HLT_Dimuon6p5_LowMass_Displaced',
-             'hltDisplacedmumuFilterLowMass'), #5E32
-
             ('HLT_Dimuon7_LowMass_Displaced',
              'hltDisplacedmumuFilterLowMass'), #1E33, 1.4E33
 
