@@ -420,8 +420,8 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
 	    if ( ! HasGoodDimuon(i) ) continue;
 
 	    if (!(trkpt->at(i) > 0.35 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 1.15 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.8
-                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10.5 && bcosalphabs2d->at(i) > 0.9995 && Bmass > 5.0 &&
-                  Bmass < 5.56 )) continue;
+                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10.5 && bcosalphabs2d->at(i) > 0.9995 
+                  && bmass->at(i) > 5.0 && bmass->at(i) < 5.56 ) ) continue;
 
 	    if (bvtxcl->at(i) > best_bvtxcl) {
 	      best_bvtxcl = bvtxcl->at(i);
