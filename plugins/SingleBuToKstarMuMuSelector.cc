@@ -420,12 +420,27 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
 	    if ( ! HasGoodDimuon(i) ) continue;
 
 	    if (!(trkpt->at(i) > 0.35 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 1.15 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.8
-                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10.5 && bcosalphabs2d->at(i) > 0.9995 && Bmass > 5.0 &&
-                  Bmass < 5.56 )) continue;
+                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10.5 && bcosalphabs2d->at(i) > 0.9995 
+                  && bmass->at(i) > 5.0 && bmass->at(i) < 5.56 ) ) continue;
 
 	    if (bvtxcl->at(i) > best_bvtxcl) {
 	      best_bvtxcl = bvtxcl->at(i);
 	      best_idx = i;
+	    }
+	  } //}}
+
+	}else if (cut == "cut3-8TeV"){     // added on 05-01-2015
+	  for (int i=0; i<nb; i++){ //{{
+
+	    if ( ! HasGoodDimuon(i) ) continue;
+
+	    if (!(trkpt->at(i) > 0.35 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 0.7 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.9
+                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10. && bcosalphabs2d->at(i) > 0.999
+                  && bmass->at(i) > 5.0 && bmass->at(i) < 5.56 ) ) continue;
+
+	    if (bvtxcl->at(i) > best_bvtxcl){
+	      best_bvtxcl = bvtxcl->at(i);
+              best_idx = i;
 	    }
 	  } //}}
 
@@ -613,7 +628,7 @@ void print_usage()
 {//{{{
   cerr << "Usage: SingleBuToKstarMuMuSelector datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
        << "  datatype: data, mc, mc.lite, mc.hlt\n"
-       << "  cut     : cut0, cut1, cut2, cut2-8TeV, nocut, genonly.\n"
+       << "  cut     : cut0, cut1, cut2, cut2-8TeV, cut3-8TeV, nocut, genonly.\n"
        << "Options: \n" 
        << "  -h \t\tPrint this info.\n"
        << "  -n \t\tNumber of entries.\n" 
