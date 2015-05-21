@@ -2659,7 +2659,6 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     delete c;
     delete data;
 
-    printf("DEBUG\t\t: End of angular3D_1b_YpPm\n");
 }//}}}
 void angular3D_1b_YpPm_keys(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
 {//{{{
@@ -2902,30 +2901,35 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     
     // Create peak background distribution(jpsi/psi2s)
     TFile *f_wspace_jpsi_A = new TFile(TString::Format("wspace_PkPl_jpsi_bin%d.root",iBin));
-    RooWorkspace *wspace_jpsi_A = (RooWorkspace*)f_wspace_jpsi_A->Get("wspace");
+    RooWorkspace *wspace_jpsi_A = 0;
     RooGenericPdf *f_bkgjpsiPeakA = 0;
-    if (wspace_jpsi_A){
+    if (f_wspace_jpsi_A->IsOpen()){
+        wspace_jpsi_A = (RooWorkspace*)f_wspace_jpsi_A->Get("wspace");
         f_bkgjpsiPeakA = (RooGenericPdf*)wspace_jpsi_A->pdf("f_bkgjpsiPeakA");
     }
 
     TFile *f_wspace_jpsi_M = new TFile(TString::Format("wspace_YpPm_jpsi_bin%d.root",iBin));
-    RooWorkspace *wspace_jpsi_M = (RooWorkspace*)f_wspace_jpsi_M->Get("wspace");
+    RooWorkspace *wspace_jpsi_M = 0;
     RooRealVar nbkgjpsiPeak_MC;
-    if (wspace_jpsi_M){
+    if (f_wspace_jpsi_M->IsOpen()){
+        wspace_jpsi_M = (RooWorkspace*)f_wspace_jpsi_M->Get("wspace");
         nbkgjpsiPeak_MC = *(RooRealVar*)wspace_jpsi_M->var("nbkgjpsiPeak_MC");
     }
+    printf("INFO: f_bkgPeak prepared.\n");
 
     TFile *f_wspace_psi2s_A = new TFile(TString::Format("wspace_PkPl_psi2s_bin%d.root",iBin));
-    RooWorkspace *wspace_psi2s_A = (RooWorkspace*)f_wspace_psi2s_A->Get("wspace");
+    RooWorkspace *wspace_psi2s_A = 0;
     RooGenericPdf *f_bkgpsi2sPeakA = 0;
-    if (wspace_psi2s_A){
+    if (f_wspace_psi2s_A->IsOpen()){
+        wspace_psi2s_A = (RooWorkspace*)f_wspace_psi2s_A->Get("wspace");
         f_bkgpsi2sPeakA = (RooGenericPdf*)wspace_psi2s_A->pdf("f_bkgpsi2sPeakA");
     }
 
     TFile *f_wspace_psi2s_M = new TFile(TString::Format("wspace_YpPm_psi2s_bin%d.root",iBin));
-    RooWorkspace *wspace_psi2s_M = (RooWorkspace*)f_wspace_psi2s_M->Get("wspace");
+    RooWorkspace *wspace_psi2s_M = 0;
     RooRealVar nbkgpsi2sPeak_MC;
-    if (wspace_psi2s_M){
+    if (f_wspace_psi2s_M->IsOpen()){
+        wspace_psi2s_M = (RooWorkspace*)f_wspace_psi2s_M->Get("wspace");
         nbkgpsi2sPeak_MC = *(RooRealVar*)wspace_psi2s_M->var("nbkgpsi2sPeak_MC");
     }
     printf("INFO: f_bkgPeak prepared.\n");
@@ -3007,17 +3011,6 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     RooGenericPdf f_bkgCombA_dummy("f_bkgComaA_dummy","f_bkgCombA_dummy","1",RooArgSet(CosThetaK,CosThetaL));
     RooAddPdf *f;
     switch(iBin){
-        case 0:
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-            nbkgjpsiPeak.setVal(0.);
-            nbkgpsi2sPeak.setVal(0.);
-            nbkgjpsiPeak.setConstant(kTRUE);
-            nbkgpsi2sPeak.setConstant(kTRUE);
-            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,f_bkgCombA_dummy),RooArgList(nbkgComb,nbkgjpsiPeak));
-            break;
         case 2:
             nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC.getVal()*datasetLumi[0]/datasetLumi[2]);
             nbkgjpsiPeak.setError(nbkgjpsiPeak_MC.getError()*datasetLumi[0]/datasetLumi[2]);
@@ -3036,6 +3029,11 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,*f_bkgpsi2sPeakA),RooArgList(nbkgComb,nbkgpsi2sPeak));
             break;
         default:
+            nbkgjpsiPeak.setVal(0.);
+            nbkgpsi2sPeak.setVal(0.);
+            nbkgjpsiPeak.setConstant(kTRUE);
+            nbkgpsi2sPeak.setConstant(kTRUE);
+            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,f_bkgCombA_dummy),RooArgList(nbkgComb,nbkgjpsiPeak));
             break;
     }
     
@@ -4034,7 +4032,6 @@ int main(int argc, char** argv) {
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
         for (int iBin = 0; iBin < 8; iBin++) {
-            if (iBin == 3 || iBin == 5) continue;
             // By default overwrite exist parameters.
             fx(iBin,func,true);
         }
@@ -4069,7 +4066,6 @@ int main(int argc, char** argv) {
             //angular3D_bin(iBin);
         }
         //angular3D_bin(1);
-        //angular3D_bin(2);
         //createAccptanceHist();
         //splitMCSamples();
         //rndPickMCSamples(2);
