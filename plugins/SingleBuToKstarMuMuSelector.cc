@@ -465,9 +465,35 @@ int SingleBuToKstarMuMuSelector::SelectB(string cut)
               best_idx = i;
             }
           } //}}                 
-	
 
-        }else if (cut == "nocut") {
+	}else if (cut == "cut3-LHCb"){     // added 05/05/15
+	  for (int i=0; i<nb; i++){ //{{
+
+	  
+	    if ( ! HasGoodDimuon(i) ) continue;
+	    
+	    if (!(trkpt->at(i) > 0.35 && fabs(trkdcabs->at(i)/trkdcabserr->at(i)) > 0.7 && sqrt( (kspx->at(i))*(kspx->at(i)) + (kspy->at(i))*(kspy->at(i)) ) > 0.9
+                  && kstarmass->at(i) > 0.792 && kstarmass->at(i) < 0.992 && (blsbs->at(i)/blsbserr->at(i)) > 10. && bcosalphabs2d->at(i) > 0.999
+                  && bmass->at(i) > 5.0 && bmass->at(i) < 5.56 ) ) continue;
+	    
+	    if (!( (bmass->at(i) > 5.0 && bmass->at(i) < 5.168 && 
+		  ( mumumass->at(i) < (3.097 - 5.5*mumumasserr->at(i) - 0.150) || mumumass->at(i) > (3.097 + 5.5*mumumasserr->at(i)) ) &&
+		  ( mumumass->at(i) < (3.686 - 5.5*mumumasserr->at(i) - 0.150) || mumumass->at(i) > (3.686 + 5.5*mumumasserr->at(i)) ))  ||
+		 (bmass->at(i) > 5.168 && bmass->at(i) < 5.420 &&
+		  ( mumumass->at(i) < (3.097 - 5.5*mumumasserr->at(i)) || mumumass->at(i) > (3.097 + 3.5*mumumasserr->at(i)) ) && 
+		  ( mumumass->at(i) < (3.686 - 3.5*mumumasserr->at(i)) || mumumass->at(i) > (3.686 + 3.5*mumumasserr->at(i)) ))  ||
+		 (bmass->at(i) > 5.420 && bmass->at(i) < 5.560 &&
+		  ( mumumass->at(i) < (3.097 - 5.5*mumumasserr->at(i)) || mumumass->at(i) > (3.097 + 5.5*mumumasserr->at(i)) ) &&
+		  ( mumumass->at(i) < (3.686 - 5.5*mumumasserr->at(i)) || mumumass->at(i) > (3.686 + 5.5*mumumasserr->at(i)) )))) continue;
+	   
+	    
+	    if (bvtxcl->at(i) > best_bvtxcl){
+		  best_bvtxcl = bvtxcl->at(i);
+		  best_idx = i;
+	    }
+	  } //}}
+
+	}else if (cut == "nocut") {
             for (int i = 0; i < nb; i++) {
                 if (bvtxcl->at(i) > best_bvtxcl) {
                     best_bvtxcl = bvtxcl->at(i); 
@@ -651,7 +677,7 @@ void print_usage()
 {//{{{
   cerr << "Usage: SingleBuToKstarMuMuSelector datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
        << "  datatype: data, mc, mc.lite, mc.hlt\n"
-       << "  cut     : cut0, cut1, cut2, cut2-8TeV, cut3-8TeV, cut3-CDF, nocut, genonly.\n"
+       << "  cut     : cut0, cut1, cut2, cut2-8TeV, cut3-8TeV, cut3-CDF, cut3-LHCb, nocut, genonly.\n"
        << "Options: \n" 
        << "  -h \t\tPrint this info.\n"
        << "  -n \t\tNumber of entries.\n" 
