@@ -5,10 +5,13 @@
 //       Created:   [2013-08-15 Thu 14:54] 
 // -----------------------------------------------
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <sstream>
 #include <sys/stat.h>
 #include <math.h>
 #include <string.h>
+#include <getopt.h> // passing unix-like arguments
 //#include <regex> //c++11 feature should be fine using gcc491.
 
 #include <TSystem.h>
@@ -53,6 +56,8 @@
 #include <RooPlot.h>
 #include <RooAddition.h>
 #include <RooProduct.h>
+#include <RooWorkspace.h>
+#include <RooRandom.h>
 
 #include "tools.h" 
 
@@ -61,8 +66,13 @@ using namespace RooFit;
 
 // Tags configration
 bool is7TeVCheck = false; // Using 2011 efficiency map.
-int isCDFcut = 0; // 0 for off, 1 for on;
+int isCDFcut = 0; // 0 for off, 1 for cdf, 2 for LHCb
 TChain *ch=new TChain("tree");
+TString plotpath="./plots";
+TString iwspacepath=".";
+TString owspacepath=".";
+TString idatacardpath=".";
+TString odatacardpath=".";
 //Constants, Fit results for efficiency, etc.. //{{{
 char genQ2range[10][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
                            "genQ2 < 4.30 && genQ2 > 2.00",
@@ -82,18 +92,21 @@ char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
                         "Q2 <14.18 && Q2 >12.86",
                         "Q2 <16.00 && Q2 >14.18",
                         "Q2 <19.00 && Q2 >16.00",
-                        "Q2 <19.00 && Q2 > 1.00",
                         "Q2 < 6.00 && Q2 > 1.00"};
 double q2rangedn[10] = {1.00 , 2.00 , 4.30 , 8.68  , 10.09 , 12.86 , 14.18 , 16.00 ,  1.00 , 1.00};
 double q2rangeup[10] = {2.00 , 4.30 , 8.68 , 10.09 , 12.86 , 14.18 , 16.00 , 19.00 , 19.00 , 6.00};
 char mumuMassWindow[7][512] = { "Mumumass > 0",
                                 "(Mumumass > 3.096916+3.5*Mumumasserr || Mumumass < 3.096916-5.5*Mumumasserr) && (Mumumass > 3.686109+3.5*Mumumasserr || Mumumass < 3.686109-3.5*Mumumasserr)",
                                 "(Mumumass < 3.096916+3*Mumumasserr && Mumumass > 3.096916-5*Mumumasserr) || (Mumumass < 3.686109+3*Mumumasserr && Mumumass > 3.686109-3*Mumumasserr)",
-                                "Mumumass < 3.096916+3*Mumumasserr && Mumumass > 3.096916-5*Mumumasserr",
-                                "Mumumass < 3.686109+3*Mumumasserr && Mumumass > 3.686109-3*Mumumasserr",
+                                //"Mumumass < 3.096916+3*Mumumasserr && Mumumass > 3.096916-5*Mumumasserr",
+                                //"Mumumass < 3.686109+3*Mumumasserr && Mumumass > 3.686109-3*Mumumasserr",
                                 "(Mumumass*Mumumass<8.68 && Bmass-Mumumass>2.182+0.16 && Bmass-Mumumass<2.182-0.16) || (Mumumass*Mumumass>10.09 && Mumumass*Mumumass<12.86 && Bmass-Mumumass>1.593+0.06 && Bmass-Mumumass<1.593-0.06) || (Mumumass*Mumumass>14.18 && Bmass-Mumumass>1.593+0.06 && Bmass-Mumumass<1.593-0.06)",
-                                "(Mumumass*Mumumass < 8.68 && ( Bmass-Mumumass < 2.182+0.16 || Bmass-Mumumass > 2.182-0.16)) || (Mumumass*Mumumass>8.68 && Mumumass*Mumumass<10.09) || (Mumumass*Mumumass > 10.09 && Mumumass < 12.86 && ( Bmass-Mumumass < 1.593+0.06 || Bmass-Mumumass > 1.593-0.06)) || (Mumumass*Mumumass>12.86 && Mumumass*Mumumass<14.08) || (Mumumass*Mumumass > 14.08 && (Bmass-Mumumass > 1.593-0.06 || Bmass-Mumumass < 1.593+0.06))"
-};//None, sig, bkg, Jpsi, Psi2S, CDF, anti-CDF
+                                "(Mumumass*Mumumass < 8.68 && ( Bmass-Mumumass < 2.182+0.16 || Bmass-Mumumass > 2.182-0.16)) || (Mumumass*Mumumass>8.68 && Mumumass*Mumumass<10.09) || (Mumumass*Mumumass > 10.09 && Mumumass < 12.86 && ( Bmass-Mumumass < 1.593+0.06 || Bmass-Mumumass > 1.593-0.06)) || (Mumumass*Mumumass>12.86 && Mumumass*Mumumass<14.08) || (Mumumass*Mumumass > 14.08 && (Bmass-Mumumass > 1.593-0.06 || Bmass-Mumumass < 1.593+0.06))",
+                                //"Bmass > 5.168 || (Bmass < 5.168 && Bmass-Mumumass-2.182 > 0.15) || (Bmass < 5.168 && Bmass-Mumumass-2.182 < -0.15) || (Bmass < 5.168 && Bmass-Mumumass-1.593 > 0.07) || (Bmass < 5.168 && Bmass-Mumumass-1.593 < -0.07)",
+                                //"Bmass > 5.23 || (Bmass < 5.23 && Bmass-Mumumass-2.182 < 0.15 && Bmass-Mumumass-2.182 > -0.15) || (Bmass < 5.23 && Bmass-Mumumass-1.593 < 0.07 && Bmass-Mumumass-1.593 > -0.07)"
+                                "Mumumasserr > 0",
+                                "Mumumasserr > 0"
+};//None, sig, bkg, #Jpsi, #Psi2S, CDF, anti-CDF, LHCb, anti-LHCb
 double genAfb[8]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376};
 double genAfberr[8]={0.000434,0.000285,0.000223,0.000383,0.000277,0.000421,0.000395,0.000422};
 double genFl [8]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341};
@@ -196,10 +209,12 @@ std::string f_accXrecoEff_ord0[8] = { // default values
 // BF_BuToK*MuMu = 1.07E-6, 1.12E-6(2014)
 // BF_BuToK*Jpsi = 1.43E-3, 1.44E-3(2014)
 // BF_BuToK*Psi2S = 6.7E-4, 6.7 E-4(2014)
-// BF_K*ToK0Pi  = 1  (K* decays to Kpi always)
+// BF_JpsToMuMu  = 5.96E-2
+// BF_Psi2sToMuMu= 6.70E-4
+// BF_K*ToK0Pi  = 2/3  (K* decays to Kpi)
 // BF_K0ToKs  = 1/2
 // BF_KsToPiPi = 2/3
-double datasetLumi[5] = {19.4,26070.9,114.868,124.823,10.};//data, BuToKstarMuMu(11361.5+14709.4), BuToKstarJpsi(42.305+72.563), BuToKstarPsi2S(42.996,81.826), JpsiX
+double datasetLumi[5] = {19.4,37378.629,295.761,218.472,9.81};//data, BuToKstarMuMu(16281.440+21097.189), BuToKstarJpsi(118.201+177.560), BuToKstarPsi2S(63.103,155.369), JpsiX
 //}}}
 
 double readParam(int iBin, const char parName[], int iColumn, double defVal=0., double forceReturn=999.)
@@ -211,9 +226,9 @@ double readParam(int iBin, const char parName[], int iColumn, double defVal=0., 
     char lineBuff[1024];
     char *valBuff;
     memset(lineBuff,' ',1024*sizeof(char));
-    FILE *fp = fopen(TString::Format("fitParameters%d.txt",iBin),"r");
+    FILE *fp = fopen(TString::Format("%s/fitParameters%d.txt",idatacardpath.Data(),iBin),"r");
     if (!fp){
-        printf("WARNING: readParam, missing parameter files, by default return %f.",defVal);
+        printf("WARNING: readParam, missing parameter files, by default return %f.\n",defVal);
         return defVal;
     }
     while(fgets(lineBuff,1024,fp) != NULL ){
@@ -253,7 +268,7 @@ std::string readParam(int iBin, const char parName[], string defVal="", string f
     char lineBuff[1024];
     char *valBuff;
     memset(lineBuff,' ',1024*sizeof(char));
-    FILE *fp = fopen(TString::Format("fitParameters%d.txt",iBin),"r");
+    FILE *fp = fopen(TString::Format("%s/fitParameters%d.txt",idatacardpath.Data(),iBin),"r");
     if (!fp){
         printf("WARNING: readParam, missing parameter files, by default return %s.",defVal.c_str());
         return defVal;
@@ -284,18 +299,18 @@ void writeParam(int iBin, const char parName[], double *val, int nVal=2, bool ov
 
     struct stat fiBuff;
     FILE *fi = 0;
-    if (stat(TString::Format("fitParameters%d.txt",iBin),&fiBuff) == 0){
-        rename(TString::Format("fitParameters%d.txt",iBin),TString::Format("fitParameters%d.txt.temp",iBin));
-        fi = fopen(TString::Format("fitParameters%d.txt.temp",iBin),"r");
+    if (stat(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),&fiBuff) == 0){
+        rename(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin));
+        fi = fopen(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin),"r");
     }else{
-        fi = fopen(TString::Format("fitParameters%d.txt.temp",iBin),"w");
+        fi = fopen(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin),"w");
     }
     
     bool parExist = false;
     char lineBuff[1024];
     char *valBuff = 0;
     memset(lineBuff,' ',1024*sizeof(char));
-    FILE *fp = fopen(TString::Format("fitParameters%d.txt",iBin),"w");
+    FILE *fp = fopen(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),"w");
     while(fgets(lineBuff,1024,fi) != NULL ){
         valBuff = strtok(lineBuff," ");
         if ( strcmp(valBuff,parName) == 0 ){
@@ -328,7 +343,7 @@ void writeParam(int iBin, const char parName[], double *val, int nVal=2, bool ov
     }
     fclose(fp);
     fclose(fi);
-    remove(TString::Format("fitParameters%d.txt.temp",iBin));
+    remove(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin));
 }//}}}
 void writeParam(int iBin, const char parName[], string instring, bool overwrite=true)
 {//{{{
@@ -336,18 +351,18 @@ void writeParam(int iBin, const char parName[], string instring, bool overwrite=
 
     struct stat fiBuff;
     FILE *fi = 0;
-    if (stat(TString::Format("fitParameters%d.txt",iBin),&fiBuff) == 0){
-        rename(TString::Format("fitParameters%d.txt",iBin),TString::Format("fitParameters%d.txt.temp",iBin));
-        fi = fopen(TString::Format("fitParameters%d.txt.temp",iBin),"r");
+    if (stat(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),&fiBuff) == 0){
+        rename(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin));
+        fi = fopen(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin),"r");
     }else{
-        fi = fopen(TString::Format("fitParameters%d.txt.temp",iBin),"w");
+        fi = fopen(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin),"w");
     }
     
     bool parExist = false;
     char lineBuff[1024];
     char *valBuff = 0;
     memset(lineBuff,' ',1024*sizeof(char));
-    FILE *fp = fopen(TString::Format("fitParameters%d.txt",iBin),"w");
+    FILE *fp = fopen(TString::Format("%s/fitParameters%d.txt",odatacardpath.Data(),iBin),"w");
     while(fgets(lineBuff,1024,fi) != NULL ){
         valBuff = strtok(lineBuff," ");
         if ( strcmp(valBuff,parName) == 0 ){
@@ -368,7 +383,7 @@ void writeParam(int iBin, const char parName[], string instring, bool overwrite=
     }
     fclose(fp);
     fclose(fi);
-    remove(TString::Format("fitParameters%d.txt.temp",iBin));
+    remove(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin));
 }//}}}
 
 TF2  *f2_fcn = NULL;
@@ -434,7 +449,7 @@ void bmass(int iBin, const char outfile[] = "bmass")
   RooRealVar Q2("Q2","q^{2}",0.5,20.);
   RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
   RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
-  RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[1]),0);
+  RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[1+2*isCDFcut]),0);
 
   data->Print();
 
@@ -502,11 +517,11 @@ void bmass(int iBin, const char outfile[] = "bmass")
   paveText->AddText(Form("frac = %.3f #pm %.3f ", sigM_frac.getVal(), sigM_frac.getError())); 
   paveText->Draw(); 
 
-  c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
+  c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
   
   // Persist fit result in root file 
   // -------------------------------------------------------------
-  //TFile resf(TString::Format("./plots/%s.root",outfile), "RECREATE") ;
+  //TFile resf(TString::Format("%s/%s.root",plotpath.Data(),outfile), "RECREATE") ;
   //gPad->Write("plot"); 
   //if (! test) fitres->Write("fitres") ;
   //resf.Close() ;
@@ -563,7 +578,7 @@ std::vector<double> fl_gen_bin(int iBin, const char outfile[] = "fl_gen")
   t1->DrawLatex(.40,.85,TString::Format("%s",genQ2range[iBin]));
   t1->DrawLatex(.40,.79,TString::Format("F_{L}=%5.3f#pm%5.3f",fl.getVal(),fl.getError()));
 
-  c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
+  c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
   delete c;
   delete t1;
@@ -603,7 +618,7 @@ void fl_gen(const char outfile[] = "fl_gen")
 
     TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(8,x,yfl,xerr,xerr,yerrfl,yerrfl);
     g_fl->Draw("P*");
-    c->Print(TString::Format("./plots/%s.pdf",outfile));
+    c->Print(TString::Format("%s/%s.pdf",plotpath.Data(),outfile));
 
     delete g_fl;
     delete frame;
@@ -651,7 +666,7 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
     t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
     t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
-    c->Print(TString::Format("./plots/%s_cosk_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     //
     RooPlot* framecosl = genCosThetaL.frame(); 
@@ -668,13 +683,13 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
     t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
     c->Update();
-    c->Print(TString::Format("./plots/%s_cosl_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // Make 2-D plot
     TH1 *h1 = data->createHistogram("genCosThetaL,genCosThetaK", 100, 100);
     h1->Draw("LEGO2");
     c->Update();
-    c->Print(TString::Format("./plots/%s_2D_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_2D_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // clear
     delete t1;
@@ -733,7 +748,7 @@ void angular_gen(const char outfile[] = "angular_gen")
     g_fl->SetFillColor(2);
     g_fl->SetFillStyle(3001);
     g_fl->Draw("P2");
-    c->Print(TString::Format("./plots/%s_fl.pdf",outfile));
+    c->Print(TString::Format("%s/%s_fl.pdf",plotpath.Data(),outfile));
     c->Clear();
 
     frame->SetTitle("");
@@ -745,7 +760,7 @@ void angular_gen(const char outfile[] = "angular_gen")
     g_afb->SetFillColor(2);
     g_afb->SetFillStyle(3001);
     g_afb->Draw("P2");
-    c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
+    c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
 
 //_________________________________________________________________________________
@@ -937,7 +952,7 @@ std::vector<double> acceptance(int iBin) // acceptance. Not used in standard pro
     //latex->DrawLatex(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
     //latex->DrawLatex(0.01,0.90,TString::Format("DoF = %d",nbinsK*nbinsL-gMinuit->GetNumFreePars()));
     //f2_model.Draw("SURF SAME ");
-    canvas.Print(TString::Format("./plots/acceptance_2D_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/acceptance_2D_bin%d.pdf",plotpath.Data(),iBin));
 
     //// Draw compare
     TH2F h2_compFit("h2_compFit","",nbinsL,-1,1,nbinsK,-1,1);
@@ -960,7 +975,7 @@ std::vector<double> acceptance(int iBin) // acceptance. Not used in standard pro
     latex->DrawLatex(0.01,0.90,TString::Format("DoF = %d",nbinsK*nbinsL-gMinuit->GetNumFreePars()));
     latex->DrawLatex(0.30,0.95,TString::Format("acceptance_{measured} / acceptance_{fit} in Bin%d",iBin));
     canvas.Update();
-    //canvas.Print(TString::Format("./plots/acceptance_compFit_2D_bin%d.pdf",iBin));
+    //canvas.Print(TString::Format("%s/acceptance_compFit_2D_bin%d.pdf",plotpath.Data(),iBin));
     
     // Draw significance
     TH1F h_pull("Deviation/Error","",15,-3.,3.);
@@ -979,7 +994,7 @@ std::vector<double> acceptance(int iBin) // acceptance. Not used in standard pro
     }
     h_pull.Draw();
     canvas.Update();
-    //canvas.Print(TString::Format("./plots/acceptance_sigma_bin%d.pdf",iBin));
+    //canvas.Print(TString::Format("%s/acceptance_sigma_bin%d.pdf",plotpath.Data(),iBin));
     
     // Clear
     delete latex;
@@ -1184,7 +1199,7 @@ std::vector<double> recoEff(int iBin) // reconstruction efficiency. Not used in 
     f2_model.SetMaximum(effUpperBound);
     f2_model.SetLineWidth(1);
     f2_model.Draw("SURF SAME ");
-    canvas.Print(TString::Format("./plots/recoEff_2D_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_2D_bin%d.pdf",plotpath.Data(),iBin));
 
     //// Draw compare
     double chi2Val=0;
@@ -1210,7 +1225,7 @@ std::vector<double> recoEff(int iBin) // reconstruction efficiency. Not used in 
     latex->DrawLatex(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
     latex->DrawLatex(0.3,0.95,TString::Format("#varepsilon_{RECO,fit} / #varepsilon_{RECO,measured} in Bin%d",iBin));
     canvas.Update();
-    canvas.Print(TString::Format("./plots/recoEff_compFit_2D_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_compFit_2D_bin%d.pdf",plotpath.Data(),iBin));
 
     // Draw significance of deviation
     TH1F h_pull("Deviation/Error","",15,-3.,3.);
@@ -1229,7 +1244,7 @@ std::vector<double> recoEff(int iBin) // reconstruction efficiency. Not used in 
     }
     h_pull.Draw();
     canvas.Update();
-    canvas.Print(TString::Format("./plots/recoEff_sigma_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_sigma_bin%d.pdf",plotpath.Data(),iBin));
 
     // Clear
     delete latex;
@@ -1571,13 +1586,13 @@ void createRecoEffHist(int iBin) // create reco efficiency histogram from offici
     // Print
     TCanvas canvas("canvas");
     h2_rec.Draw("LEGO2 TEXT");
-    canvas.Print(TString::Format("./plots/recoEff_2D_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_2D_bin%d.pdf",plotpath.Data(),iBin));
     h_recL.Draw("TEXT");
     canvas.Update();
-    canvas.Print(TString::Format("./plots/recoEff_cosl_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_cosl_bin%d.pdf",plotpath.Data(),iBin));
     h_recK.Draw("TEXT");
     canvas.Update();
-    canvas.Print(TString::Format("./plots/recoEff_cosk_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/recoEff_cosk_bin%d.pdf",plotpath.Data(),iBin));
 }//}}}
 
 std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
@@ -1667,10 +1682,18 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
                     h2_nreco.Fill(gCosThetaL,gCosThetaK);
                     h_nrecoL.Fill(gCosThetaL);
                     h_nrecoK.Fill(gCosThetaK);
-                }else if( (iBin < 3 && fabs(BMass-Mumumass-2.182)<0.16) || (iBin ==4 && fabs(BMass-Mumumass-1.593)<0.06) || (iBin > 5 && fabs(BMass-Mumumass-1.593)<0.06) ){
-                    h2_nreco.Fill(gCosThetaL,gCosThetaK);
-                    h_nrecoL.Fill(gCosThetaL);
-                    h_nrecoK.Fill(gCosThetaK);
+                }else if (isCDFcut==1){
+                    if( (iBin < 3 && fabs(BMass-Mumumass-2.182)<0.14) || (iBin ==4 && fabs(BMass-Mumumass-1.593)<0.06) || (iBin > 5 && fabs(BMass-Mumumass-1.593)<0.06) ){
+                        h2_nreco.Fill(gCosThetaL,gCosThetaK);
+                        h_nrecoL.Fill(gCosThetaL);
+                        h_nrecoK.Fill(gCosThetaK);
+                    }
+                }else if (isCDFcut==2){
+                    if (BMass > 5.23 && fabs(BMass-Mumumass-2.182)>0.15 && fabs(BMass-Mumumass-1.593)>0.07){
+                        h2_nreco.Fill(gCosThetaL,gCosThetaK);
+                        h_nrecoL.Fill(gCosThetaL);
+                        h_nrecoK.Fill(gCosThetaK);
+                    }
                 }
             }
         }
@@ -1920,40 +1943,40 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
     h_effL.Draw();
     if (iBin == 0) h_effL.SetMaximum(0.0003);
     canvas.Update();
-    canvas.Print(TString::Format("./plots/accXrecoEff2_cosl_order0_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/accXrecoEff2_cosl_order0_bin%d.pdf",plotpath.Data(),iBin));
     h_effK.Draw();
     canvas.Update();
-    canvas.Print(TString::Format("./plots/accXrecoEff2_cosk_order0_bin%d.pdf",iBin));
+    canvas.Print(TString::Format("%s/accXrecoEff2_cosk_order0_bin%d.pdf",plotpath.Data(),iBin));
         
     if (true){
         //// Draw 1-D
         h_naccL.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_naccL_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_naccL_bin%d.pdf",plotpath.Data(),iBin));
         h_naccK.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_naccK_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_naccK_bin%d.pdf",plotpath.Data(),iBin));
 
         h_nrecoL.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_nrecoL_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_nrecoL_bin%d.pdf",plotpath.Data(),iBin));
         h_nrecoK.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_nrecoK_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_nrecoK_bin%d.pdf",plotpath.Data(),iBin));
         
         h_recL.SetStats(0);
         h_recL.SetMinimum(0.);
         h_recL.SetXTitle("CosThetaL");
         h_recL.Draw("TEXT");
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffL_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_recoEffL_bin%d.pdf",plotpath.Data(),iBin));
         
         h_recK.SetStats(0);
         h_recK.SetMinimum(0.);
         h_recK.SetXTitle("CosThetaK");
         h_recK.Draw("TEXT");
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_recoEffK_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_recoEffK_bin%d.pdf",plotpath.Data(),iBin));
         
         TH1F h_theoK("h_theoK" ,"h_theoK" ,nKBins,-1,1); 
         h_theoK.SetStats(0);
@@ -1970,7 +1993,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         }
         h_theoK.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_theoK_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_theoK_bin%d.pdf",plotpath.Data(),iBin));
         
         TH1F h_theoL("h_theoL" ,"h_theoL" ,nLBins,-1,1); 
         h_theoL.SetStats(0);
@@ -1987,7 +2010,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         }
         h_theoL.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_theoL_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_theoL_bin%d.pdf",plotpath.Data(),iBin));
         
         //// Draw 2-D
         h2_eff.SetMinimum(0.);
@@ -2005,7 +2028,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         f2_model.SetLineWidth(1);
         f2_model.Draw("SURF SAME ");
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_2D_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_2D_bin%d.pdf",plotpath.Data(),iBin));
 
         //// Draw compare
         TH2F h2_compFit("h2_compFit","",6,thetaLBins,5,thetaKBins);
@@ -2037,14 +2060,14 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         latex->DrawLatex(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
         latex->DrawLatex(0.3,0.95,TString::Format("#varepsilon_{fit} / #varepsilon_{measured} in Bin%d",iBin));
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_compFit_2D_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_compFit_2D_bin%d.pdf",plotpath.Data(),iBin));
         
         h2_pullFit.SetStats(0);
         h2_pullFit.Draw("COLZ TEXT");
         latex->DrawLatex(0.01,0.95,TString::Format("#chi^{2} = %f",chi2Val));
         latex->DrawLatex(0.3,0.95,TString::Format("(#varepsilon_{fit} - #varepsilon_{measured})/Error in Bin%d",iBin));
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_pullFit_2D_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_pullFit_2D_bin%d.pdf",plotpath.Data(),iBin));
 
         // Draw significance of deviation
         TH1F h_pull("Deviation/Error","",15,-3.,3.);
@@ -2062,31 +2085,117 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         }
         h_pull.Draw();
         canvas.Update();
-        canvas.Print(TString::Format("./plots/accXrecoEff2_sigma_bin%d.pdf",iBin));
+        canvas.Print(TString::Format("%s/accXrecoEff2_sigma_bin%d.pdf",plotpath.Data(),iBin));
 
         delete latex;
         
     }
     
-    //prepare output
-    string output;
-    output = TString::Format("%e*(%s)",arrPar[20],f2_model_format_ord0.Data());
-    while(output.find("*y") !=std::string::npos ){
-        output.replace(output.find("*y"), 2, "*CosThetaK");
+
+    // prepare output
+    string out_accXrecoEff2_ord0;
+    out_accXrecoEff2_ord0 = TString::Format("%e*(%s)",arrPar[20],f2_model_format_ord0.Data());
+    while(out_accXrecoEff2_ord0.find("*y") !=std::string::npos ){
+        out_accXrecoEff2_ord0.replace(out_accXrecoEff2_ord0.find("*y"), 2, "*CosThetaK");
     }
-    while(output.find("*x") !=std::string::npos ){
-        output.replace(output.find("*x"), 2, "*CosThetaL");
+    while(out_accXrecoEff2_ord0.find("*x") !=std::string::npos ){
+        out_accXrecoEff2_ord0.replace(out_accXrecoEff2_ord0.find("*x"), 2, "*CosThetaL");
     }
-    while(output.find("(x") !=std::string::npos ){
-        output.replace(output.find("(x"), 2, "(CosThetaL");
+    while(out_accXrecoEff2_ord0.find("(x") !=std::string::npos ){
+        out_accXrecoEff2_ord0.replace(out_accXrecoEff2_ord0.find("(x"), 2, "(CosThetaL");
     }
-    printf("\"%s\",\n",output.c_str());
-    writeParam(iBin,"f_accXrecoEff_ord0",output);
+    printf("\"%s\",\n",out_accXrecoEff2_ord0.c_str());
+    writeParam(iBin,"f_accXrecoEff_ord0",out_accXrecoEff2_ord0);
     writeParam(iBin,"accXrecoEff2",arrPar,20,true);
     writeParam(iBin,"accXrecoEff2Err",arrParErr,20,true);
+    // write to wspace as well
+    if (true){
+        RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
+        RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
+        RooRealVar fl("fl", "F_{L}", genFl[iBin], 0., 1.);
+        RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -1., 1.);
+        RooRealVar fs("fs","F_{S}",0.0129254,-0.3,0.3);
+        RooRealVar as("as","A_{S}",-0.0975919,-0.3,0.3);
+        RooRealVar recK0L0("recK0L0","recK0L0",arrPar[ 0]);
+        RooRealVar recK1L0("recK1L0","recK1L0",arrPar[ 1]);
+        RooRealVar recK2L0("recK2L0","recK2L0",arrPar[ 2]);
+        RooRealVar recK3L0("recK3L0","recK3L0",arrPar[ 3]);
+        RooRealVar recK0L2("recK0L2","recK0L2",arrPar[ 4]);
+        RooRealVar recK1L2("recK1L2","recK1L2",arrPar[ 5]);
+        RooRealVar recK2L2("recK2L2","recK2L2",arrPar[ 6]);
+        RooRealVar recK3L2("recK3L2","recK3L2",arrPar[ 7]);
+        RooRealVar recK0L3("recK0L3","recK0L3",arrPar[ 8]);
+        RooRealVar recK1L3("recK1L3","recK1L3",arrPar[ 9]);
+        RooRealVar recK2L3("recK2L3","recK2L3",arrPar[10]);
+        RooRealVar recK3L3("recK3L3","recK3L3",arrPar[11]);
+        RooRealVar recK0L4("recK0L4","recK0L4",arrPar[12]);
+        RooRealVar recK1L4("recK1L4","recK1L4",arrPar[13]);
+        RooRealVar recK2L4("recK2L4","recK2L4",arrPar[14]);
+        RooRealVar recK3L4("recK3L4","recK3L4",arrPar[15]);
+        RooRealVar recK0L6("recK0L6","recK0L6",arrPar[16]);
+        RooRealVar recK1L6("recK1L6","recK1L6",arrPar[17]);
+        RooRealVar recK2L6("recK2L6","recK2L6",arrPar[18]);
+        RooRealVar recK3L6("recK3L6","recK3L6",arrPar[19]);
+        recK0L0.setError(arrPar[ 1]);
+        recK1L0.setError(arrPar[ 2]);
+        recK2L0.setError(arrPar[ 3]);
+        recK3L0.setError(arrPar[ 4]);
+        recK0L2.setError(arrPar[ 5]);
+        recK1L2.setError(arrPar[ 6]);
+        recK2L2.setError(arrPar[ 7]);
+        recK3L2.setError(arrPar[ 8]);
+        recK0L3.setError(arrPar[ 9]);
+        recK1L3.setError(arrPar[10]);
+        recK2L3.setError(arrPar[11]);
+        recK3L3.setError(arrPar[12]);
+        recK0L4.setError(arrPar[13]);
+        recK1L4.setError(arrPar[14]);
+        recK2L4.setError(arrPar[15]);
+        recK3L4.setError(arrPar[16]);
+        recK0L6.setError(arrPar[17]);
+        recK1L6.setError(arrPar[18]);
+        recK2L6.setError(arrPar[19]);
+        recK3L6.setError(arrPar[20]);
+        RooArgSet f_sigA_argset(CosThetaL,CosThetaK);
+        f_sigA_argset.add(RooArgSet(fl,afb,fs,as));
+        f_sigA_argset.add(RooArgSet(recK0L0,recK1L0,recK2L0,recK3L0));
+        f_sigA_argset.add(RooArgSet(recK0L2,recK1L2,recK2L2,recK3L2));
+        TString f_sigA_format;
+        TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
+        TString f_accXrecoEff2_ord0 = out_accXrecoEff2_ord0;
+        TString f_accXrecoEff2_format, f_accXrecoEff2_L0, f_accXrecoEff2_L2, f_accXrecoEff2_L3, f_accXrecoEff2_L4, f_accXrecoEff2_L6;
+        f_accXrecoEff2_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
+        f_accXrecoEff2_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
+        f_accXrecoEff2_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
+        f_accXrecoEff2_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
+        f_accXrecoEff2_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
+
+        if (iBin == 0) {
+            f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
+            f_sigA_argset.add(RooArgSet(recK0L6,recK1L6,recK2L6,recK3L6));
+            f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_accXrecoEff2_ord0.Data(),f_accXrecoEff2_L0.Data(),f_accXrecoEff2_L2.Data(),f_accXrecoEff2_L4.Data(),f_accXrecoEff2_L6.Data(),f_ang_format.Data());
+        }else if (iBin == 1) {
+            f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
+            f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_accXrecoEff2_ord0.Data(),f_accXrecoEff2_L0.Data(),f_accXrecoEff2_L2.Data(),f_accXrecoEff2_L4.Data(),f_ang_format.Data());
+        }else if (iBin > 1 && iBin < 6) {
+            f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
+            f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
+            f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_accXrecoEff2_ord0.Data(),f_accXrecoEff2_L0.Data(),f_accXrecoEff2_L2.Data(),f_accXrecoEff2_L3.Data(),f_accXrecoEff2_L4.Data(),f_ang_format.Data());
+        }else{
+            f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
+            f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_accXrecoEff2_ord0.Data(),f_accXrecoEff2_L0.Data(),f_accXrecoEff2_L2.Data(),f_accXrecoEff2_L3.Data(),f_ang_format.Data());
+        }
+            // angular map of signal
+        RooGenericPdf f_sigA("f_sigA", f_sigA_format, f_sigA_argset);
+
+            // angular map of signal
+        RooWorkspace *wspace = new RooWorkspace("wspace","wspace");
+        wspace->import(f_sigA);
+        wspace->writeToFile(TString::Format("%s/wspace_sigA_bin%d.root",owspacepath.Data(),iBin),true);
+    }
 
     delete gMinuit;// delete before return.
-    return output.c_str();
+    return out_accXrecoEff2_ord0.c_str();
 }//}}}
 
 //_________________________________________________________________________________
@@ -2094,6 +2203,7 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
 {//{{{
     // Remark: You must use RooFit!! It's better in unbinned fit.
     //         Extended ML fit is adopted by Mauro, just follow!!
+    if (iBin == 3 || iBin == 5) return;
 
     // Read data
     ch->SetBranchStatus("*",0);
@@ -2103,114 +2213,39 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     ch->SetBranchStatus("CosTheta*"     , 1);
     ch->SetBranchStatus("Q2"            , 1);
     RooRealVar Bmass("Bmass","M_{K^{*}#Mu#Mu}",5.,5.56);
-    RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
-    RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
+    RooRealVar CosThetaK("CosThetaK"     , "cos#theta_{K}"       , -1. , 1.   ) ;
+    RooRealVar CosThetaL("CosThetaL"     , "cos#theta_{L}"       , -1. , 1.   ) ;
     RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
     RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
-    RooRealVar fl("fl", "F_{L}", genFl[iBin], 0., 1.);
-    RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -1., 1.);
-    RooRealVar fs("fs","F_{S}",0.0129254,-0.3,0.3);
-    RooRealVar as("as","A_{S}",-0.0975919,-0.3,0.3);
 
-    if (iBin != 3 && iBin != 5){
-        // 2011 cross check
-        fs.setVal(0.0129254);
-        fs.setAsymError(-0.00898344,0.0101371);
-        as.setVal(-0.0975919);
-        as.setAsymError(-0.00490805,0.0049092);
-        
-        //fs.setVal(0.);
-        //as.setVal(0.);
-        //fs.setConstant(kTRUE);
-        //as.setConstant(kTRUE);
-
-        // read parameter from datacard
-        //fs.setVal(readParam(3,"fs",0));
-        //fs.setAsymError(readParam(3,"fs",1),readParam(3,"fs",2));
-        //as.setVal(readParam(3,"as",0));
-        //fs.setAsymError(readParam(3,"as",1),readParam(3,"as",2));
-    }
-        // Efficiency
-    RooRealVar recK0L0("recK0L0","recK0L0",readParam(iBin,"accXrecoEff2", 0));
-    RooRealVar recK1L0("recK1L0","recK1L0",readParam(iBin,"accXrecoEff2", 1));
-    RooRealVar recK2L0("recK2L0","recK2L0",readParam(iBin,"accXrecoEff2", 2));
-    RooRealVar recK3L0("recK3L0","recK3L0",readParam(iBin,"accXrecoEff2", 3));
-    RooRealVar recK0L2("recK0L2","recK0L2",readParam(iBin,"accXrecoEff2", 4));
-    RooRealVar recK1L2("recK1L2","recK1L2",readParam(iBin,"accXrecoEff2", 5));
-    RooRealVar recK2L2("recK2L2","recK2L2",readParam(iBin,"accXrecoEff2", 6));
-    RooRealVar recK3L2("recK3L2","recK3L2",readParam(iBin,"accXrecoEff2", 7));
-    RooRealVar recK0L3("recK0L3","recK0L3",readParam(iBin,"accXrecoEff2", 8));
-    RooRealVar recK1L3("recK1L3","recK1L3",readParam(iBin,"accXrecoEff2", 9));
-    RooRealVar recK2L3("recK2L3","recK2L3",readParam(iBin,"accXrecoEff2",10));
-    RooRealVar recK3L3("recK3L3","recK3L3",readParam(iBin,"accXrecoEff2",11));
-    RooRealVar recK0L4("recK0L4","recK0L4",readParam(iBin,"accXrecoEff2",12));
-    RooRealVar recK1L4("recK1L4","recK1L4",readParam(iBin,"accXrecoEff2",13));
-    RooRealVar recK2L4("recK2L4","recK2L4",readParam(iBin,"accXrecoEff2",14));
-    RooRealVar recK3L4("recK3L4","recK3L4",readParam(iBin,"accXrecoEff2",15));
-    RooRealVar recK0L6("recK0L6","recK0L6",readParam(iBin,"accXrecoEff2",16));
-    RooRealVar recK1L6("recK1L6","recK1L6",readParam(iBin,"accXrecoEff2",17));
-    RooRealVar recK2L6("recK2L6","recK2L6",readParam(iBin,"accXrecoEff2",18));
-    RooRealVar recK3L6("recK3L6","recK3L6",readParam(iBin,"accXrecoEff2",19));
-    recK0L0.setError(readParam(iBin,"accXrecoEff2Err", 0));
-    recK1L0.setError(readParam(iBin,"accXrecoEff2Err", 1));
-    recK2L0.setError(readParam(iBin,"accXrecoEff2Err", 2));
-    recK3L0.setError(readParam(iBin,"accXrecoEff2Err", 3));
-    recK0L2.setError(readParam(iBin,"accXrecoEff2Err", 4));
-    recK1L2.setError(readParam(iBin,"accXrecoEff2Err", 5));
-    recK2L2.setError(readParam(iBin,"accXrecoEff2Err", 6));
-    recK3L2.setError(readParam(iBin,"accXrecoEff2Err", 7));
-    recK0L3.setError(readParam(iBin,"accXrecoEff2Err", 8));
-    recK1L3.setError(readParam(iBin,"accXrecoEff2Err", 9));
-    recK2L3.setError(readParam(iBin,"accXrecoEff2Err",10));
-    recK3L3.setError(readParam(iBin,"accXrecoEff2Err",11));
-    recK0L4.setError(readParam(iBin,"accXrecoEff2Err",12));
-    recK1L4.setError(readParam(iBin,"accXrecoEff2Err",13));
-    recK2L4.setError(readParam(iBin,"accXrecoEff2Err",14));
-    recK3L4.setError(readParam(iBin,"accXrecoEff2Err",15));
-    recK0L6.setError(readParam(iBin,"accXrecoEff2Err",16));
-    recK1L6.setError(readParam(iBin,"accXrecoEff2Err",17));
-    recK2L6.setError(readParam(iBin,"accXrecoEff2Err",18));
-    recK3L6.setError(readParam(iBin,"accXrecoEff2Err",19));
-    RooArgSet f_sigA_argset(CosThetaL,CosThetaK);
-    f_sigA_argset.add(RooArgSet(fl,afb,fs,as));
-    f_sigA_argset.add(RooArgSet(recK0L0,recK1L0,recK2L0,recK3L0));
-    f_sigA_argset.add(RooArgSet(recK0L2,recK1L2,recK2L2,recK3L2));
-    TString f_sigA_format;
-    TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
-    TString f_rec_ord0 = readParam(iBin,"f_accXrecoEff_ord0",f_accXrecoEff_ord0[iBin]);
-    TString f_rec_format, f_rec_L0, f_rec_L2, f_rec_L3, f_rec_L4, f_rec_L6;
-    f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
-    f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
-    f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
-    f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
-    f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
-
-    if (iBin == 0) {
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_argset.add(RooArgSet(recK0L6,recK1L6,recK2L6,recK3L6));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
-    }else if (iBin == 1) {
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
-    }else if (iBin > 1 && iBin < 6) {
-        f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
+    TFile *f_wspace_sigA = new TFile(TString::Format("%s/wspace_sigA_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_sigA = (RooWorkspace*)f_wspace_sigA->Get("wspace");
+    RooGenericPdf *f_sigA = 0;
+    RooRealVar *fl = 0;
+    RooRealVar *fs = 0;
+    RooRealVar *afb = 0;
+    RooRealVar *as = 0;
+    if (wspace_sigA){
+        f_sigA = (RooGenericPdf*)wspace_sigA->pdf("f_sigA");
+        fl = (RooRealVar*)wspace_sigA->var("fl");
+        fs = (RooRealVar*)wspace_sigA->var("fs");
+        afb = (RooRealVar*)wspace_sigA->var("afb");
+        as = (RooRealVar*)wspace_sigA->var("as");
     }else{
-        f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
+        printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
+        return;
     }
-        // angular map of signal
-    RooGenericPdf f_sigA("f_sigA", f_sigA_format, f_sigA_argset);
+
     RooRealVar nsig("nsig","nsig",1E4,1E2,1E8);
-    RooExtendPdf f_ext("f_ext","f_ext",f_sigA,nsig);
+    RooExtendPdf f_ext("f_ext","f_ext",*f_sigA,nsig);
     
     // Get data and apply unbinned fit
     //fs.setConstant(kTRUE); as.setConstant(kTRUE);
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr, CosThetaK,CosThetaL),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[1]),0);
-    f_ext.fitTo(*data,Minimizer("Minuit2"));
-    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit2"),Minos(kTRUE));
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr, CosThetaK,CosThetaL),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    f_ext.fitTo(*data,Minimizer("Minuit"));
+    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -2220,12 +2255,12 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     RooPlot* framecosk = CosThetaK.frame(); 
     data->plotOn(framecosk,Binning(20)); 
     f_ext.plotOn(framecosk); 
-    if (true) { // 
-        double buffFl = fl.getVal();
-        double buffAfb = afb.getVal();
-        fl.setVal(genFl[iBin]); afb.setVal(genAfb[iBin]);
+    if (false) { // Draw dashed line using generator level values
+        double buffFl = fl->getVal();
+        double buffAfb = afb->getVal();
+        fl->setVal(genFl[iBin]); afb->setVal(genAfb[iBin]);
         f_ext.plotOn(framecosk, LineColor(2),LineWidth(2),LineStyle(2)); 
-        fl.setVal(buffFl); afb.setVal(buffAfb);
+        fl->setVal(buffFl); afb->setVal(buffAfb);
     }
     framecosk->SetTitle("");
     framecosk->SetMinimum(0);
@@ -2234,20 +2269,20 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     if (iBin > 3) fixNDC = -0.5;
-    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
-    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
-    c->Print(TString::Format("./plots/%s_cosk_bin%d.pdf",outfile,iBin));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl->getVal(),fl->getError()));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb->getVal(),afb->getError()));
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // Draw projection to CosThetaL
     RooPlot* framecosl = CosThetaL.frame(); 
     data->plotOn(framecosl,Binning(20)); 
     f_ext.plotOn(framecosl); 
-    if (true) {
-        double buffFl = fl.getVal();
-        double buffAfb = afb.getVal();
-        fl.setVal(genFl[iBin]); afb.setVal(genAfb[iBin]);
+    if (false) {
+        double buffFl = fl->getVal();
+        double buffAfb = afb->getVal();
+        fl->setVal(genFl[iBin]); afb->setVal(genAfb[iBin]);
         f_ext.plotOn(framecosl, LineColor(2),LineWidth(2),LineStyle(2)); 
-        fl.setVal(buffFl); afb.setVal(buffAfb);
+        fl->setVal(buffFl); afb->setVal(buffAfb);
     }
     framecosl->SetTitle("");
     framecosl->SetMinimum(0);
@@ -2256,7 +2291,7 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     fixNDC = 0.;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     c->Update();
-    c->Print(TString::Format("./plots/%s_cosl_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // Make 2-D plot
     TH1 *h1 = data->createHistogram("CosThetaL,CosThetaK", 6, 5);
@@ -2264,21 +2299,37 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     h1->SetYTitle("CosThetaK");
     h1->Draw("LEGO2");
     c->Update();
-    c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    
+    if (true){
+        RooWorkspace *wspace = new RooWorkspace("wspace","wspace");
+        nsig.setConstant(kTRUE);
+        wspace->import(nsig);
+        wspace->import(f_ext);
+        wspace->writeToFile(TString::Format("%s/wspace_angular2D_bin%d.root",owspacepath.Data(),iBin),true);
+    }
 
+    //write output
+    fl->Print();
+    double output[4] = {0,0};
+    output[0] = fl->getVal();
+    output[1] = fl->getError();
+    writeParam(iBin,"fl",output);
+    output[0] = afb->getVal();
+    output[1] = afb->getError();
+    writeParam(iBin,"afb",output);
+    output[0] = as->getVal();
+    output[1] = as->getError();
+    writeParam(iBin,"as",output);
+    output[0] = fs->getVal();
+    output[1] = fs->getError();
+    writeParam(iBin,"fs",output);
+    
     // clear
     delete t1;
     delete c;
     delete data;
 
-    //write output
-    double output[4] = {0,0};
-    output[0] = fl.getVal();
-    output[1] = fl.getError();
-    writeParam(iBin,"fl",output);
-    output[0] = afb.getVal();
-    output[1] = afb.getError();
-    writeParam(iBin,"afb",output);
     return;
 }//}}}
 
@@ -2290,8 +2341,6 @@ void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check
     double yafb[8],yerrafb[8],yfl[8],yerrfl[8];
 
     if (doFit){
-        angular2D_bin(3);
-        angular2D_bin(5);
         angular2D_bin(0);
         angular2D_bin(1);
         angular2D_bin(2);
@@ -2302,10 +2351,17 @@ void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check
 
     // Checkout input data
     for(int ibin = 0; ibin < 8; ibin++){
-        yfl[ibin]       = readParam(ibin,"fl",0);
-        yerrfl[ibin]    = readParam(ibin,"fl",1);
-        yafb[ibin]      = readParam(ibin,"afb",0);
-        yerrafb[ibin]   = readParam(ibin,"afb",1);
+        if (ibin ==3 || ibin ==5 ){
+            yfl[ibin]       = 0;
+            yerrfl[ibin]    = 0;
+            yafb[ibin]      = 0;
+            yerrafb[ibin]   = 0;
+        }else{
+            yfl[ibin]       = readParam(ibin,"fl",0);
+            yerrfl[ibin]    = readParam(ibin,"fl",1);
+            yafb[ibin]      = readParam(ibin,"afb",0);
+            yerrafb[ibin]   = readParam(ibin,"afb",1);
+        }
         printf("yafb[%d]=%6.4f +- %6.4f\n",ibin,yafb[ibin],yerrafb[ibin]);
         printf("yfl [%d]=%6.4f +- %6.4f\n",ibin,yfl[ibin],yerrfl[ibin]);
     }
@@ -2328,7 +2384,7 @@ void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check
     gen_fl->SetFillColor(4);
     gen_fl->SetFillStyle(3001);
     gen_fl->Draw("P2 same");
-    c->Print(TString::Format("./plots/%s_fl.pdf",outfile));
+    c->Print(TString::Format("%s/%s_fl.pdf",plotpath.Data(),outfile));
     c->Clear();
 
     frame->SetTitle("");
@@ -2345,7 +2401,7 @@ void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check
     gen_afb->SetFillColor(4);
     gen_afb->SetFillStyle(3001);
     gen_afb->Draw("P2 same");
-    c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
+    c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
 //_________________________________________________________________________________
 
@@ -2370,12 +2426,12 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     RooGaussian f_sigMGauss2("f_sigMGauss2","f_sigMGauss2", Bmass, sigGauss_mean, sigGauss2_sigma);//double gaussian with shared mean
     RooAddPdf f_sigM("f_sigM","f_sigM", f_sigMGauss1, f_sigMGauss2, sigM_frac);
     
-    RooRealVar nsig("nsig","nsig",5E4,2000,1E8);
-    RooExtendPdf f("f","f",f_sigM,nsig);
+    RooRealVar nsig("nsig_MC","nsig",5E4,2000,1E8);
+    RooExtendPdf f("f_sigM_ext","f",f_sigM,nsig);
 
     // Get data and apply unbinned fit
-    int mumuMassWindowBin = 1+4*isCDFcut;
-    if (iBin==3 || iBin==5) mumuMassWindowBin = 2-2*isCDFcut;
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2+2*isCDFcut;
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
     RooFitResult *f_fitresult = f.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
 
@@ -2396,28 +2452,43 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     t1->DrawLatex(.13,.86,TString::Format("%.2f/fb",datasetLumi[1]));
     t1->DrawLatex(.13,.78,TString::Format("nsig=%5.1f#pm%5.1f",nsig.getVal(),nsig.getError()));
-    c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
-    // clear
-    delete t1;
-    delete c;
-    delete data;
+    // Create workspace
+    if (keepParam){
+        RooWorkspace *wspace = new RooWorkspace("wspace","wspace");
+        nsig.setConstant(kTRUE);
+        sigGauss_mean.setConstant(kTRUE);
+        sigGauss1_sigma.setConstant(kTRUE);
+        sigGauss2_sigma.setConstant(kTRUE);
+        sigM_frac.setConstant(kTRUE);
+        wspace->import(nsig);
+        wspace->import(f_sigM);
+        wspace->import(f);
+        wspace->writeToFile(TString::Format("%s/wspace_Sm_bin%d.root",owspacepath.Data(),iBin),true);
+    }
 
     // Prepare datacard
     double val[3]={0,0,0};
     writeParam(iBin, "iBin", new double((double)iBin), 1, keepParam);
-    if (is7TeVCheck){
-        writeParam(iBin, "mode", new double(2011), 1, keepParam);
-    }else{
-        writeParam(iBin, "mode", new double(2012), 1, keepParam);
-    }
+    //if (is7TeVCheck){
+    //    writeParam(iBin, "mode", new double(2011), 1, keepParam);
+    //}else{
+    //    writeParam(iBin, "mode", new double(2012), 1, keepParam);
+    //}
     val[0]=sigGauss1_sigma.getVal();val[1]=sigGauss1_sigma.getError();
     writeParam(iBin, "sigGauss1_sigma", val, 2 , keepParam);
     val[0]=sigGauss2_sigma.getVal();val[1]=sigGauss2_sigma.getError();
     writeParam(iBin, "sigGauss2_sigma", val, 2 , keepParam);
     val[0]=sigM_frac.getVal();val[1]=sigM_frac.getError();
     writeParam(iBin, "sigM_frac", val, 2 , keepParam);
+    
+    // clear
+    delete t1;
+    delete c;
+    delete data;
 }//}}}
+
 void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
 {//{{{
     static char decmode[10];
@@ -2430,17 +2501,21 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     //if (iBin ==0 || iBin%2 == 1){//0,1,3,5,7
     if (iBin < 2 || iBin == 7){//0,1,7
         double val[3]={1,0,0};
-        writeParam(iBin , TString::Format("bkg%sGauss1_mean1" ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss1_mean2" ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss1_sigma1",decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss1_sigma2",decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sM_frac1"      ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss2_mean1" ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss2_mean2" ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss2_sigma1",decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sGauss2_sigma2",decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sM_frac2"      ,decmode) , val , 2 , keepParam);
-        writeParam(iBin , TString::Format("bkg%sM_frac12"     ,decmode) , val , 2 , keepParam);
+        //writeParam(iBin , TString::Format("bkg%sGauss1_mean1"      , decmode) , val , 2 , keepParam);
+        //writeParam(iBin , TString::Format("bkg%sGauss1_mean2"      , decmode) , val , 2 , keepParam);
+        //writeParam(iBin , TString::Format("bkg%sGauss1_sigma1"     , decmode) , val , 2 , keepParam);
+        //writeParam(iBin , TString::Format("bkg%sGauss1_sigma2"     , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sBifruGauss_mean"   , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sBifruGauss_Lsigma" , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sBifruGauss_Rsigma" , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sExp_index"         , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sM_frac1"           , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sGauss2_mean1"      , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sGauss2_mean2"      , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sGauss2_sigma1"     , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sGauss2_sigma2"     , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sM_frac2"           , decmode) , val , 2 , keepParam);
+        writeParam(iBin , TString::Format("bkg%sM_frac12"          , decmode) , val , 2 , keepParam);
         val[0]=0;val[1]=0.1;
         writeParam(iBin , TString::Format("nbkg%sPeak"        ,decmode) , val , 2 , keepParam);
         return;
@@ -2451,69 +2526,99 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     RooRealVar Q2("Q2","q^{2}",0.5,20.);
     RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
     RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
+    RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgSet(Bmass,RooConst(-5)));
     
     // Create peak background distribution
-    RooRealVar bkgGauss1_mean1("bkgGauss1_mean1"   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss1_mean1" ,decmode) , 0 , 5.05) , 5.00 , 5.10);
-    RooRealVar bkgGauss1_mean2("bkgGauss1_mean2"   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss1_mean2" ,decmode) , 0 , 5.15) , 5.10 , 5.30);
-    RooRealVar bkgGauss1_mean3("bkgGauss1_mean3"   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss1_mean3" ,decmode) , 0 , 5.10) , 4.70 , 5.30);
-    RooRealVar bkgGauss1_sigma1("bkgGauss1_sigma1" , "#sigma_{11}"  , readParam(iBin , TString::Format("bkg%sGauss1_sigma1",decmode) , 0 , .03)  , .01  , .80);
-    RooRealVar bkgGauss1_sigma2("bkgGauss1_sigma2" , "#sigma_{12}"  , readParam(iBin , TString::Format("bkg%sGauss1_sigma2",decmode) , 0 , .12)  , .02  , 1.2);
-    RooRealVar bkgGauss1_sigma3("bkgGauss1_sigma3" , "#sigma_{13}"  , readParam(iBin , TString::Format("bkg%sGauss1_sigma3",decmode) , 0 , .12)  , .02  , 1.2);
-    RooRealVar bkgM_frac1("bkgM_frac1"             , "bkgM_frac1"   , readParam(iBin , TString::Format("bkg%sM_frac1"      ,decmode) , 0 , 1.)   , 0.   , 1.);
-    RooRealVar bkgM_fracC1("bkgM_fracC1"           , "bkgM_fracC1"  , 0.   , 0.   , 1.);
-    RooRealVar bkgGauss2_mean1("bkgGauss2_mean1"   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss2_mean1" ,decmode) , 0 , 5.40) , 5.35 , 5.60);
-    RooRealVar bkgGauss2_mean2("bkgGauss2_mean2"   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss2_mean2" ,decmode) , 0 , 5.40) , 5.35 , 5.60);
-    RooRealVar bkgGauss2_sigma1("bkgGauss2_sigma1" , "#sigma_{21}"  , readParam(iBin , TString::Format("bkg%sGauss2_sigma1",decmode) , 0 , .03)  , .01  , .20);
-    RooRealVar bkgGauss2_sigma2("bkgGauss2_sigma2" , "#sigma_{22}"  , readParam(iBin , TString::Format("bkg%sGauss2_sigma2",decmode) , 0 , .12)  , .10  , 1.2);
-    RooRealVar bkgM_frac2("bkgM_frac2"             , "bkgM_frac2"   , readParam(iBin , TString::Format("bkg%sM_frac2"      ,decmode) , 0 , 1.)   , 0.   , 1.);
-    RooRealVar bkgM_frac12("bkgM_frac12"           , "bkgM_frac12"  , readParam(iBin , TString::Format("bkg%sM_frac12"     ,decmode) , 0 , 1.)   , 0.   , 1.);
-    RooGaussian f_bkgPeakMGauss11("f_bkgPeakMGauss11","f_bkgPeakMGauss11", Bmass, bkgGauss1_mean1, bkgGauss1_sigma1);
-    RooGaussian f_bkgPeakMGauss12("f_bkgPeakMGauss12","f_bkgPeakMGauss12", Bmass, bkgGauss1_mean2, bkgGauss1_sigma2);
-    RooGaussian f_bkgPeakMGauss13("f_bkgPeakMGauss13","f_bkgPeakMGauss13", Bmass, bkgGauss1_mean3, bkgGauss1_sigma3);
-    RooGaussian f_bkgPeakMGauss21("f_bkgPeakMGauss21","f_bkgPeakMGauss21", Bmass, bkgGauss2_mean1, bkgGauss2_sigma1);
-    RooGaussian f_bkgPeakMGauss22("f_bkgPeakMGauss22","f_bkgPeakMGauss22", Bmass, bkgGauss2_mean2, bkgGauss2_sigma2);
-    RooAddPdf f_bkgPeakM1("f_bkgPeakM1", "f_bkgPeakM1", RooArgList(f_bkgPeakMGauss11, f_bkgPeakMGauss13, f_bkgPeakMGauss12),RooArgList(bkgM_frac1,bkgM_fracC1));
-    RooAddPdf f_bkgPeakM2("f_bkgPeakM2"   , "f_bkgPeakM2"  , RooArgList(f_bkgPeakMGauss21 , f_bkgPeakMGauss22) , bkgM_frac2);
-    RooAddPdf f_bkgPeakM12("f_bkgPeakM12" , "f_bkgPeakM12" , RooArgList(f_bkgPeakM1       , f_bkgPeakM2)       , bkgM_frac12);
+    //RooRealVar bkgGauss1_mean1(TString::Format("bkg%sPeakGauss1_mean1",decmode)   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss1_mean1" ,decmode) , 0 , 5.05) , 5.00 , 5.10);
+    //RooRealVar bkgGauss1_mean2(TString::Format("bkg%sPeakGauss1_mean2",decmode)   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss1_mean2" ,decmode) , 0 , 5.15) , 5.10 , 5.30);
+    //RooRealVar bkgGauss1_sigma1(TString::Format("bkg%sPeakGauss1_sigma1",decmode) , "#sigma_{11}"  , readParam(iBin , TString::Format("bkg%sGauss1_sigma1",decmode) , 0 , .03)  , .01  , .80);
+    //RooRealVar bkgGauss1_sigma2(TString::Format("bkg%sPeakGauss1_sigma2",decmode) , "#sigma_{12}"  , readParam(iBin , TString::Format("bkg%sGauss1_sigma2",decmode) , 0 , .12)  , .02  , 1.2);
+    RooRealVar bkgBifurGauss_mean(TString::Format("bkg%sPeakBifurGauss_mean",decmode), "M_{K*#Mu#Mu}", 5.17);
+    RooRealVar bkgBifurGauss_Lsigma(TString::Format("bkg%sPeakBifurGauss_Lsigma",decmode), "M_{K*#Mu#Mu}", 0.001);
+    RooRealVar bkgBifurGauss_Rsigma(TString::Format("bkg%sPeakBifurGauss_Rsigma",decmode), "M_{K*#Mu#Mu}", readParam(iBin, TString::Format("bkg%sBifurGauss_Rsigma", decmode), 0 , 0.01), 0.005, 0.04);
+    RooRealVar bkgExp_index(TString::Format("bkg%sPeakExp_index",decmode) , "M_{K*#Mu#Mu}", readParam(iBin, TString::Format("bkg%sExp_index",decmode), 0, -20), -30., -10.);
+    RooRealVar bkgM_frac1(TString::Format("bkg%sPeakM_frac1",decmode)             , "bkgM_frac1"   , readParam(iBin , TString::Format("bkg%sM_frac1"      ,decmode) , 0 , 1.)   , 0.   , 1.);
+    RooRealVar bkgGauss2_mean1(TString::Format("bkg%sPeakGauss2_mean1",decmode)   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss2_mean1" ,decmode) , 0 , 5.40) , 5.30 , 5.44);
+    RooRealVar bkgGauss2_mean2(TString::Format("bkg%sPeakGauss2_mean2",decmode)   , "M_{K*#Mu#Mu}" , readParam(iBin , TString::Format("bkg%sGauss2_mean2" ,decmode) , 0 , 5.40) , 5.30 , 5.44);
+    RooRealVar bkgGauss2_sigma1(TString::Format("bkg%sPeakGauss2_sigma1",decmode) , "#sigma_{21}"  , readParam(iBin , TString::Format("bkg%sGauss2_sigma1",decmode) , 0 , .03)  , .005  , .10);
+    RooRealVar bkgGauss2_sigma2(TString::Format("bkg%sPeakGauss2_sigma2",decmode) , "#sigma_{22}"  , readParam(iBin , TString::Format("bkg%sGauss2_sigma2",decmode) , 0 , .12)  , .10  , 1.2);
+    RooRealVar bkgM_frac2(TString::Format("bkg%sPeakM_frac2",decmode)             , "bkgM_frac2"   , readParam(iBin , TString::Format("bkg%sM_frac2"      ,decmode) , 0 , 1.)   , 0.   , 1.);
+    RooRealVar bkgM_frac12(TString::Format("bkg%sPeakM_frac12",decmode)           , "bkgM_frac12"  , readParam(iBin , TString::Format("bkg%sM_frac12"     ,decmode) , 0 , 1.)   , 0.   , 1.);
+    //RooGaussian f_bkgPeakMGauss11(TString::Format("f_bkg%sPeakMGauss11",decmode) ,"f_bkgPeakMGauss11", Bmass, bkgGauss1_mean1, bkgGauss1_sigma1);
+    //RooGaussian f_bkgPeakMGauss12(TString::Format("f_bkg%sPeakMGauss12",decmode) ,"f_bkgPeakMGauss12", Bmass, bkgGauss1_mean2, bkgGauss1_sigma2);
+    RooBifurGauss f_bkgPeakMBifurGauss(TString::Format("f_bkg%sPeakMBifurGauss",decmode) , "f_bkgPeakMBifurGauss", Bmass, bkgBifurGauss_mean, bkgBifurGauss_Lsigma, bkgBifurGauss_Rsigma);
+    RooExponential f_bkgPeakMExp(TString::Format("f_bkg%sPeakMExp",decmode) , "f_bkgPeakMExp", Bmass_offset, bkgExp_index);
+    RooGaussian f_bkgPeakMGauss21(TString::Format("f_bkg%sPeakMGauss21",decmode) ,"f_bkgPeakMGauss21", Bmass, bkgGauss2_mean1, bkgGauss2_sigma1);
+    RooGaussian f_bkgPeakMGauss22(TString::Format("f_bkg%sPeakMGauss22",decmode) ,"f_bkgPeakMGauss22", Bmass, bkgGauss2_mean2, bkgGauss2_sigma2);
+    //RooAddPdf f_bkgPeakM1(TString::Format("f_bkg%sPeakM1",decmode) , "f_bkgPeakM1", RooArgList(f_bkgPeakMGauss11, f_bkgPeakMGauss12),RooArgList(bkgM_frac1));
+    RooAddPdf f_bkgPeakM1(TString::Format("f_bkg%sPeakM1",decmode) , "f_bkgPeakM1", RooArgList(f_bkgPeakMBifurGauss, f_bkgPeakMExp),RooArgList(bkgM_frac1));
+    RooAddPdf f_bkgPeakM2(TString::Format("f_bkg%sPeakM2",decmode)   , "f_bkgPeakM2"  , RooArgList(f_bkgPeakMGauss21   , f_bkgPeakMGauss22) , bkgM_frac2);
+    RooAddPdf f_bkgPeakM12(TString::Format("f_bkg%sPeakM12",decmode) , "f_bkgPeakM12" , RooArgList(f_bkgPeakM1         , f_bkgPeakMGauss21) , bkgM_frac12);
+    RooAddPdf f_bkgPeakMB2(TString::Format("f_bkg%sPeakMB2",decmode) , "f_bkgPeakMB2" , RooArgList(f_bkgPeakMBifurGauss, f_bkgPeakMGauss21) , bkgM_frac12);
     
-    RooRealVar nbkgPeak("nbkgPeak","nbkgPeak",2E1,1,1E7);
+    RooRealVar nbkgPeak(TString::Format("nbkg%sPeak_MC",decmode) ,"nbkgPeak",2E1,1,1E7);
     RooExtendPdf *f = 0;
-    switch (iBin) {
-        case 2:
-            bkgM_frac12.setVal(1.);
-            bkgM_frac12.setConstant(kTRUE);
-            f = new RooExtendPdf("f","f",f_bkgPeakM1,nbkgPeak); // triple Gaussian at low
-            break;
-        case 4:
-            bkgM_fracC1.setVal(0.);
-            bkgM_fracC1.setConstant(kTRUE);
-            f = new RooExtendPdf("f","f",f_bkgPeakM12,nbkgPeak); // two double Gaussian
-            break;
-        case 6:
-            bkgM_frac12.setVal(0.);
-            bkgM_frac12.setConstant(kTRUE);
-            f = new RooExtendPdf("f","f",f_bkgPeakM2,nbkgPeak); // single Gaussian at high
-            break;
-        case 3:
-        case 5:
-            bkgM_frac12.setVal(1.);
-            bkgM_fracC1.setVal(0.);
-            bkgM_fracC1.setConstant(kTRUE);
-            bkgGauss1_mean1.setRange(5.23,5.35);
-            bkgGauss1_mean2.setRange(5.23,5.35);
-            bkgGauss1_mean1.setVal(readParam(iBin , TString::Format("bkg%sGauss1_mean1" ,decmode),0,5.29));
-            bkgGauss1_mean2.setVal(readParam(iBin , TString::Format("bkg%sGauss1_mean2" ,decmode),0,5.29));
-            bkgGauss1_sigma1.setVal(readParam(iBin , TString::Format("bkg%sGauss1_sigma1",decmode),0,0.03));
-            bkgGauss1_sigma2.setVal(readParam(iBin , TString::Format("bkg%sGauss1_sigma2",decmode),0,0.12));
-            f = new RooExtendPdf("f","f",f_bkgPeakM1,nbkgPeak); // Should peak around B+
-            break;
-        default:
-            break;
+    f = new RooExtendPdf(TString::Format("f_bkg%sPeak_ext",decmode) , "f", f_bkgPeakM12, nbkgPeak);
+    bkgM_frac2.setVal(1);
+    bkgM_frac2.setConstant(kTRUE);
+    bkgGauss2_mean2.setConstant(kTRUE);
+    bkgGauss2_sigma2.setConstant(kTRUE);
+    if (strcmp(decmode,"jpsi")==0){
+        switch (iBin) {
+            case 2:
+                bkgM_frac12.setVal(1);
+                bkgM_frac12.setConstant(kTRUE);
+                bkgGauss2_mean1.setConstant(kTRUE);
+                bkgGauss2_sigma1.setConstant(kTRUE);
+                bkgM_frac1.setVal(0.1);
+                break;
+            case 3:
+                bkgM_frac1.setVal(1);
+                bkgM_frac1.setConstant(kTRUE);
+                bkgExp_index.setConstant(kTRUE);
+                break;
+            case 4:
+                bkgM_frac12.setVal(0.);
+                bkgM_frac12.setConstant(kTRUE);
+                bkgM_frac1.setConstant(kTRUE);
+                bkgExp_index.setConstant(kTRUE);
+                bkgBifurGauss_Rsigma.setConstant(kTRUE);
+                break;
+            default:
+                return;
+        }
+    }else{
+        switch (iBin) {
+            case 4:
+                bkgM_frac12.setVal(1);
+                bkgM_frac12.setConstant(kTRUE);
+                bkgGauss2_mean1.setConstant(kTRUE);
+                bkgGauss2_sigma1.setConstant(kTRUE);
+                break;
+            case 5:
+                bkgM_frac12.setVal(1);
+                bkgM_frac12.setConstant(kTRUE);
+                bkgGauss2_mean1.setConstant(kTRUE);
+                bkgGauss2_sigma1.setConstant(kTRUE);
+                bkgM_frac1.setVal(1);
+                bkgM_frac1.setConstant(kTRUE);
+                bkgExp_index.setConstant(kTRUE);
+                break;
+            case 6:
+                bkgM_frac12.setVal(0.);
+                bkgM_frac12.setConstant(kTRUE);
+                bkgM_frac1.setConstant(kTRUE);
+                bkgExp_index.setConstant(kTRUE);
+                bkgBifurGauss_Rsigma.setConstant(kTRUE);
+                break;
+            default:
+                return;
+        }
     }
 
     // Get data and apply unbinned fit
-    int mumuMassWindowBin = 1+4*isCDFcut;
-    if (iBin==3 || iBin==5) mumuMassWindowBin = 2-2*isCDFcut;// 0:none, 1:sig, 2:bkg
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2+2*isCDFcut;
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
     RooFitResult *f_fitresult = f->fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Extended(),Minos(kTRUE));
 
@@ -2532,30 +2637,43 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     //t1->DrawLatex(.13,.78,TString::Format("nsig=%5.2f#pm%5.2f",nbkgPeak.getVal(),nbkgPeak.getError()));
-    c->Print(TString::Format("./plots/%s_%s_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
 
-    // clear
-    delete t1;
-    delete c;
-    delete data;
+    // Write to workspace
+    if (keepParam){
+        TFile *f_wspace = new TFile(TString::Format("%s/wspace_YpPm_%s_bin%d.root",owspacepath.Data(),decmode,iBin),"UPDATE");
+        RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+        if (!wspace){
+            wspace = new RooWorkspace("wspace","wspace");
+        }
+        bkgBifurGauss_mean.setConstant(kTRUE);
+        bkgBifurGauss_Lsigma.setConstant(kTRUE);
+        bkgBifurGauss_Rsigma.setConstant(kTRUE);
+        bkgExp_index.setConstant(kTRUE);
+        bkgM_frac1.setConstant(kTRUE);
+        bkgGauss2_mean1.setConstant(kTRUE);
+        bkgGauss2_mean2.setConstant(kTRUE);
+        bkgGauss2_sigma1.setConstant(kTRUE);
+        bkgGauss2_sigma2.setConstant(kTRUE);
+        bkgM_frac2.setConstant(kTRUE);
+        bkgM_frac12.setConstant(kTRUE);
+        nbkgPeak.setConstant(kTRUE);
+        wspace->import(*f);
+        wspace->writeToFile(TString::Format("%s/wspace_YpPm_%s_bin%d.root",owspacepath.Data(),decmode,iBin));
+    }
 
+    // Write datacard
     double val[3]={0,0,0};
-    val[0] = bkgGauss1_mean1.getVal();val[1] = bkgGauss1_mean1.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_mean1"  , decmode) , val , 2 , keepParam);
-    val[0] = bkgGauss1_mean2.getVal();val[1] = bkgGauss1_mean2.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_mean2"  , decmode) , val , 2 , keepParam);
-    val[0] = bkgGauss1_mean3.getVal();val[1] = bkgGauss1_mean3.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_mean3"  , decmode) , val , 2 , keepParam);
-    val[0] = bkgGauss1_sigma1.getVal();val[1] = bkgGauss1_sigma1.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_sigma1" , decmode) , val , 2 , keepParam);
-    val[0] = bkgGauss1_sigma2.getVal();val[1] = bkgGauss1_sigma2.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_sigma2" , decmode) , val , 2 , keepParam);
-    val[0] = bkgGauss1_sigma3.getVal();val[1] = bkgGauss1_sigma3.getError();
-    writeParam(iBin , TString::Format("bkg%sGauss1_sigma3" , decmode) , val , 2 , keepParam);
+    //val[0] = bkgGauss1_mean1.getVal();val[1] = bkgGauss1_mean1.getError();
+    //writeParam(iBin , TString::Format("bkg%sGauss1_mean1"  , decmode) , val , 2 , keepParam);
+    //val[0] = bkgGauss1_mean2.getVal();val[1] = bkgGauss1_mean2.getError();
+    //writeParam(iBin , TString::Format("bkg%sGauss1_mean2"  , decmode) , val , 2 , keepParam);
+    //val[0] = bkgGauss1_sigma1.getVal();val[1] = bkgGauss1_sigma1.getError();
+    //writeParam(iBin , TString::Format("bkg%sGauss1_sigma1" , decmode) , val , 2 , keepParam);
+    //val[0] = bkgGauss1_sigma2.getVal();val[1] = bkgGauss1_sigma2.getError();
+    //writeParam(iBin , TString::Format("bkg%sGauss1_sigma2" , decmode) , val , 2 , keepParam);
     val[0] = bkgM_frac1.getVal();val[1] = bkgM_frac1.getError();
     writeParam(iBin , TString::Format("bkg%sM_frac1"       , decmode) , val , 2 , keepParam);
-    val[0] = bkgM_fracC1.getVal();val[1] = bkgM_fracC1.getError();
-    writeParam(iBin , TString::Format("bkg%sM_fracC1"      , decmode) , val , 2 , keepParam);
     val[0] = bkgGauss2_mean1.getVal();val[1] = bkgGauss2_mean1.getError();
     writeParam(iBin , TString::Format("bkg%sGauss2_mean1"  , decmode) , val , 2 , keepParam);
     val[0] = bkgGauss2_mean2.getVal();val[1] = bkgGauss2_mean2.getError();
@@ -2570,7 +2688,28 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     writeParam(iBin , TString::Format("bkg%sM_frac12"      , decmode) , val , 2 , keepParam);
     val[0] = nbkgPeak.getVal();val[1] = nbkgPeak.getError();
     writeParam(iBin, TString::Format("nbkg%sPeak",decmode), val , 2 , keepParam);
+    
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+
+    printf("DEBUG\t\t: End of angular3D_1b_YpPm\n");
 }//}}}
+
+void angular3D_1b_YpPm_keys(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
+{//{{{
+    // Create model using smooth function(RooKeysPdf) for events with limited entries. 
+    static char decmode[10];
+    while(strcmp(decmode,"jpsi")*strcmp(decmode, "psi2s") != 0){
+        printf("Please insert background type [ jpsi / psi2s ]:");
+        scanf("%19s",decmode);
+    }
+    printf("Processing Bin#%d, decmode=%s\n",iBin,decmode);
+    
+    RooWorkspace wspace("wspace", "wspace");
+}//}}}
+
 void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", bool keepParam = false)
 {//{{{
     static char decmode[20];
@@ -2601,123 +2740,95 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,sqrt(20.));
     RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
     
-    RooRealVar bkgPeak_c1("bkgPeak_c1","bkgPeak_c1",readParam(iBin,TString::Format("bkg%sPeak_c1",decmode),0),-100,100);
-    RooRealVar bkgPeak_c2("bkgPeak_c2","bkgPeak_c2",readParam(iBin,TString::Format("bkg%sPeak_c2",decmode),0),-100,100);
-    RooRealVar bkgPeak_c3("bkgPeak_c3","bkgPeak_c3",readParam(iBin,TString::Format("bkg%sPeak_c3",decmode),0),-100,100);
-    RooRealVar bkgPeak_c4("bkgPeak_c4","bkgPeak_c4",readParam(iBin,TString::Format("bkg%sPeak_c4",decmode),0),-100,100);
-    RooRealVar bkgPeak_c5("bkgPeak_c5","bkgPeak_c5",readParam(iBin,TString::Format("bkg%sPeak_c5",decmode),0),-100,100);
-    RooRealVar bkgPeak_c6("bkgPeak_c6","bkgPeak_c6",readParam(iBin,TString::Format("bkg%sPeak_c6",decmode),0),-100,100);
-    RooRealVar bkgPeak_c7("bkgPeak_c7","bkgPeak_c7",readParam(iBin,TString::Format("bkg%sPeak_c7",decmode),0),-100,100);
-    RooRealVar bkgPeak_c8("bkgPeak_c8","bkgPeak_c8",readParam(iBin,TString::Format("bkg%sPeak_c8",decmode),0),-100,100);
-    RooArgSet f_bkgPeakA_argset;
+    RooRealVar bkgPeak_c1(TString::Format("bkg%sPeak_c1",decmode),"bkgPeak_c1",readParam(iBin,TString::Format("bkg%sPeak_c1",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c2(TString::Format("bkg%sPeak_c2",decmode),"bkgPeak_c2",readParam(iBin,TString::Format("bkg%sPeak_c2",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c3(TString::Format("bkg%sPeak_c3",decmode),"bkgPeak_c3",readParam(iBin,TString::Format("bkg%sPeak_c3",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c4(TString::Format("bkg%sPeak_c4",decmode),"bkgPeak_c4",readParam(iBin,TString::Format("bkg%sPeak_c4",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c5(TString::Format("bkg%sPeak_c5",decmode),"bkgPeak_c5",readParam(iBin,TString::Format("bkg%sPeak_c5",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c6(TString::Format("bkg%sPeak_c6",decmode),"bkgPeak_c6",readParam(iBin,TString::Format("bkg%sPeak_c6",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c7(TString::Format("bkg%sPeak_c7",decmode),"bkgPeak_c7",readParam(iBin,TString::Format("bkg%sPeak_c7",decmode),0,0.,0.),-10,10);
+    RooRealVar bkgPeak_c8(TString::Format("bkg%sPeak_c8",decmode),"bkgPeak_c8",readParam(iBin,TString::Format("bkg%sPeak_c8",decmode),0,0.,0.),-10,10);
+    RooArgSet f_bkgPeakA_argset, f_bkgPeakK_argset, f_bkgPeakL_argset;
     f_bkgPeakA_argset.add(RooArgSet(CosThetaL));
     f_bkgPeakA_argset.add(RooArgSet(CosThetaK));
+    f_bkgPeakK_argset.add(RooArgSet(CosThetaK,bkgPeak_c1,bkgPeak_c2,bkgPeak_c3,bkgPeak_c4));
+    f_bkgPeakL_argset.add(RooArgSet(CosThetaL,bkgPeak_c5,bkgPeak_c6,bkgPeak_c7,bkgPeak_c8));
     f_bkgPeakA_argset.add(RooArgSet(bkgPeak_c1,bkgPeak_c2,bkgPeak_c3,bkgPeak_c4,bkgPeak_c5,bkgPeak_c6,bkgPeak_c7,bkgPeak_c8));
-    TString f_bkgPeakK_format = "1+bkgPeak_c1*CosThetaL+bkgPeak_c2*(3*CosThetaL**2-1)/2+bkgPeak_c3*(5*CosThetaL**3-3*CosThetaL)/2+bkgPeak_c4*(35*CosThetaL**4-30*CosThetaL**2+3)/8";
-    TString f_bkgPeakL_format = "1+bkgPeak_c5*CosThetaK+bkgPeak_c6*(3*CosThetaK**2-1)/2+bkgPeak_c7*(5*CosThetaK**3-3*CosThetaK)/2+bkgPeak_c8*(35*CosThetaK**4-30*CosThetaK**2+3)/8";
-//    TString f_bkgPeakA_format = TString::Format("(%s)*(%s)",f_bkgPeakK_format.Data(),f_bkgPeakL_format.Data());
+    // Base function+correction, this works without CDF/LHCb cut.
+    //TString f_bkgPeakA_format = "(1+\
+    //                            bkgPeak_c1*CosThetaK+\
+    //                            bkgPeak_c2*CosThetaK**2+\
+    //                            bkgPeak_c3*CosThetaL**2+\
+    //                            bkgPeak_c4*CosThetaL**4+\
+    //                            bkgPeak_c5*CosThetaL**2*CosThetaK+\
+    //                            bkgPeak_c6*CosThetaL**4*CosThetaK+\
+    //                            bkgPeak_c7*CosThetaL**2*CosThetaK**2+\
+    //                            bkgPeak_c8*CosThetaL**4*CosThetaK**2)*\
+    //                            exp(-(CosThetaK+0.5*CosThetaL)**4-(CosThetaK-0.5*CosThetaL)**4+1.5*(CosThetaK+0.5*CosThetaL)**2+1.5*(CosThetaK-0.5*CosThetaL)**2)";
+    //TString f_bkgPeakK_format = "1+bkgPeak_c1*CosThetaK+bkgPeak_c2*CosThetaK**2+bkgPeak_c3*CosThetaK**3+bkgPeak_c4*CosThetaK**4";
+    //TString f_bkgPeakL_format = "1+bkgPeak_c5*CosThetaL+bkgPeak_c6*CosThetaL**2+bkgPeak_c7*CosThetaL**3+bkgPeak_c8*CosThetaL**4";
+    TString f_bkgPeakK_format = TString::Format("1+bkg%sPeak_c1*CosThetaK+bkg%sPeak_c2*CosThetaK**2+bkg%sPeak_c3*CosThetaK**3+bkg%sPeak_c4*CosThetaK**4",decmode,decmode,decmode,decmode);
+    TString f_bkgPeakL_format = TString::Format("1+bkg%sPeak_c5*CosThetaL+bkg%sPeak_c6*CosThetaL**2+bkg%sPeak_c7*CosThetaL**3+bkg%sPeak_c8*CosThetaL**4",decmode,decmode,decmode,decmode);
+    TString f_bkgPeakA_format = TString::Format("(%s)*(%s)",f_bkgPeakK_format.Data(),f_bkgPeakL_format.Data());
+    bkgPeak_c7.setVal(0.);
+    bkgPeak_c8.setVal(0.);
+    bkgPeak_c7.setConstant(kTRUE);
+    bkgPeak_c8.setConstant(kTRUE);
 
-//    TString f_bkgPeakA_format = "(1+\
-//                                  bkgPeak_c1*CosThetaK+\
-//                                  bkgPeak_c2*(3*CosThetaK**2-1)/2+\
-//                                  bkgPeak_c3*(5*CosThetaK**3-3*CosThetaK)/2+\
-//                                  bkgPeak_c4*(35*CosThetaK**4-30*CosThetaK**2+\3)/8)*(1+\
-//                                  bkgPeak_c5*CosThetaL+\
-//                                  bkgPeak_c6*(3*CosThetaL**2-1)/2+\
-//                                  bkgPeak_c7*(5*CosThetaL**3-3*CosThetaL)/2+\
-//                                  bkgPeak_c8*(35*CosThetaL**4-30*CosThetaL**2+\3)/8)";
-
-//    TString f_bkgPeakA_format = "(1+\
-//                                  bkgPeak_c1*CosThetaK+\
-//                                  bkgPeak_c2*(3*CosThetaK**2-1)/2)*(1+\
-//                                  bkgPeak_c3*CosThetaL+\
-//                                  bkgPeak_c4*(3*CosThetaL**2-1)/2)+\
-//                                  bkgPeak_c5*CosThetaL*CosThetaK+\
-//                                  bkgPeak_c6*CosThetaK*(3*CosThetaL**2-1)/2+\
-//                                  bkgPeak_c7*CosThetaL*(3*CosThetaK**2-1)/2+\
-//                                  bkgPeak_c8*(3*CosThetaK**2-1)/2*(3*CosThetaL**2-1)/2";//NotPos
-
-//    TString f_bkgPeakA_format = "1+\
-//                                 bkgPeak_c1*CosThetaK**4+\
-//                                 bkgPeak_c2*CosThetaK**2+\
-//                                 bkgPeak_c3*CosThetaL+\
-//                                 bkgPeak_c4*CosThetaL**2+\
-//                                 bkgPeak_c5*CosThetaL*CosThetaK+\
-//                                 bkgPeak_c6*CosThetaK**2*CosThetaL+\
-//                                 bkgPeak_c7*CosThetaK**4*CosThetaL**2+\
-//                                 bkgPeak_c8*CosThetaL**2*CosThetaK**2";
-
-//    TString f_bkgPeakA_format = "1+\
-//                                bkgPeak_c1*CosThetaK+\
-//                                bkgPeak_c2*CosThetaK**2+\
-//                                bkgPeak_c3*CosThetaL**4+\
-//                                bkgPeak_c4*CosThetaL**2+\
-//                                bkgPeak_c5*CosThetaL**4*CosThetaK+\
-//                                bkgPeak_c6*CosThetaK*CosThetaL**4+\
-//                                bkgPeak_c7*CosThetaK*CosThetaL**2+\
-//                                bkgPeak_c8*CosThetaL**2*CosThetaK**2";
-                               
-//    TString f_bkgPeakA_format = "1+\
-//                                bkgPeak_c1*(1+CosThetaK)+\
-//                                bkgPeak_c2*(1-CosThetaK**2)+\
-//                                bkgPeak_c3*(1-CosThetaL**2)+\
-//                                bkgPeak_c4*(1-CosThetaL**4)+\
-//                                bkgPeak_c5*(1-CosThetaL**2)*(1+CosThetaK)+\
-//                                bkgPeak_c6*(1-CosThetaL**4)*(1+CosThetaK)+\
-//                                bkgPeak_c7*(1-CosThetaL**2)*(1-CosThetaK**2)+\
-//                                bkgPeak_c8*(1-CosThetaL**4)*(1-CosThetaK**2)";
-    
-//    TString f_bkgPeakA_format = "(1+\
-//                                bkgPeak_c1*CosThetaK+\
-//                                bkgPeak_c2*CosThetaK**2+\
-//                                bkgPeak_c3*CosThetaL**2+\
-//                                bkgPeak_c4*CosThetaL**4+\
-//                                bkgPeak_c5*CosThetaL**2*CosThetaK+\
-//                                bkgPeak_c6*CosThetaL**4*CosThetaK+\
-//                                bkgPeak_c7*CosThetaL**2*CosThetaK**2+\
-//                                bkgPeak_c8*CosThetaL**4*CosThetaK**2)*exp(-0.5*(CosThetaK+CosThetaL)**4-0.8*(CosThetaK-CosThetaL)**4)";
-
-    // Base function+correction
-    TString f_bkgPeakA_format = "(1+\
-                                bkgPeak_c1*CosThetaK+\
-                                bkgPeak_c2*CosThetaK**2+\
-                                bkgPeak_c3*CosThetaL**2+\
-                                bkgPeak_c4*CosThetaL**4+\
-                                bkgPeak_c5*CosThetaL**2*CosThetaK+\
-                                bkgPeak_c6*CosThetaL**4*CosThetaK+\
-                                bkgPeak_c7*CosThetaL**2*CosThetaK**2+\
-                                bkgPeak_c8*CosThetaL**4*CosThetaK**2)*\
-                                exp(-(CosThetaK+0.5*CosThetaL)**4-(CosThetaK-0.5*CosThetaL)**4+1.5*(CosThetaK+0.5*CosThetaL)**2+1.5*(CosThetaK-0.5*CosThetaL)**2)";
-
-    switch (iBin) {
-        case 2:
-            break;
-        case 4:
-            break;
-        case 6:
-            bkgPeak_c5.setVal(0.);
-            bkgPeak_c6.setVal(0.);
-            bkgPeak_c7.setVal(0.);
-            bkgPeak_c8.setVal(0.);
-            bkgPeak_c5.setConstant(kTRUE);
-            bkgPeak_c6.setConstant(kTRUE);
-            bkgPeak_c7.setConstant(kTRUE);
-            bkgPeak_c8.setConstant(kTRUE);
-            break;
-        default:
-            break;
+    if (strcmp(decmode,"jpsi")==0){
+        switch (iBin) {
+            case 4:
+                // 4th order in CosThetaL doesn't look better.
+                bkgPeak_c4.setVal(0.);
+                bkgPeak_c4.setConstant(kTRUE);
+                break;
+            case 5:
+            case 6:
+                return;
+            default:
+                break;
+        }
+    }else{
+        // Reduce order due to limited statistics
+        bkgPeak_c3.setVal(0.);
+        bkgPeak_c4.setVal(0.);
+        bkgPeak_c3.setConstant(kTRUE);
+        bkgPeak_c4.setConstant(kTRUE);
+        switch (iBin) {
+            case 2:
+            case 3:
+                return;
+            case 6:
+                // Linear model for limited statistics
+                bkgPeak_c6.setVal(0.);
+                bkgPeak_c6.setConstant(kTRUE);
+                break;
+            default:
+                break;
+        }
     }
-    RooGenericPdf f_bkgPeakA("f_bkgPeakA", f_bkgPeakA_format, f_bkgPeakA_argset);
-    RooRealVar nbkgPeak("nbkgPeak","nbkgPeak",readParam(iBin,TString::Format("nbkg%sPeak",decmode),0),0.1,1E4);
-    RooExtendPdf f_bkgPeakA_ext("f_bkgPeakA_ext","f_bkgPeakA_ext",f_bkgPeakA, nbkgPeak);
+    RooRealVar nbkgPeak(TString::Format("nbkg%sPeak",decmode),"nbkg%sPeak",readParam(iBin,TString::Format("nbkg%sPeak",decmode),0),0.1,1E4);
+    RooGenericPdf f_bkgPeakK(TString::Format("f_bkg%sPeakK",decmode), f_bkgPeakK_format, f_bkgPeakK_argset);
+    RooGenericPdf f_bkgPeakL(TString::Format("f_bkg%sPeakL",decmode), f_bkgPeakL_format, f_bkgPeakL_argset);
+    RooGenericPdf f_bkgPeakA(TString::Format("f_bkg%sPeakA",decmode), f_bkgPeakA_format, f_bkgPeakA_argset);
+    RooExtendPdf f_bkgPeakK_ext(TString::Format("f_bkg%sPeakK_ext",decmode),"f_bkgPeakK_ext",f_bkgPeakK, nbkgPeak);
+    RooExtendPdf f_bkgPeakL_ext(TString::Format("f_bkg%sPeakL_ext",decmode),"f_bkgPeakL_ext",f_bkgPeakL, nbkgPeak);
+    RooExtendPdf f_bkgPeakA_ext(TString::Format("f_bkg%sPeakA_ext",decmode),"f_bkgPeakA_ext",f_bkgPeakA, nbkgPeak);
 
-    // Gaussian Constraint
-//    RooGaussian gaus_nbkgPeak("gaus_nbkgPeak","gaus_nbkgPeak",nbkgPeak,RooConst(readParam(iBin,TString::Format("nbkg%sPeak",decmode),0)),RooConst(readParam(iBin, TString::Format("nbkg%sPeak",decmode),1)));
-    
     // Get data
-    int mumuMassWindowBin = 1+4*isCDFcut;
-    if (iBin==3 || iBin==5) mumuMassWindowBin = 2-2*isCDFcut;
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 2+2*isCDFcut;
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, CosThetaK, CosThetaL ,Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    f_bkgPeakL.fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
+    f_bkgPeakK.fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
+    bkgPeak_c1.setConstant(kTRUE);
+    bkgPeak_c2.setConstant(kTRUE);
+    bkgPeak_c3.setConstant(kTRUE);
+    bkgPeak_c4.setConstant(kTRUE);
+    bkgPeak_c5.setConstant(kTRUE);
+    bkgPeak_c6.setConstant(kTRUE);
+    bkgPeak_c7.setConstant(kTRUE);
+    bkgPeak_c8.setConstant(kTRUE);
     RooFitResult *f_fitresult = f_bkgPeakA_ext.fitTo(*data,Save(kTRUE),Extended(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
     
     // Draw CosThetaK
@@ -2732,7 +2843,7 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     t1->SetNDC();
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
-    c->Print(TString::Format("./plots/%s_%s_cosk_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_cosk_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
     
     // Draw CosThetaL
     RooPlot* framecosl = CosThetaL.frame();
@@ -2743,7 +2854,7 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     framecosl->Draw();
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     c->Update();
-    c->Print(TString::Format("./plots/%s_%s_cosl_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_cosl_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
     
     // Make 2-D plot
     TH1 *h1 = data->createHistogram("CosThetaK,CosThetaL", 5, 6);
@@ -2753,7 +2864,7 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     h1_fit_fine->SetMinimum(0);
     h1_fit_fine->Draw("SURF SAME");
     c->Update();
-    c->Print(TString::Format("./plots/%s_%s_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
 
     TH1 *h1_fit = f_bkgPeakA_ext.createHistogram("CosThetaK,CosThetaL", 5, 6);
     TH2F *h2_compFit = new TH2F("h2_compFit","Yields_{MC}/Yields_{Fit}",5,-1.,1.,6,-1.,1.);
@@ -2768,17 +2879,32 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     h2_compFit->SetMinimum(0.);
     h2_compFit->Draw("LEGO2");
     c->Update();
-    c->Print(TString::Format("./plots/%s_%s_compFit_2D_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_compFit_2D_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
     h2_compFit->Draw("COL TEXT");
     c->Update();
-    c->Print(TString::Format("./plots/%s_%s_compFit_2D_TEXT_bin%d.pdf",outfile,decmode,iBin));
+    c->Print(TString::Format("%s/%s_%s_compFit_2D_TEXT_bin%d.pdf",plotpath.Data(),outfile,decmode,iBin));
     
-    
-    // clear
-    delete t1;
-    delete c;
-    delete data;
-    
+    // Write to workspace
+    if (keepParam){
+        TFile *f_wspace = new TFile(TString::Format("%s/wspace_PkPl_%s_bin%d.root",owspacepath.Data(),decmode,iBin),"UPDATE");
+        RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+        if (!wspace){
+            wspace = new RooWorkspace("wspace","wspace");
+        }
+        bkgPeak_c1.setConstant(kTRUE);
+        bkgPeak_c2.setConstant(kTRUE);
+        bkgPeak_c3.setConstant(kTRUE);
+        bkgPeak_c4.setConstant(kTRUE);
+        bkgPeak_c5.setConstant(kTRUE);
+        bkgPeak_c6.setConstant(kTRUE);
+        bkgPeak_c7.setConstant(kTRUE);
+        bkgPeak_c8.setConstant(kTRUE);
+        nbkgPeak.setConstant(kTRUE);
+        wspace->import(f_bkgPeakA);
+        wspace->writeToFile(TString::Format("%s/wspace_PkPl_%s_bin%d.root",owspacepath.Data(),decmode,iBin));
+    }
+
+    // write datacard
     double val[3] = {0,0,0};
     val[0] = bkgPeak_c1.getVal();val[1] = bkgPeak_c1.getError();
     writeParam(iBin, TString::Format("bkg%sPeak_c1", decmode), val , 2 , keepParam);
@@ -2796,131 +2922,104 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
     writeParam(iBin, TString::Format("bkg%sPeak_c7", decmode), val , 2 , keepParam);
     val[0] = bkgPeak_c8.getVal();val[1] = bkgPeak_c8.getError();
     writeParam(iBin, TString::Format("bkg%sPeak_c8", decmode), val , 2 , keepParam);
+    
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+    
 }//}}}
 
-void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool keepParam = false) // Under construction. Peakings should be considered.
+// This function is not working on mass axis due to normalization issue of separated ranges.
+// I beleive the issue NOT fixed after our bug report in 2013.
+void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool keepParam = false)
 {//{{{
     // Fit to signal simulation by YsSm+YcCm to determine Sm
-    RooRealVar Bmass("Bmass","M_{K^{*}#Mu#Mu}",5.,5.56);
-    RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
-    RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
-    RooRealVar Q2("Q2","q^{2}",0.5,20.);
-    RooRealVar Mumumass("Mumumass","M^{#mu#mu}",0.,10.);
-    RooRealVar Mumumasserr("Mumumasserr","Error of M^{#mu#mu}",0.,10.);
+    RooRealVar CosThetaK("CosThetaK"     , "cos#theta_{K}"       , -1. , 1.   ) ;
+    RooRealVar CosThetaL("CosThetaL"     , "cos#theta_{L}"       , -1. , 1.   ) ;
+    RooRealVar Bmass("Bmass"             , "M_{K^{*}#mu#mu}"     , 5.  , 5.56 ) ;
+    RooRealVar Mumumass("Mumumass"       , "M^{#mu#mu}"          , 0.  , 10.  ) ;
+    RooRealVar Mumumasserr("Mumumasserr" , "Error of M^{#mu#mu}" , 0.  , 10.  ) ;
+    RooRealVar Q2("Q2"                   , "q^{2}"               , 0.5 , 20.  ) ;
     
-    // Peaking background [JPsi]
-    RooRealVar bkgjpsiPeakL_c1("bkgjpsiPeakL_c1","bkgjpsiPeakL_c1",readParam(iBin,"bkgjpsiPeakL_c1",0));
-    RooRealVar bkgjpsiPeakL_c2("bkgjpsiPeakL_c2","bkgjpsiPeakL_c2",readParam(iBin,"bkgjpsiPeakL_c2",0));
-    RooRealVar bkgjpsiPeakL_c3("bkgjpsiPeakL_c3","bkgjpsiPeakL_c3",readParam(iBin,"bkgjpsiPeakL_c3",0));
-    RooRealVar bkgjpsiPeakL_c4("bkgjpsiPeakL_c4","bkgjpsiPeakL_c4",readParam(iBin,"bkgjpsiPeakL_c4",0));
-    RooRealVar bkgjpsiPeakK_c1("bkgjpsiPeakK_c1","bkgjpsiPeakK_c1",readParam(iBin,"bkgjpsiPeakK_c1",0));
-    RooRealVar bkgjpsiPeakK_c2("bkgjpsiPeakK_c2","bkgjpsiPeakK_c2",readParam(iBin,"bkgjpsiPeakK_c2",0));
-    RooRealVar bkgjpsiPeakK_c3("bkgjpsiPeakK_c3","bkgjpsiPeakK_c3",readParam(iBin,"bkgjpsiPeakK_c3",0));
-    RooRealVar bkgjpsiPeakK_c4("bkgjpsiPeakK_c4","bkgjpsiPeakK_c4",readParam(iBin,"bkgjpsiPeakK_c4",0));
-    RooArgSet f_bkgjpsiPeakA_argset;
-    f_bkgjpsiPeakA_argset.add(RooArgSet(CosThetaL,CosThetaK));
-    f_bkgjpsiPeakA_argset.add(RooArgSet(bkgjpsiPeakL_c1,bkgjpsiPeakL_c2,bkgjpsiPeakL_c3,bkgjpsiPeakL_c4));
-    f_bkgjpsiPeakA_argset.add(RooArgSet(bkgjpsiPeakK_c1,bkgjpsiPeakK_c2,bkgjpsiPeakK_c3,bkgjpsiPeakK_c4));
-    TString f_bkgjpsiPeakA_format = "(1+bkgjpsiPeakK_c1*CosThetaK+bkgjpsiPeakK_c2*(3*CosThetaK**2-1)/2+bkgjpsiPeakK_c3*(5*CosThetaK**3-3*CosThetaK)/2+bkgjpsiPeakK_c4*(35*CosThetaK**4-30*CosThetaK**2+3)/8)*(1+bkgjpsiPeakL_c1*CosThetaL+bkgjpsiPeakL_c2*(3*CosThetaL**2-1)/2+bkgjpsiPeakL_c3*(5*CosThetaL**3-3*CosThetaL)/2+bkgjpsiPeakL_c4*(35*CosThetaL**4-30*CosThetaL**2+3)/8)";
-    RooGenericPdf f_bkgjpsiPeakA("f_bkgjpsiPeakA", f_bkgjpsiPeakA_format, f_bkgjpsiPeakA_argset);
-    RooRealVar nbkgjpsiPeak("nbkgjpsiPeak","nbkgjpsiPeak",readParam(iBin,"nbkgjpsiPeak",0),1.,1E4);
-    nbkgjpsiPeak.setError(readParam(iBin,"nbkgjpsiPeak",1));
-    RooExtendPdf f_bkgjpsiPeakA_ext("f_bkgjpsiPeakA_ext","f_bkgjpsiPeakA_ext",f_bkgjpsiPeakA, nbkgjpsiPeak);
-    
-    // Peaking background [Psi2S]
-    RooRealVar bkgpsi2sPeakL_c1("bkgpsi2sPeakL_c1","bkgpsi2sPeakL_c1",readParam(iBin,"bkgpsi2sPeakL_c1",0));
-    RooRealVar bkgpsi2sPeakL_c2("bkgpsi2sPeakL_c2","bkgpsi2sPeakL_c2",readParam(iBin,"bkgpsi2sPeakL_c2",0));
-    RooRealVar bkgpsi2sPeakL_c3("bkgpsi2sPeakL_c3","bkgpsi2sPeakL_c3",readParam(iBin,"bkgpsi2sPeakL_c3",0));
-    RooRealVar bkgpsi2sPeakL_c4("bkgpsi2sPeakL_c4","bkgpsi2sPeakL_c4",readParam(iBin,"bkgpsi2sPeakL_c4",0));
-    RooRealVar bkgpsi2sPeakK_c1("bkgpsi2sPeakK_c1","bkgpsi2sPeakK_c1",readParam(iBin,"bkgpsi2sPeakK_c1",0));
-    RooRealVar bkgpsi2sPeakK_c2("bkgpsi2sPeakK_c2","bkgpsi2sPeakK_c2",readParam(iBin,"bkgpsi2sPeakK_c2",0));
-    RooRealVar bkgpsi2sPeakK_c3("bkgpsi2sPeakK_c3","bkgpsi2sPeakK_c3",readParam(iBin,"bkgpsi2sPeakK_c3",0));
-    RooRealVar bkgpsi2sPeakK_c4("bkgpsi2sPeakK_c4","bkgpsi2sPeakK_c4",readParam(iBin,"bkgpsi2sPeakK_c4",0));
-    RooArgSet f_bkgpsi2sPeakA_argset;
-    f_bkgpsi2sPeakA_argset.add(RooArgSet(CosThetaL,CosThetaK));
-    f_bkgpsi2sPeakA_argset.add(RooArgSet(bkgpsi2sPeakL_c1,bkgpsi2sPeakL_c2,bkgpsi2sPeakL_c3,bkgpsi2sPeakL_c4));
-    f_bkgpsi2sPeakA_argset.add(RooArgSet(bkgpsi2sPeakK_c1,bkgpsi2sPeakK_c2,bkgpsi2sPeakK_c3,bkgpsi2sPeakK_c4));
-    TString f_bkgpsi2sPeakA_format = "(1+bkgpsi2sPeakK_c1*CosThetaK+bkgpsi2sPeakK_c2*(3*CosThetaK**2-1)/2+bkgpsi2sPeakK_c3*(5*CosThetaK**3-3*CosThetaK)/2+bkgpsi2sPeakK_c4*(35*CosThetaK**4-30*CosThetaK**2+3)/8)*(1+bkgpsi2sPeakL_c1*CosThetaL+bkgpsi2sPeakL_c2*(3*CosThetaL**2-1)/2+bkgpsi2sPeakL_c3*(5*CosThetaL**3-3*CosThetaL)/2+bkgpsi2sPeakL_c4*(35*CosThetaL**4-30*CosThetaL**2+3)/8)";
-    RooGenericPdf f_bkgpsi2sPeakA("f_bkgpsi2sPeakA", f_bkgpsi2sPeakA_format, f_bkgpsi2sPeakA_argset);
-    RooRealVar nbkgpsi2sPeak("nbkgpsi2sPeak","nbkgpsi2sPeak",readParam(iBin,"nbkgpsi2sPeak",0),1.,1E4);
-    nbkgpsi2sPeak.setError(readParam(iBin,"nbkgpsi2sPeak",1));
-    RooExtendPdf f_bkgpsi2sPeakA_ext("f_bkgpsi2sPeakA_ext","f_bkgpsi2sPeakA_ext",f_bkgpsi2sPeakA, nbkgpsi2sPeak);
+    // Create peak background distribution(jpsi/psi2s)
+    TFile *f_wspace_jpsi_A = new TFile(TString::Format("%s/wspace_PkPl_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_A = (RooWorkspace*)f_wspace_jpsi_A->Get("wspace");
+    RooGenericPdf *f_bkgjpsiPeakA = 0;
+    if (wspace_jpsi_A){
+        f_bkgjpsiPeakA = (RooGenericPdf*)wspace_jpsi_A->pdf("f_bkgjpsiPeakA");
+    }
+
+    TFile *f_wspace_jpsi_M = new TFile(TString::Format("%s/wspace_YpPm_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_M = (RooWorkspace*)f_wspace_jpsi_M->Get("wspace");
+    RooRealVar *nbkgjpsiPeak_MC;
+    if (wspace_jpsi_M){
+        nbkgjpsiPeak_MC = (RooRealVar*)wspace_jpsi_M->var("nbkgjpsiPeak_MC");
+    }
+
+    TFile *f_wspace_psi2s_A = new TFile(TString::Format("%s/wspace_PkPl_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_A = (RooWorkspace*)f_wspace_psi2s_A->Get("wspace");
+    RooGenericPdf *f_bkgpsi2sPeakA = 0;
+    if (wspace_psi2s_A){
+        f_bkgpsi2sPeakA = (RooGenericPdf*)wspace_psi2s_A->pdf("f_bkgpsi2sPeakA");
+    }
+
+    TFile *f_wspace_psi2s_M = new TFile(TString::Format("%s/wspace_YpPm_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_M = (RooWorkspace*)f_wspace_psi2s_M->Get("wspace");
+    RooRealVar *nbkgpsi2sPeak_MC;
+    if (wspace_psi2s_M){
+        nbkgpsi2sPeak_MC = (RooRealVar*)wspace_psi2s_M->var("nbkgpsi2sPeak_MC");
+    }
+    printf("INFO: f_bkgPeak prepared.\n");
     
     // Create combinatorial background distribution
-    RooRealVar bkgCombL_c1("bkgCombL_c1","c1",readParam(iBin,"bkgCombL_c1",0),-2.5,2.5);
-    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0),-2.5,2.5);
-    RooRealVar bkgCombL_c3("bkgCombL_c3","c3",readParam(iBin,"bkgCombL_c3",0),-2.5,2.5);
-    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0),-2.5,2.5);
+    TString f_bkgCombL_format;
+    RooRealVar bkgCombL_c1("bkgCombL_c1","c1",readParam(iBin,"bkgCombL_c1",0),-3,3);
+    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0,0.1,0.1),0.05,5);
+    RooRealVar bkgCombL_c3("bkgCombL_c3","c3",readParam(iBin,"bkgCombL_c3",0),-3,3);
+    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0,0.1,0.1),0.05,5);
+    RooRealVar bkgCombL_c5("bkgCombL_c5","c5",readParam(iBin,"bkgCombL_c5",0,0.5,0.5),0.,1.);
     RooArgSet f_bkgCombL_argset;
-    switch (iBin) {
-        case 7:
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
-            bkgCombL_c2.setVal(0.);
-            bkgCombL_c3.setVal(0.);
-            bkgCombL_c4.setVal(0.);
-            bkgCombL_c2.setConstant(kTRUE);
-            bkgCombL_c3.setConstant(kTRUE);
-            bkgCombL_c4.setConstant(kTRUE);
-            break;
-        case 0:
-        case 1:
-        case 4:
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1,bkgCombL_c2));
-            bkgCombL_c3.setVal(0.);
-            bkgCombL_c4.setVal(0.);
-            bkgCombL_c3.setConstant(kTRUE);
-            bkgCombL_c4.setConstant(kTRUE);
-            break;
-        case 2:
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1,bkgCombL_c2,bkgCombL_c3));
-            bkgCombL_c4.setVal(0.);
-            bkgCombL_c4.setConstant(kTRUE);
-            break;
-        case 3:
-        case 5:
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1,bkgCombL_c2,bkgCombL_c3,bkgCombL_c4));
-            break;
-        default:
-            bkgCombL_c1.setVal(0.);
-            bkgCombL_c2.setVal(0.);
-            bkgCombL_c3.setVal(0.);
-            bkgCombL_c4.setVal(0.);
-            bkgCombL_c1.setConstant(kTRUE);
-            bkgCombL_c2.setConstant(kTRUE);
-            bkgCombL_c3.setConstant(kTRUE);
-            bkgCombL_c4.setConstant(kTRUE);
-            break;
-    }
-    RooPolynomial f_bkgCombL("f_bkgCombL","f_bkgCombL",CosThetaL,f_bkgCombL_argset);
+    TString f_bkgCombK_format;
     RooRealVar bkgCombK_c1("bkgCombK_c1","c1",readParam(iBin,"bkgCombK_c1",0),-2.5,2.5);
     RooRealVar bkgCombK_c2("bkgCombK_c2","c2",readParam(iBin,"bkgCombK_c2",0),-2.5,2.5);
     RooRealVar bkgCombK_c3("bkgCombK_c3","c3",readParam(iBin,"bkgCombK_c3",0),-5,5);
     RooRealVar bkgCombK_c4("bkgCombK_c4","c4",readParam(iBin,"bkgCombK_c4",0),-5,5);
     RooArgSet f_bkgCombK_argset;
     switch (iBin) {
-        case 2:
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
-            bkgCombK_c2.setVal(0.);
-            bkgCombK_c3.setVal(0.);
-            bkgCombK_c4.setVal(0.);
-            bkgCombK_c2.setConstant(kTRUE);
-            bkgCombK_c3.setConstant(kTRUE);
-            bkgCombK_c4.setConstant(kTRUE);
-            break;
         case 0:
         case 1:
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1,bkgCombK_c2));
-            bkgCombK_c3.setVal(0.);
-            bkgCombK_c4.setVal(0.);
-            bkgCombK_c3.setConstant(kTRUE);
-            bkgCombK_c4.setConstant(kTRUE);
-            break;
+        case 2:
         case 3:
         case 4:
         case 5:
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1,bkgCombK_c2,bkgCombK_c3,bkgCombK_c4));
+        case 6:
+        case 7:
+            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)+bkgCombL_c5*exp(-0.5*((CosThetaL-bkgCombL_c3)/bkgCombL_c4)**2)";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c3));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c4));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c5));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            //f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3";
+            //f_bkgCombK_format = "exp(-0.5*((CosThetaK-bkgCombK_c1)/bkgCombK_c2)**2)+bkgCombK_c3*exp(bkgCombK_c4*(1-CosThetaK))";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
             break;
         default:
+            bkgCombL_c1.setVal(0.);
+            bkgCombL_c2.setVal(0.1);
+            bkgCombL_c3.setVal(0.);
+            bkgCombL_c4.setVal(0.1);
+            bkgCombL_c5.setVal(0.);
+            bkgCombL_c1.setConstant(kTRUE);
+            bkgCombL_c2.setConstant(kTRUE);
+            bkgCombL_c3.setConstant(kTRUE);
+            bkgCombL_c4.setConstant(kTRUE);
+            bkgCombL_c5.setConstant(kTRUE);
             bkgCombK_c1.setVal(0.);
             bkgCombK_c2.setVal(0.);
             bkgCombK_c3.setVal(0.);
@@ -2931,48 +3030,137 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             bkgCombK_c4.setConstant(kTRUE);
             break;
     }
-    RooPolynomial f_bkgCombK("f_bkgCombK","f_bkgCombK",CosThetaK,f_bkgCombK_argset);
-    RooProdPdf f_bkgCombA("f_bkgCombA", "f_bckCombA",f_bkgCombK,f_bkgCombL);
+
+    f_bkgCombL_argset.add(RooArgSet(CosThetaL));
+    RooGenericPdf f_bkgCombL("f_bkgCombL","f_bkgCombL",f_bkgCombL_format, f_bkgCombL_argset);
+
+    f_bkgCombK_argset.add(RooArgSet(CosThetaK));
+    RooGenericPdf f_bkgCombK("f_bkgCombK","f_bkgCombK",f_bkgCombK_format,f_bkgCombK_argset);
     
-    // Get data and apply unbinned fit
-    int mumuMassWindowBin = 1+4*isCDFcut;
+    TString f_bkgCombA_format = TString::Format("(%s)*(%s)",f_bkgCombL_format.Data(),f_bkgCombK_format.Data());
+    RooArgSet f_bkgCombA_argset;
+    f_bkgCombA_argset.add(f_bkgCombK_argset);
+    f_bkgCombA_argset.add(f_bkgCombL_argset);
+    RooGenericPdf f_bkgCombA("f_bkgCombA","f_bkgCombA",f_bkgCombA_format,f_bkgCombA_argset);
+    
+    RooRealVar nbkgComb("nbkgComb","nbkgComb",100,0,1E8);
+    RooRealVar nbkgjpsiPeak("nbkgjpsiPeak","nbkgjpsiPeak",0,0,1E7);
+    RooRealVar nbkgpsi2sPeak("nbkgpsi2sPeak","nbkgpsi2sPeak",0,0,1E7);
+    RooGenericPdf f_bkgCombA_dummy("f_bkgComaA_dummy","f_bkgCombA_dummy","1",RooArgSet(CosThetaK,CosThetaL));
+    RooAddPdf *f = 0;
+    switch(iBin){
+        case 0:
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+            nbkgjpsiPeak.setVal(0.);
+            nbkgpsi2sPeak.setVal(0.);
+            nbkgjpsiPeak.setConstant(kTRUE);
+            nbkgpsi2sPeak.setConstant(kTRUE);
+            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,f_bkgCombA_dummy),RooArgList(nbkgComb,nbkgjpsiPeak));
+            break;
+        case 2:
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,*f_bkgjpsiPeakA),RooArgList(nbkgComb,nbkgjpsiPeak));
+            break;
+        case 4:
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,*f_bkgjpsiPeakA,*f_bkgpsi2sPeakA),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak));
+            break;
+        case 6:
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+            f = new RooAddPdf("kernel","kernel",RooArgList(f_bkgCombA,*f_bkgpsi2sPeakA),RooArgList(nbkgComb,nbkgpsi2sPeak));
+            break;
+        default:
+            break;
+    }
+    
+    RooGaussian gaus_nbkgjpsiPeak("gaus_nbkgjpsiPeak", "gaus_nbkgjpsiPeak", nbkgjpsiPeak, RooConst(nbkgjpsiPeak.getVal()), RooConst(nbkgjpsiPeak.getError()));
+    RooGaussian gaus_nbkgpsi2sPeak("gaus_nbkgpsi2sPeak", "gaus_nbkgpsi2sPeak", nbkgpsi2sPeak, RooConst(nbkgpsi2sPeak.getVal()), RooConst(nbkgpsi2sPeak.getError()));
+    RooArgSet gausConstraints;
+    switch(iBin){
+        case 2:
+            gausConstraints.add(RooArgSet(gaus_nbkgjpsiPeak));
+            break;
+        case 4:
+            gausConstraints.add(RooArgSet(gaus_nbkgjpsiPeak,gaus_nbkgpsi2sPeak));
+            break;
+        case 6:
+            gausConstraints.add(RooArgSet(gaus_nbkgpsi2sPeak));
+            break;
+        default:
+            break;
+    }
+    
+    printf("INFO: gausConstraints are settled.\n");
+    
+    // Get sideband data and apply unbinned fit
+    int mumuMassWindowBin = 1+2*isCDFcut;
     if (iBin==3 || iBin==5) mumuMassWindowBin = 0;
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, CosThetaK, CosThetaL, Mumumass, Mumumasserr),TString::Format("(%s) && (%s) && (Bmass > 5.38 || Bmass < 5.18)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
-    RooFitResult *f_fitresult = f_bkgCombA.fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
+    f_bkgCombA.fitTo(*data);
+    RooFitResult *f_fitresult=0;
+    f_fitresult = f->fitTo(*data,Save(kTRUE),Minimizer("Minuit"),Extended(kTRUE),ExternalConstraints(gausConstraints));
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
+
     RooPlot* framecosk = CosThetaK.frame(); 
     data->plotOn(framecosk,Binning(20)); 
-    f_bkgCombA.plotOn(framecosk); 
-
+    f->plotOn(framecosk); 
+    f->plotOn(framecosk,Components(f_bkgCombA),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgjpsiPeakA),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgpsi2sPeakA),LineColor(8),LineWidth(2),LineStyle(2));
     framecosk->SetTitle("");
     framecosk->SetMinimum(0);
     framecosk->Draw();
-
+    
     TLatex *t1 = new TLatex();
     t1->SetNDC();
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
-    c->Print(TString::Format("./plots/%s_cosk_bin%d.pdf",outfile,iBin));
+    
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
     
     // 
     RooPlot* framecosl = CosThetaL.frame(); 
     data->plotOn(framecosl,Binning(20)); 
-    f_bkgCombA.plotOn(framecosl); 
-
+    f->plotOn(framecosl); 
+    f->plotOn(framecosl,Components(f_bkgCombA),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgjpsiPeakA),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgpsi2sPeakA),LineColor(8),LineWidth(2),LineStyle(2));
     framecosl->SetTitle("");
     framecosl->SetMinimum(0);
     framecosl->Draw();
 
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     c->Update();
-    c->Print(TString::Format("./plots/%s_cosl_bin%d.pdf",outfile,iBin));
-
-    // clear
-    delete t1;
-    delete c;
-    delete data;
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    
+    if (keepParam){
+        TFile *f_wspace = new TFile(TString::Format("%s/wspace_prior_bin%d.root",owspacepath.Data(),iBin),"UPDATE");
+        RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+        if (!wspace){
+            wspace = new RooWorkspace("wspace","wspace");
+        }
+        bkgCombL_c1.setConstant(kTRUE);
+        bkgCombL_c2.setConstant(kTRUE);
+        bkgCombL_c3.setConstant(kTRUE);
+        bkgCombL_c4.setConstant(kTRUE);
+        bkgCombL_c5.setConstant(kTRUE);
+        bkgCombK_c1.setConstant(kTRUE);
+        bkgCombK_c2.setConstant(kTRUE);
+        bkgCombK_c3.setConstant(kTRUE);
+        bkgCombK_c4.setConstant(kTRUE);
+        wspace->import(f_bkgCombA);
+        wspace->writeToFile(TString::Format("%s/wspace_prior_bin%d.root",owspacepath.Data(),iBin));
+    }
 
     // Prepare datacard
     double val[3] = {0,0,0};
@@ -2984,6 +3172,8 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     writeParam(iBin, "bkgCombL_c3", val , 2 , keepParam);
     val[0] = bkgCombL_c4.getVal();val[1] = bkgCombL_c4.getError();
     writeParam(iBin, "bkgCombL_c4", val , 2 , keepParam);
+    val[0] = bkgCombL_c5.getVal();val[1] = bkgCombL_c5.getError();
+    writeParam(iBin, "bkgCombL_c5", val , 2 , keepParam);
     val[0] = bkgCombK_c1.getVal();val[1] = bkgCombK_c1.getError();
     writeParam(iBin, "bkgCombK_c1", val , 2 , keepParam);
     val[0] = bkgCombK_c2.getVal();val[1] = bkgCombK_c2.getError();
@@ -2992,6 +3182,268 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     writeParam(iBin, "bkgCombK_c3", val , 2 , keepParam);
     val[0] = bkgCombK_c4.getVal();val[1] = bkgCombK_c4.getError();
     writeParam(iBin, "bkgCombK_c4", val , 2 , keepParam);
+    
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+}//}}}
+
+void angular2D_data_bin(int iBin, const char outfile[] = "angular2D_data")
+{//{{{
+    // Same as angular3D_bin, however, it fits to angular axes only.
+    //         This function is NOT designed to determine parameters in resonance region.
+    if (iBin==3 || iBin==5) return;
+    
+    // Read data
+    RooRealVar CosThetaK("CosThetaK"     , "cos#theta_{K}"       , -1. , 1.   ) ;
+    RooRealVar CosThetaL("CosThetaL"     , "cos#theta_{L}"       , -1. , 1.   ) ;
+    RooRealVar Bmass("Bmass"             , "M_{K^{*}#mu#mu}"     , 5.  , 5.56 ) ;
+    RooRealVar Mumumass("Mumumass"       , "M^{#mu#mu}"          , 0.  , 10.  ) ;
+    RooRealVar Mumumasserr("Mumumasserr" , "Error of M^{#mu#mu}" , 0.  , 10.  ) ;
+    RooRealVar Q2("Q2"                   , "q^{2}"               , 0.5 , 20.  ) ;
+    RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgSet(Bmass,RooConst(-5)));
+    RooProduct Bmass_norm("Bmass_norm","Bmass_norm",RooArgSet(Bmass_offset,RooConst(1./0.56)));
+        
+    // Create parameters and PDFs
+    TFile *f_wspace_sigA = new TFile(TString::Format("%s/wspace_sigA_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_sigA = (RooWorkspace*)f_wspace_sigA->Get("wspace");
+    RooGenericPdf *f_sigA = 0;
+    RooRealVar *fl = 0;
+    RooRealVar *fs = 0;
+    RooRealVar *afb = 0;
+    RooRealVar *as = 0;
+    if (wspace_sigA){
+        f_sigA = (RooGenericPdf*)wspace_sigA->pdf("f_sigA");
+        fl = (RooRealVar*)wspace_sigA->var("fl");
+        fs = (RooRealVar*)wspace_sigA->var("fs");
+        afb = (RooRealVar*)wspace_sigA->var("afb");
+        as = (RooRealVar*)wspace_sigA->var("as");
+    }else{
+        printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
+        return;
+    }
+        
+    printf("INFO: f_sigA prepared.\n");
+    
+    // Create combinatorial background distribution (to be checked)
+    TFile *f_wspace_comb_A = new TFile(TString::Format("%s/wspace_prior_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_comb_A = (RooWorkspace*)f_wspace_comb_A->Get("wspace");
+    RooGenericPdf *f_bkgCombA = 0;
+    if (wspace_comb_A){
+        f_bkgCombA = (RooGenericPdf*)wspace_comb_A->pdf("f_bkgCombA");
+    }
+    printf("INFO: f_bkgCombA prepared.\n");
+    
+    // Create peak background distribution(jpsi/psi2s)
+    TFile *f_wspace_jpsi_M = new TFile(TString::Format("%s/wspace_YpPm_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_M = (RooWorkspace*)f_wspace_jpsi_M->Get("wspace");
+    RooRealVar *nbkgjpsiPeak_MC = 0;
+    if (wspace_jpsi_M){
+        nbkgjpsiPeak_MC = (RooRealVar*)wspace_jpsi_M->var("nbkgjpsiPeak_MC");
+    }
+    TFile *f_wspace_psi2s_M = new TFile(TString::Format("%s/wspace_YpPm_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_M = (RooWorkspace*)f_wspace_psi2s_M->Get("wspace");
+    RooRealVar *nbkgpsi2sPeak_MC = 0;
+    if (wspace_psi2s_M){
+        nbkgpsi2sPeak_MC = (RooRealVar*)wspace_psi2s_M->var("nbkgpsi2sPeak_MC");
+    }
+
+        // Angular distribution of peaking background
+    TFile *f_wspace_jpsi_A = new TFile(TString::Format("%s/wspace_PkPl_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_A = (RooWorkspace*)f_wspace_jpsi_A->Get("wspace");
+    RooGenericPdf *f_bkgjpsiPeakA = 0;
+    if (wspace_jpsi_A){
+        f_bkgjpsiPeakA = (RooGenericPdf*)wspace_jpsi_A->pdf("f_bkgjpsiPeakA");
+    }
+    TFile *f_wspace_psi2s_A = new TFile(TString::Format("%s/wspace_PkPl_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_A = (RooWorkspace*)f_wspace_psi2s_A->Get("wspace");
+    RooGenericPdf *f_bkgpsi2sPeakA = 0;
+    if (wspace_psi2s_A){
+        f_bkgpsi2sPeakA = (RooGenericPdf*)wspace_psi2s_A->pdf("f_bkgpsi2sPeakA");
+    }
+    printf("INFO: f_bkgPeakA prepared.\n");
+
+    // Observed spectrum = model*fullEfficiency
+    RooRealVar nsig("nsig","nsig",50,-10,5E3);
+    RooRealVar nbkgComb("nbkgComb","nbkgComb",100,-10,1E8);
+    RooRealVar nbkgjpsiPeak("nbkgjpsiPeak","nbkgjpsiPeak",10,-10,1E7);
+    RooRealVar nbkgpsi2sPeak("nbkgpsi2sPeak","nbkgpsi2sPeak",10,-10,1E7);
+    RooAddPdf *fM = 0;
+    RooAddPdf *fA = 0;
+    RooAddPdf *f = 0;
+    switch(iBin){
+        case 2:
+            nbkgpsi2sPeak.setVal(0.);
+            nbkgpsi2sPeak.setConstant(kTRUE);
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgjpsiPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgjpsiPeak,nsig));
+            break;
+        case 4:
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgjpsiPeakA,*f_bkgpsi2sPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak,nsig));
+            break;
+        case 6:
+            nbkgjpsiPeak.setVal(0.);
+            nbkgjpsiPeak.setConstant(kTRUE);
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgpsi2sPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgpsi2sPeak,nsig));
+            break;
+        default:
+            nbkgjpsiPeak.setVal(0.);
+            nbkgpsi2sPeak.setVal(0.);
+            nbkgjpsiPeak.setConstant(kTRUE);
+            nbkgpsi2sPeak.setConstant(kTRUE);
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_sigA),RooArgList(nbkgComb,nsig));
+            break;
+    }
+    f = fA;
+
+    // Extra penalty term to confine As, Fs, Fl, Afb.
+    //RooRealVar t_penalty("t_penalty","t",0.01);
+    //RooGenericPdf f_penaltyAfb("f_penaltyAfb","(1-TMath::Erf((afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))*(1-TMath::Erf((-afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))",RooArgSet(afb,fl,t_penalty));
+    //RooGenericPdf f_penaltyAs("f_penaltyAfb","(1-TMath::Erf((afb-2*(1-fl)/3)/(1.5*t_penalty*(1-fl))))*(1-TMath::Erf((-afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))",RooArgSet(afb,fl,t_penalty));
+    //RooProdPdf f_penalty("f_penalty","f_penalty",f_penaltyAfb,f_penaltyAs);
+    //RooProdPdf f("f","f",f_model,f_penalty);
+    printf("INFO: f_penalty NOT applied.\n");
+
+    // Gaussian constraints
+    RooGaussian *gaus_nbkgjpsiPeak = 0;
+    RooGaussian *gaus_nbkgpsi2sPeak = 0;
+    switch(iBin){
+        case 2:
+            gaus_nbkgjpsiPeak = new RooGaussian("gaus_nbkgjpsiPeak","gaus_nbkgjpsiPeak",nbkgjpsiPeak,RooConst(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]),RooConst(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]));
+            break;
+        case 4:
+            gaus_nbkgjpsiPeak = new RooGaussian("gaus_nbkgjpsiPeak","gaus_nbkgjpsiPeak",nbkgjpsiPeak,RooConst(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]),RooConst(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]));
+            gaus_nbkgpsi2sPeak = new RooGaussian("gaus_nbkgpsi2sPeak","gaus_nbkgpsi2sPeak",nbkgpsi2sPeak,RooConst(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]),RooConst(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]));
+            break;
+        case 6:
+            gaus_nbkgpsi2sPeak = new RooGaussian("gaus_nbkgpsi2sPeak","gaus_nbkgpsi2sPeak",nbkgpsi2sPeak,RooConst(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]),RooConst(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]));
+            break;
+        default:
+            break;
+    }
+    //RooBifurGauss gaus_fs("gaus_fs","gaus_fs",fs,RooConst(readParam(iBin,"fs",0,0.00129254)),RooConst(readParam(iBin,"fs",1)),RooConst(readParam(iBin,"fs",1,0.0101371)));
+    //RooBifurGauss gaus_as("gaus_as","gaus_as",as,RooConst(readParam(iBin,"as",0,-0.0975917)),RooConst(readParam(iBin,"as",1)),RooConst(readParam(iBin,"as",1,0.0049092)));
+//    RooBifurGauss gaus_fs("gaus_fs","gaus_fs",fs,RooConst(0.0129254),RooConst(0.00898344),RooConst(0.0101371));// 2011 result
+//    RooBifurGauss gaus_as("gaus_as","gaus_as",as,RooConst(-0.0975919),RooConst(0.00490805),RooConst(0.0049092));
+    
+    RooArgSet gausConstraints;
+    switch(iBin){
+        case 2:
+            gausConstraints.add(RooArgSet(*gaus_nbkgjpsiPeak));
+            break;
+        case 4:
+            gausConstraints.add(RooArgSet(*gaus_nbkgjpsiPeak,*gaus_nbkgpsi2sPeak));
+            break;
+        case 6:
+            gausConstraints.add(RooArgSet(*gaus_nbkgpsi2sPeak));
+            break;
+        default:
+            break;
+    }
+    printf("INFO: gausConstraints are settled.\n");
+    
+    // Get data and apply unbinned fit
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 0; // no cut
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK, CosThetaL, Bmass, Q2, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    fA->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
+    f->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"),Minos(kTRUE));
+
+    // Draw the frame on the canvas
+    TCanvas* c = new TCanvas("c");
+    TLatex *t1 = new TLatex();
+    t1->SetNDC();
+    double fixNDC = 0;
+    
+    // Draw projection to CosThetaK
+    RooPlot* framecosk = CosThetaK.frame(); 
+    data->plotOn(framecosk,Binning(20)); 
+    f->plotOn(framecosk,LineColor(1)); 
+    f->plotOn(framecosk,Components(*f_sigA),LineColor(4),LineWidth(2));
+    f->plotOn(framecosk,Components(*f_bkgCombA),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgjpsiPeakA),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgpsi2sPeakA),LineColor(8),LineWidth(2),LineStyle(2));
+
+    framecosk->SetTitle("");
+    framecosk->SetMinimum(0);
+    framecosk->Draw();
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
+    t1->DrawLatex(.65,.79+fixNDC,TString::Format("Y_{Signal}=%.3f",nsig.getVal()));
+    t1->DrawLatex(.65,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f",nbkgjpsiPeak.getVal()));
+    t1->DrawLatex(.65,.65+fixNDC,TString::Format("Y_{#Psi'}=%.3f",nbkgpsi2sPeak.getVal()));
+    t1->DrawLatex(.65,.58+fixNDC,TString::Format("Y_{Comb}=%.3f",nbkgComb.getVal()));
+    t1->DrawLatex(.35,.79+fixNDC,TString::Format("F_{L}=%.3f#pm%.3f",fl->getVal(),fl->getError()));
+    c->Update();
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    printf("Projection on K is created.\n");
+
+    // Draw projection to CosThetaL
+    RooPlot* framecosl = CosThetaL.frame(); 
+    data->plotOn(framecosl,Binning(20)); 
+    f->plotOn(framecosl,LineColor(1)); 
+    f->plotOn(framecosl,Components(*f_sigA),LineColor(4),LineWidth(2));
+    f->plotOn(framecosl,Components(*f_bkgCombA),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgjpsiPeakA),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgpsi2sPeakA),LineColor(8),LineWidth(2),LineStyle(2));
+
+    framecosl->SetTitle("");
+    framecosl->SetMinimum(0);
+    framecosl->Draw();
+
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
+    t1->DrawLatex(.65,.79+fixNDC,TString::Format("Y_{Signal}=%.3f",nsig.getVal()));
+    t1->DrawLatex(.65,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f",nbkgjpsiPeak.getVal()));
+    t1->DrawLatex(.65,.65+fixNDC,TString::Format("Y_{#Psi'}=%.3f",nbkgpsi2sPeak.getVal()));
+    t1->DrawLatex(.65,.58+fixNDC,TString::Format("Y_{Comb}=%.3f",nbkgComb.getVal()));
+    t1->DrawLatex(.35,.79+fixNDC,TString::Format("A_{FB}=%.3f#pm%.3f",afb->getVal(),afb->getError()));
+    c->Update();
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    printf("Projection on L is created.\n");
+    
+    // Write result
+    if (true){
+        TFile *f_wspace = new TFile(TString::Format("%s/wspace_angular2D_data_bin%d.root",owspacepath.Data(),iBin),"UPDATE");
+        RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+        if (!wspace){
+            wspace = new RooWorkspace("wspace","wspace");
+        }
+        fs->setConstant(kTRUE);
+        as->setConstant(kTRUE);
+        fl->setConstant(kTRUE);
+        afb->setConstant(kTRUE);
+        nsig.setConstant(kTRUE);
+        nbkgComb.setConstant(kTRUE);
+        nbkgjpsiPeak.setConstant(kTRUE);
+        nbkgpsi2sPeak.setConstant(kTRUE);
+        wspace->import(*f);
+        wspace->writeToFile(TString::Format("%s/wspace_angular2D_data_bin%d.root",owspacepath.Data(),iBin));
+    }
+
+    // write output
+    double val[3]={0,0,0};
+    val[0] = fl->getVal();val[1] = fl->getError();
+    writeParam(iBin, "fl", val);
+    val[0] = afb->getVal();val[1] = afb->getError();
+    writeParam(iBin, "afb",val);
+    val[0] = fs->getVal();val[1] = fs->getError();
+    writeParam(iBin, "fs", val);
+    val[0] = as->getVal();val[1] = as->getError();
+    writeParam(iBin, "as", val);
+    
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+
 }//}}}
 
 void angular3D_bin(int iBin, const char outfile[] = "angular3D")
@@ -3011,122 +3463,58 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     RooAddition Bmass_offset("Bmass_offset","Bmass_offset",RooArgSet(Bmass,RooConst(-5)));
     RooProduct Bmass_norm("Bmass_norm","Bmass_norm",RooArgSet(Bmass_offset,RooConst(1./0.56)));
         
-    // Angular parameters
-    RooRealVar afb("afb" , "A_{FB}" , genAfb[iBin] , -1. , 1.);
-    RooRealVar fl("fl"   , "F_{L}"  , genFl[iBin]  , 0.  , 1.);
-    RooRealVar fs("fs"   , "F_{S}"  , 0 , 0.  , 1.);//Derive from B0ToKstarJpsi , Bin3
-    RooRealVar as("as"   , "A_{S}"  , 0 , -1. , 1.);//Derive from B0ToKstarJpsi , Bin3
-    if (iBin != 3 && iBin != 5){
-        // 2011 cross check
-        //fs.setVal(0.0129254);
-        //fs.setAsymError(-0.00898344,0.0101371);
-        //as.setVal(-0.0975919);
-        //as.setAsymError(-0.00490805,0.0049092);
-
-        // read parameter from datacard
-        fs.setVal(readParam(3,"fs",0, 0.0129254));
-        fs.setAsymError(readParam(3,"fs",1, -0.00898344),readParam(3,"fs",2, 0.0101371));
-        as.setVal(readParam(3,"as",0, -0.0975919));
-        as.setAsymError(readParam(3,"as",1, -0.00490805),readParam(3,"as",2, 0.0049092));
-    }
-
     // Create parameters and PDFs
-        // Signal double gaussian
-    RooRealVar sigGauss_mean("sigGauss_mean","M_{K*#Mu#Mu}",5.28,5.25,5.30);
-    RooRealVar sigGauss1_sigma("sigGauss1_sigma","#sigma_{1}",readParam(iBin,"sigGauss1_sigma",0,0.02),.01,.05);
-    RooRealVar sigGauss2_sigma("sigGauss2_sigma","#sigma_{2}",readParam(iBin,"sigGauss2_sigma",0,0.08),.05,.40);
-    sigGauss1_sigma.setError(readParam(iBin,"sigGauss1_sigma",1));
-    sigGauss2_sigma.setError(readParam(iBin,"sigGauss2_sigma",1));
-    RooGaussian f_sigMGauss1("f_sigMGauss1","f_sigMGauss1", Bmass, sigGauss_mean, sigGauss1_sigma);//double gaussian with shared mean
-    RooGaussian f_sigMGauss2("f_sigMGauss2","f_sigMGauss2", Bmass, sigGauss_mean, sigGauss2_sigma);//double gaussian with shared mean
-    RooRealVar sigM_frac("sigM_frac","sigM_frac",readParam(iBin,"sigM_frac",0,0.5),0.,1.);
-    sigM_frac.setError(readParam(iBin,"sigM_frac",1));
-    RooAddPdf f_sigM("f_sigM","f_sigM", RooArgList(f_sigMGauss1, f_sigMGauss2), sigM_frac);
-
-    // Efficiency, acceptance and angular distribution of signal (checked)
-    RooRealVar recK0L0("recK0L0","recK0L0",readParam(iBin,"accXrecoEff2", 0));
-    RooRealVar recK1L0("recK1L0","recK1L0",readParam(iBin,"accXrecoEff2", 1));
-    RooRealVar recK2L0("recK2L0","recK2L0",readParam(iBin,"accXrecoEff2", 2));
-    RooRealVar recK3L0("recK3L0","recK3L0",readParam(iBin,"accXrecoEff2", 3));
-    RooRealVar recK0L2("recK0L2","recK0L2",readParam(iBin,"accXrecoEff2", 4));
-    RooRealVar recK1L2("recK1L2","recK1L2",readParam(iBin,"accXrecoEff2", 5));
-    RooRealVar recK2L2("recK2L2","recK2L2",readParam(iBin,"accXrecoEff2", 6));
-    RooRealVar recK3L2("recK3L2","recK3L2",readParam(iBin,"accXrecoEff2", 7));
-    RooRealVar recK0L3("recK0L3","recK0L3",readParam(iBin,"accXrecoEff2", 8));
-    RooRealVar recK1L3("recK1L3","recK1L3",readParam(iBin,"accXrecoEff2", 9));
-    RooRealVar recK2L3("recK2L3","recK2L3",readParam(iBin,"accXrecoEff2",10));
-    RooRealVar recK3L3("recK3L3","recK3L3",readParam(iBin,"accXrecoEff2",11));
-    RooRealVar recK0L4("recK0L4","recK0L4",readParam(iBin,"accXrecoEff2",12));
-    RooRealVar recK1L4("recK1L4","recK1L4",readParam(iBin,"accXrecoEff2",13));
-    RooRealVar recK2L4("recK2L4","recK2L4",readParam(iBin,"accXrecoEff2",14));
-    RooRealVar recK3L4("recK3L4","recK3L4",readParam(iBin,"accXrecoEff2",15));
-    RooRealVar recK0L6("recK0L6","recK0L6",readParam(iBin,"accXrecoEff2",16));
-    RooRealVar recK1L6("recK1L6","recK1L6",readParam(iBin,"accXrecoEff2",17));
-    RooRealVar recK2L6("recK2L6","recK2L6",readParam(iBin,"accXrecoEff2",18));
-    RooRealVar recK3L6("recK3L6","recK3L6",readParam(iBin,"accXrecoEff2",19));
-    recK0L0.setError(readParam(iBin,"accXrecoEff2Err", 0));
-    recK1L0.setError(readParam(iBin,"accXrecoEff2Err", 1));
-    recK2L0.setError(readParam(iBin,"accXrecoEff2Err", 2));
-    recK3L0.setError(readParam(iBin,"accXrecoEff2Err", 3));
-    recK0L2.setError(readParam(iBin,"accXrecoEff2Err", 4));
-    recK1L2.setError(readParam(iBin,"accXrecoEff2Err", 5));
-    recK2L2.setError(readParam(iBin,"accXrecoEff2Err", 6));
-    recK3L2.setError(readParam(iBin,"accXrecoEff2Err", 7));
-    recK0L3.setError(readParam(iBin,"accXrecoEff2Err", 8));
-    recK1L3.setError(readParam(iBin,"accXrecoEff2Err", 9));
-    recK2L3.setError(readParam(iBin,"accXrecoEff2Err",10));
-    recK3L3.setError(readParam(iBin,"accXrecoEff2Err",11));
-    recK0L4.setError(readParam(iBin,"accXrecoEff2Err",12));
-    recK1L4.setError(readParam(iBin,"accXrecoEff2Err",13));
-    recK2L4.setError(readParam(iBin,"accXrecoEff2Err",14));
-    recK3L4.setError(readParam(iBin,"accXrecoEff2Err",15));
-    recK0L6.setError(readParam(iBin,"accXrecoEff2Err",16));
-    recK1L6.setError(readParam(iBin,"accXrecoEff2Err",17));
-    recK2L6.setError(readParam(iBin,"accXrecoEff2Err",18));
-    recK3L6.setError(readParam(iBin,"accXrecoEff2Err",19));
-    RooArgSet f_sigA_argset(CosThetaL,CosThetaK);
-    f_sigA_argset.add(RooArgSet(fl,afb,fs,as));
-    f_sigA_argset.add(RooArgSet(recK0L0,recK1L0,recK2L0,recK3L0));
-    f_sigA_argset.add(RooArgSet(recK0L2,recK1L2,recK2L2,recK3L2));
-    TString f_sigA_format;
-    TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
-    TString f_rec_ord0 = readParam(iBin,"f_accXrecoEff_ord0",f_accXrecoEff_ord0[iBin]);
-    TString f_rec_format, f_rec_L0, f_rec_L2, f_rec_L3, f_rec_L4, f_rec_L6;
-    f_rec_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
-    f_rec_L2 = "(recK0L2+recK1L2*CosThetaK+recK2L2*(3*CosThetaK**2-1)/2+recK3L2*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**2";
-    f_rec_L3 = "(recK0L3+recK1L3*CosThetaK+recK2L3*(3*CosThetaK**2-1)/2+recK3L3*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**3";
-    f_rec_L4 = "(recK0L4+recK1L4*CosThetaK+recK2L4*(3*CosThetaK**2-1)/2+recK3L4*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**4";
-    f_rec_L6 = "(recK0L6+recK1L6*CosThetaK+recK2L6*(3*CosThetaK**2-1)/2+recK3L6*(5*CosThetaK**3-3*CosThetaK)/2)*CosThetaL**6";
-
-    if (iBin == 0) {
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_argset.add(RooArgSet(recK0L6,recK1L6,recK2L6,recK3L6));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_rec_L6.Data(),f_ang_format.Data());
-    }else if (iBin == 1) {
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L4.Data(),f_ang_format.Data());
-    }else if (iBin > 1 && iBin < 6) {
-        f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_argset.add(RooArgSet(recK0L4,recK1L4,recK2L4,recK3L4));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_rec_L4.Data(),f_ang_format.Data());
+    TFile *f_wspace_sigA = new TFile(TString::Format("%s/wspace_sigA_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_sigA = (RooWorkspace*)f_wspace_sigA->Get("wspace");
+    RooGenericPdf *f_sigA = 0;
+    RooRealVar *fl = 0;
+    RooRealVar *fs = 0;
+    RooRealVar *afb = 0;
+    RooRealVar *as = 0;
+    if (wspace_sigA){
+        f_sigA = (RooGenericPdf*)wspace_sigA->pdf("f_sigA");
+        fl = (RooRealVar*)wspace_sigA->var("fl");
+        fs = (RooRealVar*)wspace_sigA->var("fs");
+        afb = (RooRealVar*)wspace_sigA->var("afb");
+        as = (RooRealVar*)wspace_sigA->var("as");
     }else{
-        f_sigA_argset.add(RooArgSet(recK0L3,recK1L3,recK2L3,recK3L3));
-        f_sigA_format = TString::Format("%s*(1+%s+%s+%s)*%s",f_rec_ord0.Data(),f_rec_L0.Data(),f_rec_L2.Data(),f_rec_L3.Data(),f_ang_format.Data());
+        printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
+        return;
     }
-    RooGenericPdf f_sigA("f_sigA", f_sigA_format, f_sigA_argset);
+    printf("INFO: f_sigA prepared.\n");
 
-        // merge mass and angular distro of signal
-    RooProdPdf f_sig("f_sig","f_sig",f_sigM,f_sigA);
+        // Signal double gaussian
+    TFile *f_wspace_sigM = new TFile(TString::Format("%s/wspace_Sm_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_sigM = (RooWorkspace*)f_wspace_sigM->Get("wspace");
+    RooGenericPdf *f_sigM = 0;
+    RooRealVar *sigGauss_mean;
+    RooRealVar *sigGauss1_sigma;
+    RooRealVar *sigGauss2_sigma;
+    RooRealVar *sigM_frac;
+    if (wspace_sigM){
+        f_sigM = (RooGenericPdf*)wspace_sigM->pdf("f_sigM");
+        sigGauss_mean   = (RooRealVar*)wspace_sigM->var("sigGauss_mean");
+        sigGauss1_sigma = (RooRealVar*)wspace_sigM->var("sigGauss1_sigma");
+        sigGauss2_sigma = (RooRealVar*)wspace_sigM->var("sigGauss2_sigma");
+        sigM_frac       = (RooRealVar*)wspace_sigM->var("sigM_frac");
+        sigGauss_mean  ->setConstant(kFALSE);
+        sigGauss1_sigma->setConstant(kFALSE);
+        sigGauss2_sigma->setConstant(kFALSE);
+        sigM_frac      ->setConstant(kFALSE);
+    }else{
+        printf("ERROR\t\t: Please have wsapce_Sm_bin?.root prepared.\n");
+        return;
+    }
+
+        // merge mass and angular distro of signal, remark that RooProdPdf is valid for PDFs have no shared variables.
+    RooProdPdf f_sig("f_sig","f_sig",RooArgSet(*f_sigM,*f_sigA));
     printf("INFO: f_sig prepared.\n");
     
     // Create combinatorial background distribution (to be checked)
-    RooRealVar bkgCombM_c1("bkgCombM_c1","c1",readParam(iBin,"bkgCombM_c1",0),-100,100);
-    RooRealVar bkgCombM_c2("bkgCombM_c2","c2",readParam(iBin,"bkgCombM_c2",0),-100,100);
-    RooRealVar bkgCombM_c3("bkgCombM_c3","c3",readParam(iBin,"bkgCombM_c3",0),-100,100);
-    RooRealVar bkgCombM_c4("bkgCombM_c4","c4",readParam(iBin,"bkgCombM_c4",0),-100,100);
-    RooRealVar bkgCombM_c5("bkgCombM_c5","c5",readParam(iBin,"bkgCombM_c5",0),-100,100);
-    RooRealVar bkgCombM_c6("bkgCombM_c6","c6",readParam(iBin,"bkgCombM_c6",0),-100,100);
-    RooRealVar bkgCombM_c7("bkgCombM_c7","c7",readParam(iBin,"bkgCombM_c7",0),-100,100);
+    RooRealVar bkgCombM_c1("bkgCombM_c1","c1",readParam(iBin,"bkgCombM_c1",0),-10,10);
+    RooRealVar bkgCombM_c2("bkgCombM_c2","c2",readParam(iBin,"bkgCombM_c2",0),-10,10);
+    RooRealVar bkgCombM_c3("bkgCombM_c3","c3",readParam(iBin,"bkgCombM_c3",0),-10,10);
+    RooRealVar bkgCombM_c4("bkgCombM_c4","c4",readParam(iBin,"bkgCombM_c4",0),-10,10);
     RooArgSet f_bkgCombM_argset;
     switch (iBin){
         case 0:
@@ -3137,334 +3525,126 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
         case 5:
         case 6:
         case 7:
-            f_bkgCombM_argset.add(RooArgSet(bkgCombM_c1,bkgCombM_c2,bkgCombM_c3,bkgCombM_c4,bkgCombM_c5,bkgCombM_c6,bkgCombM_c7));
+            f_bkgCombM_argset.add(RooArgSet(bkgCombM_c1));
             break;
         default:
             f_bkgCombM_argset.add(RooArgSet(bkgCombM_c1,bkgCombM_c2,bkgCombM_c3,bkgCombM_c4));
             break;
     }
-    RooPolynomial f_bkgCombM("f_bkgCombM","f_bkgCombM",Bmass_norm,f_bkgCombM_argset);
-    RooRealVar bkgCombL_c1("bkgCombL_c1","c1",readParam(iBin,"bkgCombL_c1",0),-100,100);
-    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0.01),-100,100);
-    RooRealVar bkgCombL_c3("bkgCombL_c3","c3",readParam(iBin,"bkgCombL_c3",0),-100,100);
-    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0.01),-100,100);
-    RooRealVar bkgCombL_c5("bkgCombL_c5","c5",readParam(iBin,"bkgCombL_c5",0),-100,100);
-    RooRealVar bkgCombL_c6("bkgCombL_c6","c6",readParam(iBin,"bkgCombL_c6",0.01),-100,100);
-    RooRealVar bkgCombL_c7("bkgCombL_c7","c7",readParam(iBin,"bkgCombL_c7",0),-100,100);
-    RooRealVar bkgCombL_c8("bkgCombL_c8","c8",readParam(iBin,"bkgCombL_c8",0),-100,100);
-    RooArgSet f_bkgCombL_argset;
-    switch (iBin) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1,bkgCombL_c2,bkgCombL_c3,bkgCombL_c4,bkgCombL_c5,bkgCombL_c6,bkgCombL_c7));
-            break;
-        default:
-            bkgCombL_c1.setVal(0.);
-            bkgCombL_c2.setVal(0.);
-            bkgCombL_c3.setVal(0.);
-            bkgCombL_c4.setVal(0.);
-            bkgCombL_c1.setConstant(kTRUE);
-            bkgCombL_c2.setConstant(kTRUE);
-            bkgCombL_c3.setConstant(kTRUE);
-            bkgCombL_c4.setConstant(kTRUE);
-            break;
+    f_bkgCombM_argset.add(RooArgSet(Bmass));
+    TString f_bkgCombM_format = "1+bkgCombM_c1*(Bmass-5)";
+    RooGenericPdf f_bkgCombM("f_bkgCombM","f_bkgCombM",f_bkgCombM_format,f_bkgCombM_argset);
+
+    TFile *f_wspace_comb_A = new TFile(TString::Format("%s/wspace_prior_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_comb_A = (RooWorkspace*)f_wspace_comb_A->Get("wspace");
+    RooGenericPdf *f_bkgCombA = 0;
+    if (wspace_comb_A){
+        f_bkgCombA = (RooGenericPdf*)wspace_comb_A->pdf("f_bkgCombA");
     }
-    RooPolynomial f_bkgCombL("f_bkgCombL","f_bkgCombL",CosThetaL,f_bkgCombL_argset); // RooPolynomial
-//    RooGaussian f_bkgCombL_gaus1("f_bkgCombL_gaus1","f_bkgCombL_gaus1",CosThetaL,bkgCombL_c1,bkgCombL_c2);
-//    RooGaussian f_bkgCombL_gaus2("f_bkgCombL_gaus2","f_bkgCombL_gaus2",CosThetaL,bkgCombL_c3,bkgCombL_c4);
-//    RooGaussian f_bkgCombL_gaus3("f_bkgCombL_gaus3","f_bkgCombL_gaus3",CosThetaL,bkgCombL_c5,bkgCombL_c6);
-//    RooAddPdf f_bkgCombL("f_bkgCombL","f_bkgCombL",RooArgList(f_bkgCombL_gaus1,f_bkgCombL_gaus2,f_bkgCombL_gaus3),RooArgList(bkgCombL_c7,bkgCombL_c8));//3 Gaussians
-    RooRealVar bkgCombK_c1("bkgCombK_c1","c1",readParam(iBin,"bkgCombK_c1",0),-100,100);
-    RooRealVar bkgCombK_c2("bkgCombK_c2","c2",readParam(iBin,"bkgCombK_c2",0),-100,100);
-    RooRealVar bkgCombK_c3("bkgCombK_c3","c3",readParam(iBin,"bkgCombK_c3",0),-100,100);
-    RooRealVar bkgCombK_c4("bkgCombK_c4","c4",readParam(iBin,"bkgCombK_c4",0),-100,100);
-    RooRealVar bkgCombK_c5("bkgCombK_c5","c5",readParam(iBin,"bkgCombK_c5",0),-100,100);
-    RooRealVar bkgCombK_c6("bkgCombK_c6","c6",readParam(iBin,"bkgCombK_c6",0),-100,100);
-    RooRealVar bkgCombK_c7("bkgCombK_c7","c7",readParam(iBin,"bkgCombK_c7",0),-100,100);
-    RooArgSet f_bkgCombK_argset;
-    switch (iBin) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1,bkgCombK_c2,bkgCombK_c3,bkgCombK_c4,bkgCombK_c5,bkgCombK_c6,bkgCombK_c7));
-            break;
-        default:
-            bkgCombK_c1.setVal(0.);
-            bkgCombK_c2.setVal(0.);
-            bkgCombK_c3.setVal(0.);
-            bkgCombK_c4.setVal(0.);
-            bkgCombK_c1.setConstant(kTRUE);
-            bkgCombK_c2.setConstant(kTRUE);
-            bkgCombK_c3.setConstant(kTRUE);
-            bkgCombK_c4.setConstant(kTRUE);
-            break;
-    }
-    RooPolynomial f_bkgCombK("f_bkgCombK","f_bkgCombK",CosThetaK,f_bkgCombK_argset);
-    RooProdPdf f_bkgCombA("f_bkgCombA", "f_bckCombA",f_bkgCombK,f_bkgCombL);
-    RooProdPdf f_bkgComb("f_bkgComb", "f_bckComb",f_bkgCombA,f_bkgCombM);
+
+    RooProdPdf f_bkgComb("f_bkgComb", "f_bckComb",RooArgSet(*f_bkgCombA,f_bkgCombM));
     
-    //TString f_bkgComb_format = "";
-    //RooArgSet f_bkgComb_argset;
-    //f_bkgComb_argset.add(RooArgSet(bkgCombK_c1,bkgCombK_c2,bkgCombK_c3,bkgCombK_c4,CosThetaK));
-    //f_bkgComb_argset.add(RooArgSet(bkgCombL_c1,bkgCombL_c2,bkgCombL_c3,bkgCombL_c4,CosThetaL));
-    //f_bkgComb_argset.add(RooArgSet(bkgCombM_c1,bkgCombM_c2,bkgCombM_c3,bkgCombM_c4,Bmass_norm));
-    //RooGenericPdf f_bkgComb("f_bkgComb", f_bkgComb_format,f_bkgComb_argset);
     printf("INFO: f_bkgComb prepared.\n");
     
     // Create peak background distribution(jpsi/psi2s)
-    RooRealVar bkgjpsiGauss1_mean1("bkgjpsiGauss1_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgjpsiGauss1_mean1",0));
-    RooRealVar bkgjpsiGauss1_mean2("bkgjpsiGauss1_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgjpsiGauss1_mean2",0));
-    RooRealVar bkgjpsiGauss1_sigma1("bkgjpsiGauss1_sigma1","#sigma_{11}",readParam(iBin,"bkgjpsiGauss1_sigma1",0));
-    RooRealVar bkgjpsiGauss1_sigma2("bkgjpsiGauss1_sigma2","#sigma_{12}",readParam(iBin,"bkgjpsiGauss1_sigma2",0));
-    RooRealVar bkgjpsiM_frac1("bkgjpsiM_frac1","bkgjpsiM_frac1",readParam(iBin,"bkgjpsiM_frac1",0));
-    RooRealVar bkgjpsiM_fracC1("bkgjpsiM_fracC1"           , "bkgjpsiM_fracC1"  , readParam(iBin,"bkgjpsiM_fracC1",0));
-    RooRealVar bkgjpsiGauss2_mean1("bkgjpsiGauss2_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgjpsiGauss2_mean1",0));
-    RooRealVar bkgjpsiGauss2_mean2("bkgjpsiGauss2_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgjpsiGauss2_mean2",0));
-    RooRealVar bkgjpsiGauss2_sigma1("bkgjpsiGauss2_sigma1","#sigma_{21}",readParam(iBin,"bkgjpsiGauss2_sigma1",0));
-    RooRealVar bkgjpsiGauss2_sigma2("bkgjpsiGauss2_sigma2","#sigma_{22}",readParam(iBin,"bkgjpsiGauss2_sigma2",0));
-    RooRealVar bkgjpsiM_frac2("bkgjpsiM_frac2","bkgjpsiM_frac2",readParam(iBin,"bkgjpsiM_frac2",0));
-    RooRealVar bkgjpsiM_frac12("bkgjpsiM_frac12","bkgjpsiM_frac12",readParam(iBin,"bkgjpsiM_frac12",0));
-    bkgjpsiGauss1_mean1.setError(readParam(iBin,"bkgjpsiGauss1_mean1",1));
-    bkgjpsiGauss1_mean2.setError(readParam(iBin,"bkgjpsiGauss1_mean2",1));
-    bkgjpsiGauss1_sigma1.setError(readParam(iBin,"bkgjpsiGauss1_sigma1",1));
-    bkgjpsiGauss1_sigma2.setError(readParam(iBin,"bkgjpsiGauss1_sigma2",1));
-    bkgjpsiM_frac1.setError(readParam(iBin,"bkgjpsiM_frac1",1));
-    bkgjpsiM_fracC1.setError(readParam(iBin,"bkgjpsiM_fracC1",1));
-    bkgjpsiGauss2_mean1.setError(readParam(iBin,"bkgjpsiGauss2_mean1",1));
-    bkgjpsiGauss2_mean2.setError(readParam(iBin,"bkgjpsiGauss2_mean2",1));
-    bkgjpsiGauss2_sigma1.setError(readParam(iBin,"bkgjpsiGauss2_sigma1",1));
-    bkgjpsiGauss2_sigma2.setError(readParam(iBin,"bkgjpsiGauss2_sigma2",1));
-    bkgjpsiM_frac2.setError(readParam(iBin,"bkgjpsiM_frac2",1));
-    bkgjpsiM_frac12.setError(readParam(iBin,"bkgjpsiM_frac12",1));
-    RooGaussian f_bkgjpsiPeakMGauss11("f_bkgjpsiPeakMGauss11","f_bkgjpsiPeakMGauss11", Bmass, bkgjpsiGauss1_mean1, bkgjpsiGauss1_sigma1);
-    RooGaussian f_bkgjpsiPeakMGauss12("f_bkgjpsiPeakMGauss12","f_bkgjpsiPeakMGauss12", Bmass, bkgjpsiGauss1_mean2, bkgjpsiGauss1_sigma2);
-    RooGaussian f_bkgjpsiPeakMGauss21("f_bkgjpsiPeakMGauss21","f_bkgjpsiPeakMGauss21", Bmass, bkgjpsiGauss2_mean1, bkgjpsiGauss2_sigma1);
-    RooGaussian f_bkgjpsiPeakMGauss22("f_bkgjpsiPeakMGauss22","f_bkgjpsiPeakMGauss22", Bmass, bkgjpsiGauss2_mean2, bkgjpsiGauss2_sigma2);
-    RooAddPdf f_bkgjpsiPeakM1("f_bkgjpsiPeakM1","f_bkgjpsiPeakM1", RooArgList(f_bkgjpsiPeakMGauss11, f_bkgjpsiPeakMGauss12), bkgjpsiM_frac1);
-    RooAddPdf f_bkgjpsiPeakM2("f_bkgjpsiPeakM2","f_bkgjpsiPeakM2", RooArgList(f_bkgjpsiPeakMGauss21, f_bkgjpsiPeakMGauss22), bkgjpsiM_frac2);
-    RooAddPdf f_bkgjpsiPeakM12("f_bkgjpsiPeakM12","f_bkgjpsiPeakM12", RooArgList(f_bkgjpsiPeakM1, f_bkgjpsiPeakM2), bkgjpsiM_frac12);
-    RooRealVar bkgpsi2sGauss1_mean1("bkgpsi2sGauss1_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgpsi2sGauss1_mean1",0));
-    RooRealVar bkgpsi2sGauss1_mean2("bkgpsi2sGauss1_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgpsi2sGauss1_mean2",0));
-    RooRealVar bkgpsi2sGauss1_sigma1("bkgpsi2sGauss1_sigma1","#sigma_{11}",readParam(iBin,"bkgpsi2sGauss1_sigma1",0));
-    RooRealVar bkgpsi2sGauss1_sigma2("bkgpsi2sGauss1_sigma2","#sigma_{12}",readParam(iBin,"bkgpsi2sGauss1_sigma2",0));
-    RooRealVar bkgpsi2sM_frac1("bkgpsi2sM_frac1","bkgpsi2sM_frac1",readParam(iBin,"bkgpsi2sM_frac1",0));
-    RooRealVar bkgpsi2sM_fracC1("bkgpsi2sM_fracC1"           , "bkgpsi2sM_fracC1"  , readParam(iBin,"bkgpsi2sM_fracC1",0));
-    RooRealVar bkgpsi2sGauss2_mean1("bkgpsi2sGauss2_mean1","M_{K*#Mu#Mu}",readParam(iBin,"bkgpsi2sGauss2_mean1",0));
-    RooRealVar bkgpsi2sGauss2_mean2("bkgpsi2sGauss2_mean2","M_{K*#Mu#Mu}",readParam(iBin,"bkgpsi2sGauss2_mean2",0));
-    RooRealVar bkgpsi2sGauss2_sigma1("bkgpsi2sGauss2_sigma1","#sigma_{21}",readParam(iBin,"bkgpsi2sGauss2_sigma1",0));
-    RooRealVar bkgpsi2sGauss2_sigma2("bkgpsi2sGauss2_sigma2","#sigma_{22}",readParam(iBin,"bkgpsi2sGauss2_sigma2",0));
-    RooRealVar bkgpsi2sM_frac2("bkgpsi2sM_frac2","bkgpsi2sM_frac2",readParam(iBin,"bkgpsi2sM_frac2",0));
-    RooRealVar bkgpsi2sM_frac12("bkgpsi2sM_frac12","bkgpsi2sM_frac12",readParam(iBin,"bkgpsi2sM_frac12",0));
-    bkgpsi2sGauss1_mean1.setError(readParam(iBin,"bkgpsi2sGauss1_mean1",1));
-    bkgpsi2sGauss1_mean2.setError(readParam(iBin,"bkgpsi2sGauss1_mean2",1));
-    bkgpsi2sGauss1_sigma1.setError(readParam(iBin,"bkgpsi2sGauss1_sigma1",1));
-    bkgpsi2sGauss1_sigma2.setError(readParam(iBin,"bkgpsi2sGauss1_sigma2",1));
-    bkgpsi2sM_frac1.setError(readParam(iBin,"bkgpsi2sM_frac1",1));
-    bkgpsi2sM_fracC1.setError(readParam(iBin,"bkgpsi2sM_fracC1",1));
-    bkgpsi2sGauss2_mean1.setError(readParam(iBin,"bkgpsi2sGauss2_mean1",1));
-    bkgpsi2sGauss2_mean2.setError(readParam(iBin,"bkgpsi2sGauss2_mean2",1));
-    bkgpsi2sGauss2_sigma1.setError(readParam(iBin,"bkgpsi2sGauss2_sigma1",1));
-    bkgpsi2sGauss2_sigma2.setError(readParam(iBin,"bkgpsi2sGauss2_sigma2",1));
-    bkgpsi2sM_frac2.setError(readParam(iBin,"bkgpsi2sM_frac2",1));
-    bkgpsi2sM_frac12.setError(readParam(iBin,"bkgpsi2sM_frac12",1));
-    RooGaussian f_bkgpsi2sPeakMGauss11("f_bkgpsi2sPeakMGauss11","f_bkgpsi2sPeakMGauss11", Bmass, bkgpsi2sGauss1_mean1, bkgpsi2sGauss1_sigma1);
-    RooGaussian f_bkgpsi2sPeakMGauss12("f_bkgpsi2sPeakMGauss12","f_bkgpsi2sPeakMGauss12", Bmass, bkgpsi2sGauss1_mean2, bkgpsi2sGauss1_sigma2);
-    RooGaussian f_bkgpsi2sPeakMGauss21("f_bkgpsi2sPeakMGauss21","f_bkgpsi2sPeakMGauss21", Bmass, bkgpsi2sGauss2_mean1, bkgpsi2sGauss2_sigma1);
-    RooGaussian f_bkgpsi2sPeakMGauss22("f_bkgpsi2sPeakMGauss22","f_bkgpsi2sPeakMGauss22", Bmass, bkgpsi2sGauss2_mean2, bkgpsi2sGauss2_sigma2);
-    RooAddPdf f_bkgpsi2sPeakM1("f_bkgpsi2sPeakM1","f_bkgpsi2sPeakM1", RooArgList(f_bkgpsi2sPeakMGauss11, f_bkgpsi2sPeakMGauss12), bkgpsi2sM_frac1);
-    RooAddPdf f_bkgpsi2sPeakM2("f_bkgpsi2sPeakM2","f_bkgpsi2sPeakM2", RooArgList(f_bkgpsi2sPeakMGauss21, f_bkgpsi2sPeakMGauss22), bkgpsi2sM_frac2);
-    RooAddPdf f_bkgpsi2sPeakM12("f_bkgpsi2sPeakM12","f_bkgpsi2sPeakM12", RooArgList(f_bkgpsi2sPeakM1, f_bkgpsi2sPeakM2), bkgpsi2sM_frac12);
-    switch (iBin) {// Should be constants.
-        case 2:
-            // double Gaussian
-            bkgjpsiM_frac12.setVal(1.);
-            bkgjpsiM_frac12.setConstant(kTRUE);
-            bkgpsi2sM_frac12.setVal(1.);
-            bkgpsi2sM_frac12.setConstant(kTRUE);
-//            f = new RooExtendPdf("f","f",f_bkgPeakM1,nbkgPeak); // triple Gaussian at low
-            break;
-        case 4:
-            // two double Gaussians
-            bkgjpsiM_fracC1.setVal(0.);
-            bkgjpsiM_fracC1.setConstant(kTRUE);
-            bkgjpsiM_frac12.setVal(0.);
-            bkgpsi2sM_fracC1.setVal(0.);
-            bkgpsi2sM_fracC1.setConstant(kTRUE);
-            bkgpsi2sM_frac12.setVal(1.);
-            bkgpsi2sM_frac12.setConstant(kTRUE);
-//            f = new RooExtendPdf("f","f",f_bkgPeakM12,nbkgPeak); // two double Gaussian
-            break;
-        case 6:
-            // single Gaussian
-            bkgjpsiM_frac12.setVal(0.);
-            bkgjpsiM_frac12.setConstant(kTRUE);
-            bkgpsi2sM_frac12.setVal(0.);
-            bkgpsi2sM_frac12.setConstant(kTRUE);
-//            f = new RooExtendPdf("f","f",f_bkgPeakM2,nbkgPeak); // single Gaussian at high
-            break;
-        case 3:
-        case 5:
-            bkgjpsiM_frac12.setVal(1.);
-            bkgjpsiM_frac12.setConstant(kTRUE);
-            bkgjpsiM_fracC1.setVal(0.);
-            bkgjpsiM_fracC1.setConstant(kTRUE);
-            bkgpsi2sM_frac12.setVal(1.);
-            bkgpsi2sM_frac12.setConstant(kTRUE);
-            bkgpsi2sM_fracC1.setVal(0.); 
-            bkgpsi2sM_fracC1.setConstant(kTRUE);
-//            f = new RooExtendPdf("f","f",f_bkgPeakM1,nbkgPeak); // double Gaussian peak around B+
-            break;
-        default:
-            break;
+    TFile *f_wspace_jpsi_M = new TFile(TString::Format("%s/wspace_YpPm_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_M = (RooWorkspace*)f_wspace_jpsi_M->Get("wspace");
+    RooRealVar *nbkgjpsiPeak_MC;
+    RooAddPdf *f_bkgjpsiPeakM12 = 0;
+    if (wspace_jpsi_M){
+        nbkgjpsiPeak_MC = (RooRealVar*)wspace_jpsi_M->var("nbkgjpsiPeak_MC");
+        f_bkgjpsiPeakM12 = (RooAddPdf*)wspace_jpsi_M->pdf("f_bkgjpsiPeakM12");
     }
+    TFile *f_wspace_psi2s_M = new TFile(TString::Format("%s/wspace_YpPm_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_M = (RooWorkspace*)f_wspace_psi2s_M->Get("wspace");
+    RooRealVar *nbkgpsi2sPeak_MC;
+    RooAddPdf *f_bkgpsi2sPeakM12 = 0;
+    if (wspace_psi2s_M){
+        nbkgpsi2sPeak_MC  = (RooRealVar*)wspace_psi2s_M->var("nbkgpsi2sPeak_MC");
+        f_bkgpsi2sPeakM12 = (RooAddPdf*)wspace_psi2s_M->pdf("f_bkgpsi2sPeakM12");
+    }
+
         // Angular distribution of peaking background
-    RooRealVar bkgjpsiPeak_c1("bkgjpsiPeak_c1","bkgjpsiPeak_c1",readParam(3,"bkgjpsiPeak_c1",0));
-    RooRealVar bkgjpsiPeak_c2("bkgjpsiPeak_c2","bkgjpsiPeak_c2",readParam(3,"bkgjpsiPeak_c2",0));
-    RooRealVar bkgjpsiPeak_c3("bkgjpsiPeak_c3","bkgjpsiPeak_c3",readParam(3,"bkgjpsiPeak_c3",0));
-    RooRealVar bkgjpsiPeak_c4("bkgjpsiPeak_c4","bkgjpsiPeak_c4",readParam(3,"bkgjpsiPeak_c4",0));
-    RooRealVar bkgjpsiPeak_c5("bkgjpsiPeak_c5","bkgjpsiPeak_c5",readParam(3,"bkgjpsiPeak_c5",0));
-    RooRealVar bkgjpsiPeak_c6("bkgjpsiPeak_c6","bkgjpsiPeak_c6",readParam(3,"bkgjpsiPeak_c6",0));
-    RooRealVar bkgjpsiPeak_c7("bkgjpsiPeak_c7","bkgjpsiPeak_c7",readParam(3,"bkgjpsiPeak_c7",0));
-    RooRealVar bkgjpsiPeak_c8("bkgjpsiPeak_c8","bkgjpsiPeak_c8",readParam(3,"bkgjpsiPeak_c8",0));
-    bkgjpsiPeak_c1.setError(readParam(3,"bkgjpsiPeak_c1",1));
-    bkgjpsiPeak_c2.setError(readParam(3,"bkgjpsiPeak_c2",1));
-    bkgjpsiPeak_c3.setError(readParam(3,"bkgjpsiPeak_c3",1));
-    bkgjpsiPeak_c4.setError(readParam(3,"bkgjpsiPeak_c4",1));
-    bkgjpsiPeak_c5.setError(readParam(3,"bkgjpsiPeak_c5",1));
-    bkgjpsiPeak_c6.setError(readParam(3,"bkgjpsiPeak_c6",1));
-    bkgjpsiPeak_c7.setError(readParam(3,"bkgjpsiPeak_c7",1));
-    bkgjpsiPeak_c8.setError(readParam(3,"bkgjpsiPeak_c8",1));
-    RooRealVar bkgpsi2sPeak_c1("bkgpsi2sPeak_c1","bkgpsi2sPeak_c1",readParam(5,"bkgpsi2sPeak_c1",0));
-    RooRealVar bkgpsi2sPeak_c2("bkgpsi2sPeak_c2","bkgpsi2sPeak_c2",readParam(5,"bkgpsi2sPeak_c2",0));
-    RooRealVar bkgpsi2sPeak_c3("bkgpsi2sPeak_c3","bkgpsi2sPeak_c3",readParam(5,"bkgpsi2sPeak_c3",0));
-    RooRealVar bkgpsi2sPeak_c4("bkgpsi2sPeak_c4","bkgpsi2sPeak_c4",readParam(5,"bkgpsi2sPeak_c4",0));
-    RooRealVar bkgpsi2sPeak_c5("bkgpsi2sPeak_c5","bkgpsi2sPeak_c5",readParam(5,"bkgpsi2sPeak_c5",0));
-    RooRealVar bkgpsi2sPeak_c6("bkgpsi2sPeak_c6","bkgpsi2sPeak_c6",readParam(5,"bkgpsi2sPeak_c6",0));
-    RooRealVar bkgpsi2sPeak_c7("bkgpsi2sPeak_c7","bkgpsi2sPeak_c7",readParam(5,"bkgpsi2sPeak_c7",0));
-    RooRealVar bkgpsi2sPeak_c8("bkgpsi2sPeak_c8","bkgpsi2sPeak_c8",readParam(5,"bkgpsi2sPeak_c8",0));
-    bkgpsi2sPeak_c1.setError(readParam(5,"bkgjpsiPeak_c1",1));
-    bkgpsi2sPeak_c2.setError(readParam(5,"bkgjpsiPeak_c2",1));
-    bkgpsi2sPeak_c3.setError(readParam(5,"bkgjpsiPeak_c3",1));
-    bkgpsi2sPeak_c4.setError(readParam(5,"bkgjpsiPeak_c4",1));
-    bkgpsi2sPeak_c5.setError(readParam(5,"bkgjpsiPeak_c5",1));
-    bkgpsi2sPeak_c6.setError(readParam(5,"bkgjpsiPeak_c6",1));
-    bkgpsi2sPeak_c7.setError(readParam(5,"bkgjpsiPeak_c7",1));
-    bkgpsi2sPeak_c8.setError(readParam(5,"bkgjpsiPeak_c8",1));
-    switch (iBin) {// Should be fixed constants already.
-        case 3:
-        case 5:
-            bkgjpsiPeak_c1.setConstant(kTRUE);
-            bkgjpsiPeak_c2.setConstant(kTRUE);
-            bkgjpsiPeak_c3.setConstant(kTRUE);
-            bkgjpsiPeak_c4.setConstant(kTRUE);
-            bkgjpsiPeak_c5.setConstant(kTRUE);
-            bkgjpsiPeak_c6.setConstant(kTRUE);
-            bkgjpsiPeak_c7.setConstant(kTRUE);
-            bkgjpsiPeak_c8.setConstant(kTRUE);
-            bkgpsi2sPeak_c1.setConstant(kTRUE);
-            bkgpsi2sPeak_c2.setConstant(kTRUE);
-            bkgpsi2sPeak_c3.setConstant(kTRUE);
-            bkgpsi2sPeak_c4.setConstant(kTRUE);
-            bkgpsi2sPeak_c5.setConstant(kTRUE);
-            bkgpsi2sPeak_c6.setConstant(kTRUE);
-            bkgpsi2sPeak_c7.setConstant(kTRUE);
-            bkgpsi2sPeak_c8.setConstant(kTRUE);
-            break;
-        default:
-            bkgjpsiPeak_c1.setConstant(kTRUE);
-            bkgjpsiPeak_c2.setConstant(kTRUE);
-            bkgjpsiPeak_c3.setConstant(kTRUE);
-            bkgjpsiPeak_c4.setConstant(kTRUE);
-            bkgjpsiPeak_c5.setConstant(kTRUE);
-            bkgjpsiPeak_c6.setConstant(kTRUE);
-            bkgjpsiPeak_c7.setConstant(kTRUE);
-            bkgjpsiPeak_c8.setConstant(kTRUE);
-            bkgpsi2sPeak_c1.setConstant(kTRUE);
-            bkgpsi2sPeak_c2.setConstant(kTRUE);
-            bkgpsi2sPeak_c3.setConstant(kTRUE);
-            bkgpsi2sPeak_c4.setConstant(kTRUE);
-            bkgpsi2sPeak_c5.setConstant(kTRUE);
-            bkgpsi2sPeak_c6.setConstant(kTRUE);
-            bkgpsi2sPeak_c7.setConstant(kTRUE);
-            bkgpsi2sPeak_c8.setConstant(kTRUE);
-            break;
+    TFile *f_wspace_jpsi_A = new TFile(TString::Format("%s/wspace_PkPl_jpsi_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_jpsi_A = (RooWorkspace*)f_wspace_jpsi_A->Get("wspace");
+    RooGenericPdf *f_bkgjpsiPeakA = 0;
+    if (wspace_jpsi_A){
+        f_bkgjpsiPeakA = (RooGenericPdf*)wspace_jpsi_A->pdf("f_bkgjpsiPeakA");
     }
-    TString f_bkgjpsiPeakA_format = "(1+\
-                                bkgjpsiPeak_c1*CosThetaK+\
-                                bkgjpsiPeak_c2*CosThetaK**2+\
-                                bkgjpsiPeak_c3*CosThetaL**2+\
-                                bkgjpsiPeak_c4*CosThetaL**4+\
-                                bkgjpsiPeak_c5*CosThetaL**2*CosThetaK+\
-                                bkgjpsiPeak_c6*CosThetaL**4*CosThetaK+\
-                                bkgjpsiPeak_c7*CosThetaL**2*CosThetaK**2+\
-                                bkgjpsiPeak_c8*CosThetaL**4*CosThetaK**2)*\
-                                exp(-(CosThetaK+0.5*CosThetaL)**4-(CosThetaK-0.5*CosThetaL)**4+1.5*(CosThetaK+0.5*CosThetaL)**2+1.5*(CosThetaK-0.5*CosThetaL)**2)";
-    TString f_bkgpsi2sPeakA_format = "(1+\
-                                bkgpsi2sPeak_c1*CosThetaK+\
-                                bkgpsi2sPeak_c2*CosThetaK**2+\
-                                bkgpsi2sPeak_c3*CosThetaL**2+\
-                                bkgpsi2sPeak_c4*CosThetaL**4+\
-                                bkgpsi2sPeak_c5*CosThetaL**2*CosThetaK+\
-                                bkgpsi2sPeak_c6*CosThetaL**4*CosThetaK+\
-                                bkgpsi2sPeak_c7*CosThetaL**2*CosThetaK**2+\
-                                bkgpsi2sPeak_c8*CosThetaL**4*CosThetaK**2)*\
-                                exp(-(CosThetaK+0.5*CosThetaL)**4-(CosThetaK-0.5*CosThetaL)**4+1.5*(CosThetaK+0.5*CosThetaL)**2+1.5*(CosThetaK-0.5*CosThetaL)**2)";
-
-    RooArgSet f_bkgjpsiPeakA_argset;
-    f_bkgjpsiPeakA_argset.add(RooArgSet(CosThetaL,CosThetaK));
-    f_bkgjpsiPeakA_argset.add(RooArgSet(bkgjpsiPeak_c1,bkgjpsiPeak_c2,bkgjpsiPeak_c3,bkgjpsiPeak_c4,bkgjpsiPeak_c5,bkgjpsiPeak_c6,bkgjpsiPeak_c7,bkgjpsiPeak_c8));
-    RooGenericPdf f_bkgjpsiPeakA("f_bkgjpsiPeakA", "f_bkgjpsiPeakA",f_bkgjpsiPeakA_format,f_bkgjpsiPeakA_argset);
-
-    RooArgSet f_bkgpsi2sPeakA_argset;
-    f_bkgpsi2sPeakA_argset.add(RooArgSet(CosThetaL,CosThetaK));
-    f_bkgpsi2sPeakA_argset.add(RooArgSet(bkgpsi2sPeak_c1,bkgpsi2sPeak_c2,bkgpsi2sPeak_c3,bkgpsi2sPeak_c4,bkgpsi2sPeak_c5,bkgpsi2sPeak_c6,bkgpsi2sPeak_c7,bkgpsi2sPeak_c8));
-    RooGenericPdf f_bkgpsi2sPeakA("f_bkgpsi2sPeakA", "f_bkgpsi2sPeakA",f_bkgpsi2sPeakA_format,f_bkgpsi2sPeakA_argset);
+    TFile *f_wspace_psi2s_A = new TFile(TString::Format("%s/wspace_PkPl_psi2s_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_psi2s_A = (RooWorkspace*)f_wspace_psi2s_A->Get("wspace");
+    RooGenericPdf *f_bkgpsi2sPeakA = 0;
+    if (wspace_psi2s_A){
+        f_bkgpsi2sPeakA = (RooGenericPdf*)wspace_psi2s_A->pdf("f_bkgpsi2sPeakA");
+    }
 
         // merge mass with angular term
-    RooProdPdf f_bkgjpsiPeak("f_bkgjpsiPeak", "f_bkgjpsiPeak",f_bkgjpsiPeakA,f_bkgjpsiPeakM12);
-    RooProdPdf f_bkgpsi2sPeak("f_bkgpsi2sPeak", "f_bkgpsi2sPeak",f_bkgpsi2sPeakA,f_bkgpsi2sPeakM12);
+    RooProdPdf *f_bkgjpsiPeak = 0;
+    RooProdPdf *f_bkgpsi2sPeak = 0;
+    switch(iBin){
+        case 2:
+            f_bkgjpsiPeak  = new RooProdPdf("f_bkgjpsiPeak", "f_bkgjpsiPeak",RooArgSet(*f_bkgjpsiPeakA,*f_bkgjpsiPeakM12));
+            break;
+        case 4:
+            f_bkgjpsiPeak  = new RooProdPdf("f_bkgjpsiPeak", "f_bkgjpsiPeak",RooArgSet(*f_bkgjpsiPeakA,*f_bkgjpsiPeakM12));
+            f_bkgpsi2sPeak = new RooProdPdf("f_bkgpsi2sPeak", "f_bkgpsi2sPeak",RooArgSet(*f_bkgpsi2sPeakA,*f_bkgpsi2sPeakM12));
+            break;
+        case 6:
+            f_bkgpsi2sPeak = new RooProdPdf("f_bkgpsi2sPeak", "f_bkgpsi2sPeak",RooArgSet(*f_bkgpsi2sPeakA,*f_bkgpsi2sPeakM12));
+            break;
+        default:
+            break;
+    }
     printf("INFO: f_bkgPeak prepared.\n");
 
     // Observed spectrum = model*fullEfficiency
-    RooRealVar nsig("nsig","nsig",50,0,5E3);
-    RooRealVar nbkgComb("nbkgComb","nbkgComb",100,0,1E8);
-    RooRealVar nbkgjpsiPeak("nbkgjpsiPeak","nbkgjpsiPeak",readParam(iBin,"nbkgjpsiPeak",0)*datasetLumi[0]/datasetLumi[2],0,1E8);
-    RooRealVar nbkgpsi2sPeak("nbkgpsi2sPeak","nbkgpsi2sPeak",readParam(iBin,"nbkgpsi2sPeak",0)*datasetLumi[0]/datasetLumi[3],0,1E8);
-    switch (iBin){
+    RooRealVar nsig("nsig","nsig",50,-10,5E3);
+    RooRealVar nbkgComb("nbkgComb","nbkgComb",100,-10,1E8);
+    RooRealVar nbkgjpsiPeak("nbkgjpsiPeak","nbkgjpsiPeak",10,-10,1E7);
+    RooRealVar nbkgpsi2sPeak("nbkgpsi2sPeak","nbkgpsi2sPeak",10,-10,1E7);
+    RooAddPdf *fM = 0;
+    RooAddPdf *fA = 0;
+    RooAddPdf *f = 0;
+    switch(iBin){
         case 2:
-        case 3:
             nbkgpsi2sPeak.setVal(0.);
             nbkgpsi2sPeak.setConstant(kTRUE);
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            fM = new RooAddPdf("kernelM","kernelM",RooArgList(f_bkgCombM,*f_bkgjpsiPeakM12,*f_sigM),RooArgList(nbkgComb,nbkgjpsiPeak,nsig));
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgjpsiPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgjpsiPeak,nsig));
+            f  = new RooAddPdf("kernel","kernel",RooArgList(f_bkgComb,*f_bkgjpsiPeak,f_sig),RooArgList(nbkgComb,nbkgjpsiPeak,nsig));
             break;
         case 4:
+            nbkgjpsiPeak.setVal(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]);
+            nbkgjpsiPeak.setError(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]);
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+
+            fM = new RooAddPdf("kernelM","kernelM",RooArgList(f_bkgCombM,*f_bkgjpsiPeakM12,*f_bkgpsi2sPeakM12,*f_sigM),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak,nsig));
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgjpsiPeakA,*f_bkgpsi2sPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak,nsig));
+            f  = new RooAddPdf("kernel","kernel",RooArgList(f_bkgComb,*f_bkgjpsiPeak,*f_bkgpsi2sPeak,f_sig),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak,nsig));
             break;
-        case 5:
         case 6:
             nbkgjpsiPeak.setVal(0.);
             nbkgjpsiPeak.setConstant(kTRUE);
+            nbkgpsi2sPeak.setVal(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]);
+            nbkgpsi2sPeak.setError(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]);
+            fM = new RooAddPdf("kernelM","kernelM",RooArgList(f_bkgCombM,*f_bkgpsi2sPeakM12,*f_sigM),RooArgList(nbkgComb,nbkgpsi2sPeak,nsig));
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_bkgpsi2sPeakA,*f_bkgCombA),RooArgList(nbkgComb,nbkgpsi2sPeak,nsig));
+            f  = new RooAddPdf("kernel","kernel",RooArgList(f_bkgComb,*f_bkgpsi2sPeak,f_sig),RooArgList(nbkgComb,nbkgpsi2sPeak,nsig));
             break;
-        case 0:
-        case 1:
-        case 7:
         default:
             nbkgjpsiPeak.setVal(0.);
             nbkgpsi2sPeak.setVal(0.);
             nbkgjpsiPeak.setConstant(kTRUE);
             nbkgpsi2sPeak.setConstant(kTRUE);
+            fM = new RooAddPdf("kernelM","kernelM",RooArgList(f_bkgCombM,*f_sigM),RooArgList(nbkgComb,nsig));
+            fA = new RooAddPdf("kernelA","kernelA",RooArgList(*f_bkgCombA,*f_sigA),RooArgList(nbkgComb,nsig));
+            f  = new RooAddPdf("kernel","kernel",RooArgList(f_bkgComb,f_sig),RooArgList(nbkgComb,nsig));
             break;
     }
-    RooAddPdf f("kernel","kernel",RooArgList(f_bkgComb,f_bkgjpsiPeak,f_bkgpsi2sPeak,f_sig),RooArgList(nbkgComb,nbkgjpsiPeak,nbkgpsi2sPeak,nsig));// no penalty term
+
 
     // Extra penalty term to confine As, Fs, Fl, Afb.
     //RooRealVar t_penalty("t_penalty","t",0.01);
@@ -3475,41 +3655,68 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     printf("INFO: f_penalty NOT applied.\n");
 
     // Gaussian constraints
-    RooGaussian gaus_sigGauss1_sigma("gaus_sigGauss1_sigma","gaus_sigGauss1_sigma",sigGauss1_sigma,RooConst(readParam(iBin,"sigGauss1_sigma",0)),RooConst(readParam(iBin,"sigGauss1_sigma",1)));
-    RooGaussian gaus_sigGauss2_sigma("gaus_sigGauss2_sigma","gaus_sigGauss2_sigma",sigGauss2_sigma,RooConst(readParam(iBin,"sigGauss2_sigma",0)),RooConst(readParam(iBin,"sigGauss2_sigma",1)));
-    RooGaussian gaus_sigM_frac("gaus_sigM_frac","gaus_sigM_frac",sigM_frac,RooConst(readParam(iBin,"sigM_frac",0)),RooConst(readParam(iBin,"sigM_frac",1)));
-    RooGaussian gaus_nbkgjpsiPeak("gaus_nbkgjpsiPeak","gaus_nbkgjpsiPeak",nbkgjpsiPeak,RooConst(readParam(iBin,"nbkgjpsiPeak",0)*datasetLumi[0]/datasetLumi[2]),RooConst(readParam(iBin,"nbkgjpsiPeak",1)*datasetLumi[0]/datasetLumi[2]));
-    RooGaussian gaus_nbkgpsi2sPeak("gaus_nbkgpsi2sPeak","gaus_nbkgpsi2sPeak",nbkgpsi2sPeak,RooConst(readParam(iBin,"nbkgpsi2sPeak",0)*datasetLumi[0]/datasetLumi[3]),RooConst(readParam(iBin,"nbkgpsi2sPeak",1)*datasetLumi[0]/datasetLumi[3]));
-    RooBifurGauss gaus_fs("gaus_fs","gaus_fs",fs,RooConst(readParam(iBin,"fs",0,0.00129254)),RooConst(readParam(iBin,"fs",1)),RooConst(readParam(iBin,"fs",1,0.0101371)));
-    RooBifurGauss gaus_as("gaus_as","gaus_as",as,RooConst(readParam(iBin,"as",0,-0.0975917)),RooConst(readParam(iBin,"as",1)),RooConst(readParam(iBin,"as",1,0.0049092)));
-//    RooBifurGauss gaus_fs("gaus_fs","gaus_fs",fs,RooConst(0.0129254),RooConst(0.00898344),RooConst(0.0101371));// 2011 result
-//    RooBifurGauss gaus_as("gaus_as","gaus_as",as,RooConst(-0.0975919),RooConst(0.00490805),RooConst(0.0049092));
+    RooGaussian gaus_sigGauss_mean("gaus_sigGauss1_mean","gaus_sigGauss1_mean",*sigGauss_mean,RooConst(5.2789),RooConst(sigGauss_mean->getVal()));
+    RooGaussian gaus_sigGauss1_sigma("gaus_sigGauss1_sigma","gaus_sigGauss1_sigma",*sigGauss1_sigma,RooConst(sigGauss1_sigma->getVal()),RooConst(sigGauss1_sigma->getError()));
+    RooGaussian gaus_sigGauss2_sigma("gaus_sigGauss2_sigma","gaus_sigGauss2_sigma",*sigGauss2_sigma,RooConst(sigGauss2_sigma->getVal()),RooConst(sigGauss2_sigma->getError()));
+    RooGaussian gaus_sigM_frac("gaus_sigM_frac","gaus_sigM_frac",*sigM_frac,RooConst(sigM_frac->getVal()),RooConst(sigM_frac->getError()));
+    RooGaussian *gaus_nbkgjpsiPeak = 0;
+    RooGaussian *gaus_nbkgpsi2sPeak = 0;
+    switch(iBin){
+        case 2:
+            gaus_nbkgjpsiPeak = new RooGaussian("gaus_nbkgjpsiPeak","gaus_nbkgjpsiPeak",nbkgjpsiPeak,RooConst(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]),RooConst(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]));
+            break;
+        case 4:
+            gaus_nbkgjpsiPeak = new RooGaussian("gaus_nbkgjpsiPeak","gaus_nbkgjpsiPeak",nbkgjpsiPeak,RooConst(nbkgjpsiPeak_MC->getVal()*datasetLumi[0]/datasetLumi[2]),RooConst(nbkgjpsiPeak_MC->getError()*datasetLumi[0]/datasetLumi[2]));
+            gaus_nbkgpsi2sPeak = new RooGaussian("gaus_nbkgpsi2sPeak","gaus_nbkgpsi2sPeak",nbkgpsi2sPeak,RooConst(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]),RooConst(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]));
+            break;
+        case 6:
+            gaus_nbkgpsi2sPeak = new RooGaussian("gaus_nbkgpsi2sPeak","gaus_nbkgpsi2sPeak",nbkgpsi2sPeak,RooConst(nbkgpsi2sPeak_MC->getVal()*datasetLumi[0]/datasetLumi[3]),RooConst(nbkgpsi2sPeak_MC->getError()*datasetLumi[0]/datasetLumi[3]));
+            break;
+        default:
+            break;
+    }
     
-    RooArgSet gausConstraints(gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac);
-    if (iBin<2 || iBin > 6) gausConstraints.add(RooArgSet(gaus_nbkgjpsiPeak,gaus_nbkgpsi2sPeak));
-    if (iBin == 3 || iBin == 5) gausConstraints.add(RooArgSet(gaus_fs,gaus_as));
+    RooArgSet gausConstraints(gaus_sigGauss_mean,gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac);
+    switch(iBin){
+        case 2:
+            gausConstraints.add(RooArgSet(*gaus_nbkgjpsiPeak));
+            break;
+        case 4:
+            gausConstraints.add(RooArgSet(*gaus_nbkgjpsiPeak,*gaus_nbkgpsi2sPeak));
+            break;
+        case 6:
+            gausConstraints.add(RooArgSet(*gaus_nbkgpsi2sPeak));
+            break;
+        default:
+            break;
+    }
     printf("INFO: gausConstraints are settled.\n");
     
     // Get data and apply unbinned fit
-    int mumuMassWindowBin = 1+4*isCDFcut;
+    int mumuMassWindowBin = 1+2*isCDFcut;
     if (iBin==3 || iBin==5) mumuMassWindowBin = 0; // no cut
-    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, CosThetaK, CosThetaL, Bmass, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
-    f.fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"),Minos(kTRUE));
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK, CosThetaL, Bmass, Q2, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+    printf("DEBUG\t\t: fM->fitTo\n");
+    fM->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
+    printf("DEBUG\t\t: fA->fitTo\n");
+    fA->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
+    printf("DEBUG\t\t: f->fitTo\n");
+    f->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"),Minos(kTRUE));
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
     RooPlot* framemass = Bmass.frame();
     data->plotOn(framemass,Binning(20));// TGraphPainter options are allowed by DrawOption()
-    f.plotOn(framemass,LineColor(1));
-    f.plotOn(framemass,Components(f_sig),LineColor(4),LineWidth(2));
-    f.plotOn(framemass,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
-    f.plotOn(framemass,Components(f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
-    f.plotOn(framemass,Components(f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
+    f->plotOn(framemass,LineColor(1));
+    f->plotOn(framemass,Components(f_sig),LineColor(4),LineWidth(2));
+    f->plotOn(framemass,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framemass,Components(*f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framemass,Components(*f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
 
     framemass->SetTitle("");
     framemass->SetMinimum(0);
     framemass->Draw();
-    
+
     TLatex *t1 = new TLatex();
     t1->SetNDC();
     double fixNDC = 0;
@@ -3518,59 +3725,89 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     t1->DrawLatex(.65,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f",nbkgjpsiPeak.getVal()));
     t1->DrawLatex(.65,.65+fixNDC,TString::Format("Y_{#Psi'}=%.3f",nbkgpsi2sPeak.getVal()));
     t1->DrawLatex(.65,.58+fixNDC,TString::Format("Y_{Comb}=%.3f",nbkgComb.getVal()));
-    c->Print(TString::Format("./plots/%s_bin%d.pdf",outfile,iBin));
-
+    c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    
     // Draw projection to CosThetaK
     RooPlot* framecosk = CosThetaK.frame(); 
     data->plotOn(framecosk,Binning(20)); 
-    f.plotOn(framecosk,LineColor(1)); 
-    f.plotOn(framecosk,Components(f_sig),LineColor(4),LineWidth(2));
-    f.plotOn(framecosk,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
-    f.plotOn(framecosk,Components(f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
-    f.plotOn(framecosk,Components(f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,LineColor(1)); 
+    f->plotOn(framecosk,Components(f_sig),LineColor(4),LineWidth(2));
+    f->plotOn(framecosk,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosk,Components(*f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
 
     framecosk->SetTitle("");
     framecosk->SetMinimum(0);
     framecosk->Draw();
 
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
-    t1->DrawLatex(.35,.79+fixNDC,TString::Format("F_{L}=%.3f#pm%.3f",fl.getVal(),fl.getError()));
+    t1->DrawLatex(.35,.79+fixNDC,TString::Format("F_{L}=%.3f#pm%.3f",fl->getVal(),fl->getError()));
     c->Update();
-    c->Print(TString::Format("./plots/%s_cosk_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    printf("Projection on K is created.\n");
 
     // Draw projection to CosThetaL
     RooPlot* framecosl = CosThetaL.frame(); 
     data->plotOn(framecosl,Binning(20)); 
-    f.plotOn(framecosl,LineColor(1)); 
-    f.plotOn(framecosl,Components(f_sig),LineColor(4),LineWidth(2));
-    f.plotOn(framecosl,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
-    f.plotOn(framecosl,Components(f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
-    f.plotOn(framecosl,Components(f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,LineColor(1)); 
+    f->plotOn(framecosl,Components(f_sig),LineColor(4),LineWidth(2));
+    f->plotOn(framecosl,Components(f_bkgComb),LineColor(2),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgjpsiPeak),LineColor(6),LineWidth(2),LineStyle(2));
+    f->plotOn(framecosl,Components(*f_bkgpsi2sPeak),LineColor(8),LineWidth(2),LineStyle(2));
 
     framecosl->SetTitle("");
     framecosl->SetMinimum(0);
     framecosl->Draw();
 
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
-    t1->DrawLatex(.35,.79+fixNDC,TString::Format("A_{FB}=%.3f#pm%.3f",afb.getVal(),afb.getError()));
+    t1->DrawLatex(.35,.79+fixNDC,TString::Format("A_{FB}=%.3f#pm%.3f",afb->getVal(),afb->getError()));
     c->Update();
-    c->Print(TString::Format("./plots/%s_cosl_bin%d.pdf",outfile,iBin));
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    printf("Projection on L is created.\n");
+    
+    // Write result
+    if (true){
+        TFile *f_wspace = new TFile(TString::Format("%s/wspace_angular3D_bin%d.root",owspacepath.Data(),iBin),"UPDATE");
+        RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+        if (!wspace){
+            wspace = new RooWorkspace("wspace","wspace");
+        }
+        bkgCombM_c1.setConstant(kTRUE);
+        bkgCombM_c2.setConstant(kTRUE);
+        bkgCombM_c3.setConstant(kTRUE);
+        bkgCombM_c4.setConstant(kTRUE);
+        sigGauss_mean  ->setConstant(kFALSE);
+        sigGauss1_sigma->setConstant(kFALSE);
+        sigGauss2_sigma->setConstant(kFALSE);
+        sigM_frac      ->setConstant(kFALSE);
+        fs->setConstant(kTRUE);
+        as->setConstant(kTRUE);
+        fl->setConstant(kTRUE);
+        afb->setConstant(kTRUE);
+        nsig.setConstant(kTRUE);
+        nbkgComb.setConstant(kTRUE);
+        nbkgjpsiPeak.setConstant(kTRUE);
+        nbkgpsi2sPeak.setConstant(kTRUE);
+        wspace->import(*f);
+        wspace->writeToFile(TString::Format("%s/wspace_angular3D_bin%d.root",owspacepath.Data(),iBin));
+    }
 
+    // write output
+    double val[3]={0,0,0};
+    val[0] = fl->getVal();val[1] = fl->getError();
+    writeParam(iBin, "fl", val);
+    val[0] = afb->getVal();val[1] = afb->getError();
+    writeParam(iBin, "afb",val);
+    val[0] = fs->getVal();val[1] = fs->getError();
+    writeParam(iBin, "fs", val);
+    val[0] = as->getVal();val[1] = as->getError();
+    writeParam(iBin, "as", val);
+    
     // clear
     delete t1;
     delete c;
     delete data;
 
-    // write output
-    double val[3]={0,0,0};
-    val[0] = fl.getVal();val[1] = fl.getError();
-    writeParam(iBin, "fl", val);
-    val[0] = afb.getVal();val[1] = afb.getError();
-    writeParam(iBin, "afb",val);
-    val[0] = fs.getVal();val[1] = fs.getErrorHi();val[2] = fs.getErrorLo();
-    writeParam(iBin, "fs", val, 3);
-    val[0] = as.getVal();val[1] = as.getErrorHi();val[2] = fs.getErrorLo();
-    writeParam(iBin, "as", val, 3);
 }//}}}
 
 void angular3D(const char outfile[] = "angular", bool doFit = true)
@@ -3612,7 +3849,7 @@ void angular3D(const char outfile[] = "angular", bool doFit = true)
     g_fl->SetFillColor(2);
     g_fl->SetFillStyle(3001);
     g_fl->Draw("P2");
-    c->Print(TString::Format("./plots/%s_fl.pdf",outfile));
+    c->Print(TString::Format("%s/%s_fl.pdf",plotpath.Data(),outfile));
     c->Clear();
 
     frame->SetTitle("");
@@ -3624,12 +3861,11 @@ void angular3D(const char outfile[] = "angular", bool doFit = true)
     g_afb->SetFillColor(2);
     g_afb->SetFillStyle(3001);
     g_afb->Draw("P2");
-    c->Print(TString::Format("./plots/%s_afb.pdf",outfile));
+    c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
-
 //_________________________________________________________________________________
 // Validation tools
-void getToyFromUnfilterGen(int iBin)
+void getToyFromUnfilterGen(int iBin) // For validation, DEPRECATED.
 {//{{{
     bool flatModel = false;
 
@@ -3686,7 +3922,7 @@ void getToyFromUnfilterGen(int iBin)
     }
 
     // 
-    TFile fout(TString::Format("./rndToy_Bin%d.root",iBin), "RECREATE") ;
+    TFile fout(TString::Format("%s/rndToy_Bin%d.root",owspacepath.Data(),iBin), "RECREATE") ;
     TTree *treeout = treein->CloneTree(0);
     int _count = 0;//number of accepted events
     int _entry = 0;
@@ -3709,28 +3945,63 @@ void getToyFromUnfilterGen(int iBin)
     fout.Close();
 }//}}}
 
-void genToyCombBkg(int iBin, int nEvents) // For pull test
+void genToySignal(int iBin, int nEvents = 0) // For validation.
 {//{{{
-    // Generate in pure ROOT.
-    double bkgCombM_c(readParam(iBin,"bkgCombM_c",0,-1));
+    int defNEvents[8]={30,30,30,30,30,30,30,30};
+    double defAfb [8]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376};
+    double defFl  [8]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341};
+    double defAs  [8]={-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1};
+    double defFs  [8]={0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01};
 
-    string f_bkgCombM_formula = "exp([0]*(x-5))";
-    TF1 *f_bkgCombM = new TF1("f_bkgCombM",f_bkgCombM_formula.c_str(),5,5.56);
-    f_bkgCombM->SetParameter(0,bkgCombM_c);
+    // Get PDF and parameters
+    TFile *f_wspace_Sm = new TFile(TString::Format("%s/wspace_Sm_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_Sm = (RooWorkspace*)f_wspace_Sm->Get("wspace");
+    RooAddPdf *f_sigM = 0;
+    RooRealVar *Bmass = 0;
+    RooRealVar *sigGauss_mean;
+    RooRealVar *sigGauss1_sigma;
+    RooRealVar *sigGauss2_sigma;
+    RooRealVar *sigM_frac;
+    if (wspace_Sm){
+        f_sigM = (RooAddPdf*)wspace_Sm->pdf("f_sigM");
+        Bmass = (RooRealVar*)wspace_Sm->var("Bmass");
+        sigGauss_mean   = (RooRealVar*)wspace_Sm->var("sigGauss_mean");
+        sigGauss1_sigma = (RooRealVar*)wspace_Sm->var("sigGauss1_sigma");
+        sigGauss2_sigma = (RooRealVar*)wspace_Sm->var("sigGauss2_sigma");
+        sigM_frac       = (RooRealVar*)wspace_Sm->var("sigM_frac");
+    }else{
+        printf("ERROR\t\t: Please have wsapce_Sm_bin?.root prepared.\n");
+        return;
+    }
+    TFile *f_wspace_sigA = new TFile(TString::Format("%s/wspace_sigA_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_sigA = (RooWorkspace*)f_wspace_sigA->Get("wspace");
+    RooGenericPdf *f_sigA = 0;
+    RooRealVar *CosThetaK = 0;
+    RooRealVar *CosThetaL = 0;
+    RooRealVar *afb;
+    RooRealVar *fl;
+    RooRealVar *fs;
+    RooRealVar *as;
+    if (wspace_sigA){
+        f_sigA = (RooGenericPdf*)wspace_sigA->pdf("f_sigA");
+        CosThetaK = (RooRealVar*)wspace_sigA->var("CosThetaK");
+        CosThetaL = (RooRealVar*)wspace_sigA->var("CosThetaL");
+        afb             = (RooRealVar*)wspace_sigA->var("afb");
+        as              = (RooRealVar*)wspace_sigA->var("as");
+        fl              = (RooRealVar*)wspace_sigA->var("fl");
+        fs              = (RooRealVar*)wspace_sigA->var("fs");
+    }else{
+        printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
+        return;
+    }
+    afb->setVal(defAfb[iBin]);
+    as->setVal(defAs[iBin]);
+    fl->setVal(defFl[iBin]);
+    fs->setVal(defFs[iBin]);
+    if (nEvents == 0) nEvents = defNEvents[iBin];
 
-    double bkgCombL_c1(readParam(iBin,"bkgCombL_c1",0,0));
-    double bkgCombL_c2(readParam(iBin,"bkgCombL_c2",0,0));
-    double bkgCombL_c3(readParam(iBin,"bkgCombL_c3",0,0));
-    double bkgCombL_c4(readParam(iBin,"bkgCombL_c4",0,0));
-    double bkgCombK_c1(readParam(iBin,"bkgCombK_c1",0,0));
-    double bkgCombK_c2(readParam(iBin,"bkgCombK_c2",0,0));
-    double bkgCombK_c3(readParam(iBin,"bkgCombK_c3",0,0));
-    double bkgCombK_c4(readParam(iBin,"bkgCombK_c4",0,0));
+    RooProdPdf *f = new RooProdPdf("f", "f", RooArgSet(*f_sigM,*f_sigA));
 
-    string f2_bkgCombA_formula = "(1+[0]*x+[1]*x**2+[2]*x**3+[3]*x**4)*(1+[4]*y+[5]*y**2+[6]*y**3+[7]*y**4)";
-    TF2 *f2_bkgCombA = new TF2("f2_bkgCombA",f2_bkgCombA_formula.c_str(), -1, 1, -1, 1);
-    f2_bkgCombA->SetParameters(bkgCombL_c1,bkgCombL_c2,bkgCombL_c3,bkgCombL_c4,bkgCombK_c1,bkgCombK_c2,bkgCombK_c3,bkgCombK_c4);
-    
     double rndBmass(0);
     double rndCosL(0);
     double rndCosK(0);
@@ -3738,7 +4009,7 @@ void genToyCombBkg(int iBin, int nEvents) // For pull test
     double mumuMass(sqrt(Q2));
     double mumuMasserr(0.01);
     
-    TFile fout(TString::Format("./rndBkgToy_Bin%d.root",iBin), "RECREATE");
+    TFile fout(TString::Format("%s/signalToy_Bin%d.root",owspacepath.Data(),iBin), "RECREATE");
     TTree *tree = new TTree("tree","tree");
     tree->Branch("CosThetaK",&rndCosK,"CosThetaK/D");
     tree->Branch("CosThetaL",&rndCosL,"CosThetaL/D");
@@ -3747,42 +4018,110 @@ void genToyCombBkg(int iBin, int nEvents) // For pull test
     tree->Branch("Mumumasserr",&mumuMasserr,"Mumumasserr/D");
     tree->Branch("Q2",&Q2,"Q2/D");
 
+    RooDataSet *outdata = f->generate(RooArgSet(*Bmass,*CosThetaK,*CosThetaL),nEvents);
+    const RooArgSet *dataInEntry = 0;
     for (int iEvt = 0; iEvt < nEvents; iEvt++) {
-        rndBmass = f_bkgCombM ->GetRandom();
-        f2_bkgCombA->GetRandom2(rndCosL,rndCosK);
+        dataInEntry = outdata->get(iEvt);
+        rndBmass=((RooRealVar*)dataInEntry->find("Bmass"    ))->getVal();
+        rndCosK =((RooRealVar*)dataInEntry->find("CosThetaK"))->getVal();
+        rndCosL =((RooRealVar*)dataInEntry->find("CosThetaL"))->getVal();
+        tree->Fill();
+    }
+    fout.Write();
+    fout.Close();
+    return;
+}//}}}
+
+void genToyCombBkg(int iBin, int nEvents = 0) // For validation, todo: fix shape parameters.
+{//{{{
+    TFile *f_wspace_comb_A = new TFile(TString::Format("%s/wspace_prior_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_comb_A = (RooWorkspace*)f_wspace_comb_A->Get("wspace");
+    RooRealVar *CosThetaK = 0;
+    RooRealVar *CosThetaL = 0;
+    RooGenericPdf *f_bkgCombA = 0;
+    RooRealVar *bkgCombK_c1 = 0;
+    RooRealVar *bkgCombK_c2 = 0;
+    RooRealVar *bkgCombK_c3 = 0;
+    RooRealVar *bkgCombK_c4 = 0;
+    RooRealVar *bkgCombL_c1 = 0;
+    RooRealVar *bkgCombL_c2 = 0;
+    RooRealVar *bkgCombL_c3 = 0;
+    RooRealVar *bkgCombL_c4 = 0;
+    RooRealVar *bkgCombL_c5 = 0;
+    if (wspace_comb_A){
+        f_bkgCombA = (RooGenericPdf*)wspace_comb_A->pdf("f_bkgCombA");
+        CosThetaK = (RooRealVar*)wspace_comb_A->var("CosThetaK");
+        CosThetaL = (RooRealVar*)wspace_comb_A->var("CosThetaL");
+        bkgCombK_c1 = (RooRealVar*)wspace_comb_A->var("bkgCombK_c1");
+        bkgCombK_c2 = (RooRealVar*)wspace_comb_A->var("bkgCombK_c2");
+        bkgCombK_c3 = (RooRealVar*)wspace_comb_A->var("bkgCombK_c3");
+        bkgCombK_c4 = (RooRealVar*)wspace_comb_A->var("bkgCombK_c4");
+        bkgCombL_c1 = (RooRealVar*)wspace_comb_A->var("bkgCombL_c1");
+        bkgCombL_c2 = (RooRealVar*)wspace_comb_A->var("bkgCombL_c2");
+        bkgCombL_c3 = (RooRealVar*)wspace_comb_A->var("bkgCombL_c3");
+        bkgCombL_c4 = (RooRealVar*)wspace_comb_A->var("bkgCombL_c4");
+        bkgCombL_c5 = (RooRealVar*)wspace_comb_A->var("bkgCombL_c5");
+    }
+    TFile *f_wspace_comb_M = new TFile(TString::Format("%s/wspace_angular3D_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace_comb_M = (RooWorkspace*)f_wspace_comb_M->Get("wspace");
+    RooRealVar *Bmass = 0;
+    RooGenericPdf *f_bkgCombM = 0;
+    RooRealVar *bkgCombM_c1 = 0;
+    if (wspace_comb_M){
+        Bmass = (RooRealVar*)wspace_comb_M->var("Bmass");
+        f_bkgCombM = (RooGenericPdf*)wspace_comb_M->pdf("f_bkgCombM");
+        bkgCombM_c1 = (RooRealVar*)wspace_comb_M->var("bkgCombL_c1");
+    }
+    RooProdPdf f("f","f",RooArgSet(*f_bkgCombM,f_bkgCombA));
+    
+    double rndBmass(0);
+    double rndCosL(0);
+    double rndCosK(0);
+    double Q2((q2rangeup[iBin]+q2rangedn[iBin])/2);
+    double mumuMass(sqrt(Q2));
+    double mumuMasserr(0.01);
+    
+    TFile fout(TString::Format("%s/combBkgToy_Bin%d.root",owspacepath.Data(),iBin), "RECREATE");
+    TTree *tree = new TTree("tree","tree");
+    tree->Branch("CosThetaK",&rndCosK,"CosThetaK/D");
+    tree->Branch("CosThetaL",&rndCosL,"CosThetaL/D");
+    tree->Branch("Bmass",&rndBmass,"Bmass/D");
+    tree->Branch("Mumumass",&mumuMass,"Mumumass/D");
+    tree->Branch("Mumumasserr",&mumuMasserr,"Mumumasserr/D");
+    tree->Branch("Q2",&Q2,"Q2/D");
+
+    RooDataSet *outdata = f.generate(RooArgSet(*Bmass,*CosThetaK,*CosThetaL),nEvents);
+    const RooArgSet *dataInEntry = 0;
+    for (int iEvt = 0; iEvt < nEvents; iEvt++) {
+        dataInEntry = outdata->get(iEvt);
+        rndBmass=((RooRealVar*)dataInEntry->find("Bmass"    ))->getVal();
+        rndCosK =((RooRealVar*)dataInEntry->find("CosThetaK"))->getVal();
+        rndCosL =((RooRealVar*)dataInEntry->find("CosThetaL"))->getVal();
         tree->Fill();
     }
     fout.Write();
     fout.Close();
 }//}}}
 
-void genToyPeakBkg(int iBin, int nEvents) // For pull test. Under construction.
+void genToyPeakBkg(int iBin, int nEventsL = 0, int nEventsR = 0) // For vaidation. Or try rndPickMCSamples for instead.
 {//{{{
-    static char decmode[20];
-    while(strcmp(decmode,"jpsi")*strcmp(decmode, "psi2s") != 0){
-        printf("Please insert background type [ jpsi / psi2s ]:");
-        scanf("%19s",decmode);
-    }
-
-    // Generate in pure ROOT.
-    double bkgPeakM_c(readParam(iBin,TString::Format("bkg%sPeakM_c",decmode),0));
-
-    string f_bkgPeakM_formula = "exp([0]*(x-5))";
+    // Simplify the modeling by Gaussian
+    double bkgPeakM_sigma(0.030);
+    double bkgPeakM_mean(5.05);
+    string f_bkgPeakM_formula = "exp(-0.5*((x-[0])/[1])**2)";
     TF1 *f_bkgPeakM = new TF1("f_bkgPeakM",f_bkgPeakM_formula.c_str(),5,5.56);
-    f_bkgPeakM->SetParameter(0,bkgPeakM_c);
+    f_bkgPeakM->SetParameter(0,bkgPeakM_mean);
+    f_bkgPeakM->SetParameter(1,bkgPeakM_sigma);
 
-    double bkgPeakL_c1(readParam(iBin,TString::Format("bkg%sPeakL_c1",decmode),0));
-    double bkgPeakL_c2(readParam(iBin,TString::Format("bkg%sPeakL_c2",decmode),0));
-    double bkgPeakL_c3(readParam(iBin,TString::Format("bkg%sPeakL_c3",decmode),0));
-    double bkgPeakL_c4(readParam(iBin,TString::Format("bkg%sPeakL_c4",decmode),0));
-    double bkgPeakK_c1(readParam(iBin,TString::Format("bkg%sPeakK_c1",decmode),0));
-    double bkgPeakK_c2(readParam(iBin,TString::Format("bkg%sPeakK_c2",decmode),0));
-    double bkgPeakK_c3(readParam(iBin,TString::Format("bkg%sPeakK_c3",decmode),0));
-    double bkgPeakK_c4(readParam(iBin,TString::Format("bkg%sPeakK_c4",decmode),0));
-
-    string f2_bkgPeakA_formula = "(1+[0]*x+[1]*x**2+[2]*x**3+[3]*x**4)*(1+[4]*y+[5]*y**2+[6]*y**3+[7]*y**4)";
+    double bkgPeakL_c1(1);//x
+    double bkgPeakL_c2(0.05*iBin);// 
+    double bkgPeakL_c3(-0.3);// 
+    double bkgPeakK_c1(1.);//y
+    double bkgPeakK_c2(0.);// mean
+    double bkgPeakK_c3(0.5);// 
+    string f2_bkgPeakA_formula = "([0]+[2]*(x-[1])**2)*([3]+[5]*(y-[4])**2)";
     TF2 *f2_bkgPeakA = new TF2("f2_bkgPeakA",f2_bkgPeakA_formula.c_str(), -1, 1, -1, 1);
-    f2_bkgPeakA->SetParameters(bkgPeakL_c1,bkgPeakL_c2,bkgPeakL_c3,bkgPeakL_c4,bkgPeakK_c1,bkgPeakK_c2,bkgPeakK_c3,bkgPeakK_c4);
+    f2_bkgPeakA->SetParameters(bkgPeakL_c1,bkgPeakL_c2,bkgPeakL_c3,bkgPeakK_c1,bkgPeakK_c2,bkgPeakK_c3);
     
     double rndBmass(0);
     double rndCosL(0);
@@ -3791,7 +4130,7 @@ void genToyPeakBkg(int iBin, int nEvents) // For pull test. Under construction.
     double mumuMass(sqrt(Q2));
     double mumuMasserr(0.01);
     
-    TFile fout(TString::Format("./rndBkgToy_Bin%d.root",iBin), "RECREATE");
+    TFile fout(TString::Format("%s/peakBkgToy_Bin%d.root",owspacepath.Data(),iBin), "RECREATE");
     TTree *tree = new TTree("tree","tree");
     tree->Branch("CosThetaK",&rndCosK,"CosThetaK/D");
     tree->Branch("CosThetaL",&rndCosL,"CosThetaL/D");
@@ -3800,14 +4139,119 @@ void genToyPeakBkg(int iBin, int nEvents) // For pull test. Under construction.
     tree->Branch("Mumumasserr",&mumuMasserr,"Mumumasserr/D");
     tree->Branch("Q2",&Q2,"Q2/D");
 
-    for (int iEvt = 0; iEvt < nEvents; iEvt++) {
+    // LSB
+    for (int iEvt = 0; iEvt < nEventsL; iEvt++) {
         rndBmass = f_bkgPeakM ->GetRandom();
         f2_bkgPeakA->GetRandom2(rndCosL,rndCosK);
         tree->Fill();
     }
+
+    // RSB
+    bkgPeakM_sigma = 0.035;
+    bkgPeakM_mean = 5.50;
+    f_bkgPeakM->SetParameter(0,bkgPeakM_mean);
+    f_bkgPeakM->SetParameter(1,bkgPeakM_sigma);
+    bkgPeakL_c3 = -0.07;
+    bkgPeakK_c3 = -0.07;
+    f2_bkgPeakA->SetParameters(bkgPeakL_c1,bkgPeakL_c2,bkgPeakL_c3,bkgPeakK_c1,bkgPeakK_c2,bkgPeakK_c3);
+    for (int iEvt = 0; iEvt < nEventsR; iEvt++) {
+        rndBmass = f_bkgPeakM ->GetRandom();
+        f2_bkgPeakA->GetRandom2(rndCosL,rndCosK);
+        tree->Fill();
+    }
+
     fout.Write();
     fout.Close();
 }//}}}
+
+void splitMCSamples(double oLumis=datasetLumi[0]) // Split MC samples into small parts
+{//{{{
+    static char decmode[20];
+    while(strcmp(decmode,"jpsi")*strcmp(decmode, "psi2s")*strcmp(decmode, "signal")*strcmp(decmode, "manual") != 0){
+        printf("Please insert type [ signal / jpsi / psi2s / manual ]:");
+        scanf("%19s",decmode);
+    }
+    
+    double iLumis = 0.;
+    if (strcmp(decmode, "signal") == 0){
+        iLumis=datasetLumi[1];
+    }else if (strcmp(decmode, "jpsi") == 0){
+        iLumis = datasetLumi[2];
+    }else if (strcmp(decmode, "psi2s") == 0){
+        iLumis = datasetLumi[3];
+    }else{
+        printf("Input luminosity: ");
+        scanf("%lf",&iLumis);
+    }
+    printf("INFO\t\t: Splitting %f/fb into %.0f parts\n",iLumis, floor(iLumis/oLumis));
+    
+    if (oLumis > iLumis){
+        printf("ERROR\t\t: Luminosity of output should be larger than the reservoir. EXIT 1.");
+        return;
+    }
+
+    for(int iPart=0; iPart < floor(iLumis/oLumis); iPart++){
+        TFile *fout = new TFile(TString::Format("%s/splitMC_%s_part%d.root",owspacepath.Data(),decmode,iPart+1), "RECREATE");
+        TTree *tout = ch->CopyTree("","",(int)floor(oLumis/iLumis*ch->GetEntries()),iPart*(int)floor(oLumis/iLumis*ch->GetEntries()));
+        fout->Write();
+        fout->Close();
+    }
+    return;
+}//}}}
+
+void rndPickMCSamples(int nSets = 1, double oLumis=datasetLumi[0]) // Pick distinct events from MC
+{//{{{
+    static char decmode[20];
+    while(strcmp(decmode,"jpsi")*strcmp(decmode, "psi2s")*strcmp(decmode, "signal")*strcmp(decmode, "manual") != 0){
+        printf("Please insert type [ signal / jpsi / psi2s / manual ]:");
+        scanf("%19s",decmode);
+    }
+    
+    double iLumis = 0.;
+    if (strcmp(decmode, "signal") == 0){
+        iLumis=datasetLumi[1];
+    }else if (strcmp(decmode, "jpsi") == 0){
+        iLumis = datasetLumi[2];
+    }else if (strcmp(decmode, "psi2s") == 0){
+        iLumis = datasetLumi[3];
+    }else{
+        printf("Input luminosity: ");
+        scanf("%lf",&iLumis);
+    }
+    printf("INFO\t\t: Randomly pick %d sets of events of %f/fb \n", nSets, oLumis);
+
+    if (oLumis > iLumis){
+        printf("ERROR\t\t: Luminosity of output should be larger than the reservoir. EXIT 1.");
+        return;
+    }
+
+    // Initialize random generator
+    TRandom3 *random = new TRandom3(time(0));
+
+    int nEntries = ch->GetEntries();
+    int nEvtsPerSet = floor(oLumis/iLumis*nEntries);
+    for(int iSet=0; iSet< nSets; iSet++){
+        TFile *fout = new TFile(TString::Format("%s/rndMC_%s_%devts_set%d.root",owspacepath.Data(),decmode,nEvtsPerSet,iSet+1), "RECREATE");
+        TTree *tout = ch->CloneTree(0);
+        int candEvtId=0;
+        std::vector<bool> bits(nEntries,false); // all false;
+        for(int iEvt = nEvtsPerSet; iEvt > 0; iEvt--){
+            do {
+                //printf("DEBUG\t\t: iEvt=%d, candEvtId=%d, Picking distict.\n",iEvt,candEvtId);
+                candEvtId = random->Rndm()*nEntries;
+            }while(bits[candEvtId]);
+            bits[candEvtId]=true;
+            //if (nEvtsPerSet-iEvt < 10) printf("DEBUG\t\t: iEvt=%d, select %d\n",iEvt,candEvtId);
+            ch->GetEntry(candEvtId);
+            tout->Fill();
+        }
+        tout->AutoSave();
+        fout->Write();
+        fout->Close();
+    }
+}//}}}
+
+//_________________________________________________________________________________
 
 void printListOfTChainElements(TChain *chain){
     TObjArray *fileElements=chain->GetListOfFiles();
@@ -3820,35 +4264,105 @@ void printListOfTChainElements(TChain *chain){
     }
 }
 
-//_________________________________________________________________________________
+void printHelpMessage(){
+    printf("Usage       : ./fit Function infile [--options <arguments>]\n");
+    printf("Functions   :\n");
+    printf("    bmass               Fit to mass spectrum using a double Gaussian signal and Chebyshev bkg.\n");
+    printf("    fl_gen              Derive F_{L} from cosThetaK distribution at GEN level.\n");
+    printf("    angular_gen         Derive F_{L} and A_{FB} from angular distribution at GEN level.\n");
+    printf("    accXrecoEff         Get 2D efficiency map from signal simulation.\n");
+    printf("    angular2D           Same as angular_gen, but fit to signal MC at RECO level with efficiency correction, bkg component is NOT considered.\n");
+    printf("    angular3D_1a_Sm     Leading step1 to angular3D, determine signal shape from simulation.\n");
+    printf("    angular3D_1b_YpPm   Leading step2 to angular3D, determine mass spectrum of peaking bkg from simulation.\n");
+    printf("    angular3D_2a_PkPl   Leading step3 to angular3D, determine angular dist. of peaking bkg from simulation.\n");
+    printf("    angular3D_prior     Leading step4 to angular3D, fit to data sideband to get initial values of combinatorial bkg.\n");
+    printf("    angular2D_data      Same as 'angular3D', but only fit to angular axes.\n");
+    printf("    angular3D           Derive F_{L} and A_{FB} by fitting to mass and angular distribution.\n");
+    printf("Options     :\n");
+    printf("    --help              Show this help message.\n");
+    printf("    --plotpath          Path to output plots.                               [ Default: \"./plots\" ]\n");
+    printf("    --iwspacepath       Path to input wspaces.                              [ Default: \".\" ]\n");
+    printf("    --owspacepath       Path to output wspaces.                             [ Default: \".\" ]\n");
+    printf("    --idatacardpath     Path to input datacards.                            [ Default: \".\" ]\n");
+    printf("    --odatacardpath     Path to output datacards.                           [ Default: \".\" ]\n");
+    printf("    --oallpath          Path to output plots/datacards/wspaces.             [ Default: \".\" ]\n");
+    printf("Remark      :\n");
+    printf("    1. Outputs will be by default stored in ./plots, please keep the directory.\n");
+    printf("    2. Wildcard is allowed for infile. But you must quote infile like \"inputData_Run*.root\"!\n");
+}
+
 int main(int argc, char** argv) {
+    srand(time(NULL));
+    RooRandom::randomGenerator()->SetSeed(rand());
+
     // Tags
     is7TeVCheck = false;   
-    isCDFcut = 0;// 1 for true, 0 for false.
-    
+    isCDFcut = 2;// 1 for CDF . 2 for LHCb
+
     // Help message
     if (argc <= 2) {
-        printf("Usage       : ./fit Function infile\n");
-        printf("Functions   :\n");
-        printf("    bmass               Fit to mass spectrum using a double Gaussian signal and Chebyshev bkg.\n");
-        printf("    fl_gen              Derive F_{L} from cosThetaK distribution at GEN level.\n");
-        printf("    angular_gen         Derive F_{L} and A_{FB} from angular distribution at GEN level.\n");
-        printf("    accXrecoEff         Get 2D efficiency map from signal simulation.\n");
-        printf("    angular2D           Same as angular_gen, but fit to data with efficiency correction, bkg component is NOT considered.\n");
-        printf("    angular3D_1a_Sm     Leading step1 to angular3D, determine signal shape from simulation.\n");
-        printf("    angular3D_1b_YpPm   Leading step2 to angular3D, determine mass spectrum of peaking bkg from simulation.\n");
-        printf("    angular3D_2a_PkPl   Leading step3 to angular3D, determine angular dist. of peaking bkg from simulation.\n");
-        printf("    angular3D_prior     Leading step4 to angular3D, fit to data sideband to get initial values of combinatorial bkg.\n");
-        printf("    angular3D           Derive F_{L} and A_{FB} by fitting to mass and angular distribution.\n");
-        printf("Remark      :\n");
-        printf("    1. Outputs will be stored in ./plots, please keep the directory.\n");
-        printf("    2. Wildcard is allowed for infile. But you must quote infile like \"inputData_Run*.root\"!\n");
+        printHelpMessage();   
         return 0;
     }
 
     // main
     TString func    = argv[1];
     TString infile  = argv[2];
+    
+    // Processing arguments
+    char* l_opt_arg;
+    const char short_options[] = "h";
+    static struct option long_options[] = {
+        {"help"          , 0 , NULL , 'h'} ,
+        {"plotpath"      , 1 , NULL , 1 }  ,
+        {"idatacardpath" , 1 , NULL , 2 }  ,
+        {"odatacardpath" , 1 , NULL , 3 }  ,
+        {"iwspacepath"   , 1 , NULL , 4 }  ,
+        {"owspacepath"   , 1 , NULL , 5 }  ,
+        {"oallpath"      , 1 , NULL , 6 }  ,
+        {NULL            , 0 , NULL , 0  }
+    };
+    int arg;
+    while ((arg = getopt_long(argc,argv,short_options,long_options,NULL)) != -1){
+        switch (arg) {  
+            case 'h':   
+                printHelpMessage();
+                return 0;
+                break;  
+            case 1:   
+                l_opt_arg = optarg;
+                plotpath=l_opt_arg;
+                break;  
+            case 2:   
+                l_opt_arg = optarg;
+                idatacardpath=l_opt_arg;
+                break;  
+            case 3:   
+                l_opt_arg = optarg;
+                odatacardpath=l_opt_arg;
+                break;  
+            case 4:   
+                l_opt_arg = optarg;
+                iwspacepath=l_opt_arg;
+                break;  
+            case 5:   
+                l_opt_arg = optarg;
+                owspacepath=l_opt_arg;
+                break;  
+            case 6:
+                l_opt_arg = optarg;
+                plotpath=l_opt_arg;
+                odatacardpath=l_opt_arg;
+                owspacepath=l_opt_arg;
+                break;
+            default:
+                printf("WARNING\t\t: %d is not a valid argument. Program terminates!\n",arg);
+                abort();
+        }               
+    }
+    printf("INFO\t\t: Plots will be stored to %s\n",plotpath.Data());
+    printf("INFO\t\t: Datacards will be stored to %s\n",odatacardpath.Data());
+    printf("INFO\t\t: Workspaces will be stored to %s\n",owspacepath.Data());
   
     if (func == "bmass") {
         if (argc != 4){
@@ -3884,11 +4398,20 @@ int main(int argc, char** argv) {
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
         const char outfile[]="angular2D";
-        for (int iBin = 0; iBin < 8; iBin++) {
-            if (iBin == 3 || iBin == 5) continue;
-            angular2D_bin(iBin);
-        }
+        angular2D("angular2D",true);
+        //for (int iBin = 0; iBin < 8; iBin++) {
+        //    if (iBin == 3 || iBin == 5) continue;
+        //    angular2D_bin(iBin);
+        //}
     }else if (func == "angular3D_1a_Sm" || func == "angular3D_1b_YpPm" || func == "angular3D_2a_PkPl" || func == "angular3D_prior"){
+        static char wantKeepParam[10];
+        while(strcmp(wantKeepParam,"y")*strcmp(wantKeepParam, "n") != 0){
+            printf("Do you want to keep fit parameters? [y/n]:");
+            scanf("%19s",wantKeepParam);
+        }
+        bool keepParam=false;
+        if (strcmp(wantKeepParam,"y")==0) keepParam=true;
+
         void (*fx)(int, const char*, bool);
         if ( func == "angular3D_1a_Sm" ){
             fx = angular3D_1a_Sm;
@@ -3902,41 +4425,52 @@ int main(int argc, char** argv) {
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
         for (int iBin = 0; iBin < 8; iBin++) {
-            // By default overwrite exist parameters.
-            fx(iBin,func,true);
+            if (iBin == 3 || iBin == 5) continue;
+            fx(iBin,func,keepParam); // By default overwrite exist parameters.
         }
-    }else if (func == "angular3D"){
-        if (argc != 4){
-            printf("./fit angular3D infile doFit\n");
-            printf("    If dofit is non-zero, perform fit and write results first.\n");
-            printf("    Else, directly read fitParameter?.txt and make plots.\n");
-            return 0;
-        }
-        bool doFit = false;
-        if ( atoi(argv[3]) != 0 ) doFit = true;
-
+    }else if (func == "angular2D_data"){
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
+        const char outfile[]="angular2D_data";
+        for (int iBin = 0; iBin < 8; iBin++) {
+            if (iBin == 3 || iBin == 5) continue;
+            angular2D_data_bin(iBin,outfile);
+        }
+    }else if (func == "angular3D"){
+        static char wantDoFit[10];
+        while(strcmp(wantDoFit,"y")*strcmp(wantDoFit, "n") != 0){
+            printf("Do you want to redo fitting? [y/n]:");
+            scanf("%19s",wantDoFit);
+        }
+        bool doFit = false;
+        if (strcmp(wantDoFit,"y")==0){
+            doFit=true;
+            ch->Add(infile.Data());
+            if (ch == NULL) return 1;
+        }
         const char outfile[]="angular3D";
         angular3D(outfile, doFit);
     }else if (func == "test"){
         ch->Add(infile.Data());
         printListOfTChainElements(ch);
-        if (ch == NULL) return 1;
+        //if (ch == NULL) return 1;
         const char outfile[]="test";
         for (int iBin = 0; iBin < 8; iBin++) {
 //            if (iBin != 3 && iBin != 5) continue;
             if (iBin == 3 || iBin == 5) continue;
-            //getToyFromUnfilterGen(iBin);
-            //createRecoEffHist(iBin);
-            //accXrecoEff2(iBin);
-            //angular2D_bin(iBin);
+            //genToySignal(iBin,10000);
             //genToyCombBkg(iBin,10000);
-            angular3D_bin(iBin);
+            //angular3D_prior(iBin);
+            //angular2D_data_bin(iBin);
+            //angular3D_bin(iBin);
         }
-        //angular3D_bin(4);
         //createAccptanceHist();
-        //angular2D();
+        //splitMCSamples();
+        //rndPickMCSamples(2);
+        //genToyCombBkg(1,10000);
+        //genToySignal(2,100000);
+        angular2D_bin(2);
+        //angular3D_bin(1);
     }else{ 
         cerr << "No function available for: " << func.Data() << endl; 
     }

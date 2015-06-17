@@ -1,7 +1,7 @@
 GCCFLAGS=-Wall -g
 ROOTFLAGS=`root-config --cflags --libs`
 
-TOOLSFLAGS=$(GCCFLAGS) -I$(ROOTSYS)/include -c 
+TOOLSFLAGS=$(GCCFLAGS) -I$(ROOTFLAGS) -c 
 SELECTORFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lProof
 FIGURESFLAGS=$(GCCFLAGS) $(ROOTFLAGS) 
 FITFLAGS=$(GCCFLAGS) $(ROOTFLAGS) -lRooFit -lRooFitCore -lMinuit
@@ -19,15 +19,14 @@ sel: SingleBuToKstarMuMuSelector.cc
 fig: SingleBuToKstarMuMuFigures.cc tools.o 
 	g++ $(FIGURESFLAGS) $^ -o $@
 
-fit: SingleBuToKstarMuMuFitters.cc tools.o 
+fit: SingleBuToKstarMuMuFitters.cc tools.o
 	g++ $(FITFLAGS) $^ -o $@	
 
 sel2011: SingleBdToKstarMuMuSelector_xCheck2011.cc
 	g++ ${SELECTORFLAGS} $< -o $@
 
-test: testMinuitFitter.cc
-	g++ ${FITFLAGS} $< -o $@
-
+sel2012: SingleBdToKstarMuMuSelector_xCheck2012.cc
+	g++ ${SELECTORFLAGS} $< -o $@
 
 clean:
 	rm -rf tools.o sel fig fit 
