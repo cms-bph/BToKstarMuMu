@@ -417,8 +417,11 @@ int SingleBdToKstarMuMuSelector_xCheck2012::SelectB(string cut)
         if ( (mumuMass->at(0) > 3.096916+3*mumuMassE->at(0) || mumuMass->at(0) < 3.096916-5*mumuMassE->at(0)) && fabs(mumuMass->at(0)-3.686109) > 3*mumuMassE->at(0) ) best_idx = 0;
     }else if (cut == "singleCandBkg"){
         if ( (mumuMass->at(0) < 3.096916+3*mumuMassE->at(0) && mumuMass->at(0) > 3.096916-5*mumuMassE->at(0)) || fabs(mumuMass->at(0)-3.686109) < 3*mumuMassE->at(0) ) best_idx = 0;
+    }else if (cut == "genonly"){
+        best_idx = -1;
     }else{
-        printf("ERROR: Unknown cut %s\n",cut.c_str());
+        printf("ERROR: Unknown cut %s, apply 'genonly' by default.\n",cut.c_str());
+        best_idx = -1;
     }
     return best_idx;
 }//}}}
@@ -552,6 +555,7 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveGen()
     buff3 = genTk_4vec;//Take pion to avoid extra minus.
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     genCosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
+    printf("DEBUG\t\t: SaveGen\n");
 }//}}}
 
 #ifndef __CINT__ 
@@ -573,7 +577,7 @@ void print_usage()
 {//{{{
     cerr << "Usage: ./sel2012 datatype cut infile outfile [-n] [-s] [-j] [-h]\n"
         << "   datatype: data, mc, mc.lite.\n"
-        << "   cut     : singleCand, singleCandSig, singleCandbkg.\n"
+        << "   cut     : singleCand, singleCandSig, singleCandbkg, genonly.\n"
         << "Options: \n" 
         << "  -h \t\tPrint this info.\n"
         << "  -n \t\tNumber of entries.\n" 
