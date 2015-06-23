@@ -706,6 +706,107 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
 
 }//}}}
 
+std::vector<double> angular3D_gen_bin(int iBin, const char outfile[] = "angular3D_gen")
+{//{{{
+
+    RooRealVar genCosThetaK("genCosThetaK", "cos#theta_{K}", -1., 1.);
+    RooRealVar genCosThetaL("genCosThetaL", "cos#theta_{L}", -1., 1.);
+    RooRealVar genCosPhi   ("genCosPhi", "cos#Phi", -1., 1.);
+    RooRealVar genQ2("genQ2","q^{2}",0.5,20.);
+    RooRealVar fl("fl", "F_{L}", genFl[iBin], 0.2, 0.9);
+    RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -0.3, 0.5);
+    RooRealVar fs("fs","F_{S}",0.,-0.1,0.1); //Very close to 0.
+    RooRealVar as("as","A_{S}",0.01,-1,1.);
+    //fs.setConstant(kTRUE);
+    //as.setConstant(kTRUE);
+
+    RooRealVar nsig("nsig","nsig",1E6,1E2,1E9);
+    RooRealVar nbkg("nbkg","nbkg",10,0.1,1E4);
+    
+    RooGenericPdf f_sig("f_sig", "9/16*((2/3*fs+4/3*as*genCosThetaK)*(1-genCosThetaL*genCosThetaL)+(1-fs)*(2*fl*genCosThetaK*genCosThetaK*(1-genCosThetaL*genCosThetaL)+1/2*(1-fl)*(1-genCosThetaK*genCosThetaK)*(1+genCosThetaL*genCosThetaL)+4/3*afb*(1-genCosThetaK*genCosThetaK)*genCosThetaL))", RooArgSet(genCosThetaK,genCosThetaL,fl,afb,fs,as));
+    RooExtendPdf f("f","",f_sig,nsig);
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(genCosThetaK,genCosThetaL,genCosPhi, genQ2),genQ2range[iBin],0);
+
+    RooFitResult *f_fitresult = f.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
+
+    // Draw the frame on the canvas
+    TCanvas* c = new TCanvas("c");
+    RooPlot* framecosk = genCosThetaK.frame(); 
+    data->plotOn(framecosk,Binning(100)); 
+    f.plotOn(framecosk); 
+
+    framecosk->SetTitle("");
+    framecosk->SetMinimum(0);
+    framecosk->Draw();
+
+    TLatex *t1 = new TLatex();
+    t1->SetNDC();
+    double fixNDC = -0.5;
+    if (iBin < 5) fixNDC = 0.;
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
+    c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
+
+    //
+    RooPlot* framecosl = genCosThetaL.frame(); 
+    data->plotOn(framecosl,Binning(100)); 
+    f.plotOn(framecosl); 
+
+    framecosl->SetTitle("");
+    framecosl->SetMinimum(0);
+    framecosl->Draw();
+
+    fixNDC = -0.5;
+    if (iBin > 4) fixNDC = 0.;
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
+    c->Update();
+    c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    //
+    //Cos-Phi
+    RooPlot* framecosphi = genCosPhi.frame(); 
+    data->plotOn(framecosphi,Binning(100)); 
+    f.plotOn(framecosphi); 
+
+    framecosphi->SetTitle("");
+    framecosphi->SetMinimum(0);
+    framecosphi->Draw();
+
+    fixNDC = -0.5;
+    if (iBin > 4) fixNDC = 0.;
+    t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
+    c->Update();
+    c->Print(TString::Format("%s/%s_cosPhi_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    //
+    // Make 2-D plot
+    TH1 *h1 = data->createHistogram("genCosThetaL,genCosThetaK", 100, 100);
+    h1->Draw("LEGO2");
+    TH1 *h2 = data->createHistogram("genCosThetaL,genCosPhi", 100, 100);
+    h2->Draw("LEGO2");
+    TH1 *h3 = data->createHistogram("genCosThetaK,genCosPhi", 100, 100);
+    h3->Draw("LEGO2");
+    c->Update();
+    c->Print(TString::Format("%s/%s_2D_bin%d.pdf",plotpath.Data(),outfile,iBin));
+
+    // clear
+    delete t1;
+    delete c;
+    delete data;
+
+    //write output
+    std::vector<double> output;
+    output.push_back(fl.getVal());
+    output.push_back(fl.getError());
+    output.push_back(afb.getVal());
+    output.push_back(afb.getError());
+    return output;
+
+}//}}}
+
 void angular_gen(const char outfile[] = "angular_gen")
 {//{{{
     bool refit = true; // Turn to true if you want to fit again.
@@ -1458,6 +1559,239 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
                     h_accK_fine[iBin]->SetBinError(i,sqrt(h_accK_fine[iBin]->GetBinContent(i)*(1.-h_accK_fine[iBin]->GetBinContent(i))/h_ngenK_fine[iBin]->GetBinContent(i)));
                 }else{
                     h_accK_fine[iBin]->SetBinError(i,0.);
+                }
+            }
+        }
+        printf("INFO: h2_acc_fine_bin%d built.\n",iBin);
+    }
+    fout->Write();
+    fout->Close();
+}//}}}
+
+void create3DAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
+{//{{{
+    double accUpperBound = 0.09;
+    double gQ2 = 0;
+    double gCosThetaK = 0;
+    double gCosThetaL = 0;
+    double gCosPhi = 0;
+    double gmuppt = 0;
+    double gmupeta= 0;
+    double gmupphi= 0;
+    double gmumpt = 0;
+    double gmumeta= 0;
+    double gmumphi= 0;
+
+    TChain *treein=ch;
+    if (treein == NULL) gSystem->Exit(0);
+    treein->SetBranchStatus("*",0);
+    treein->SetBranchStatus("genQ2"         , 1);
+    treein->SetBranchStatus("genCosTheta*"  , 1);
+    treein->SetBranchStatus("genMu*"        , 1);
+    treein->SetBranchAddress("genQ2"        , &gQ2);
+    treein->SetBranchAddress("genCosThetaK" , &gCosThetaK);
+    treein->SetBranchAddress("genCosThetaL" , &gCosThetaL);
+    treein->SetBranchAddress("genCosPhi"    , &gCosPhi);
+    treein->SetBranchAddress("genMupPt"     , &gmuppt);
+    treein->SetBranchAddress("genMupEta"    , &gmupeta);
+    treein->SetBranchAddress("genMupPhi"    , &gmupphi);
+    treein->SetBranchAddress("genMumPt"     , &gmumpt);
+    treein->SetBranchAddress("genMumEta"    , &gmumeta);
+    treein->SetBranchAddress("genMumPhi"    , &gmumphi);
+
+    // Create histograms
+    TFile *fout = new TFile("acceptance_8TeV.root","RECREATE");
+    float thetaKBins[6]={-1,-0.7,0.,0.4,0.8,1};
+    float thetaLBins[7]={-1,-0.7,-0.3,0.,0.3,0.7,1};
+    float phiBins[7]={-1,-0.7,-0.3,0.,0.3,0.7,1}; // don't know how the binning was done
+    TH2F *h2_ngen[10];
+    TH2F *h2_nacc[10];
+    TH2F *h2_acc[10];
+    TH2F *h2_ngen_fine[10];
+    TH2F *h2_nacc_fine[10];
+    TH2F *h2_acc_fine[10];
+    TH1F *h_ngenL_fine[10];
+    TH1F *h_naccL_fine[10];
+    TH1F *h_accL_fine[10];
+    TH1F *h_ngenK_fine[10];
+    TH1F *h_naccK_fine[10];
+    TH1F *h_accK_fine[10];
+    TH1F *h_ngenPhi_fine[10];
+    TH1F *h_naccPhi_fine[10];
+    TH1F *h_accPhi_fine[10];
+    for(int iBin = 0; iBin < 10; iBin++){
+        h2_ngen[iBin] = new TH2F(TString::Format("h2_ngen_bin%d",iBin),"h2_ngen",6,thetaLBins,5,thetaKBins);
+        h2_nacc[iBin] = new TH2F(TString::Format("h2_nacc_bin%d",iBin) ,"h2_nacc" ,6,thetaLBins,5,thetaKBins); 
+        h2_acc [iBin] = new TH2F(TString::Format("h2_acc_bin%d",iBin),"",6,thetaLBins,5,thetaKBins);
+        h2_ngen_fine[iBin] = new TH2F(TString::Format("h2_ngen_fine_bin%d",iBin),"h2_ngen",20,-1,1,20,-1,1);
+        h2_nacc_fine[iBin] = new TH2F(TString::Format("h2_nacc_fine_bin%d",iBin) ,"h2_nacc" ,20,-1,1,20,-1,1); 
+        h2_acc_fine[iBin]  = new TH2F(TString::Format("h2_acc_fine_bin%d",iBin),"",20,-1,1,20,-1,1);
+        h_ngenL_fine[iBin] = new TH1F(TString::Format("h_ngenL_fine_bin%d",iBin),"h_ngenL",20,-1,1);
+        h_naccL_fine[iBin] = new TH1F(TString::Format("h_naccL_fine_bin%d",iBin) ,"h_naccL" ,20,-1,1); 
+        h_accL_fine[iBin]  = new TH1F(TString::Format("h_accL_fine_bin%d",iBin),"",20,-1,1);
+        h_ngenK_fine[iBin] = new TH1F(TString::Format("h_ngenK_fine_bin%d",iBin),"h_ngenK",20,-1,1);
+        h_naccK_fine[iBin] = new TH1F(TString::Format("h_naccK_fine_bin%d",iBin) ,"h_naccK" ,20,-1,1); 
+        h_accK_fine[iBin]  = new TH1F(TString::Format("h_accK_fine_bin%d",iBin),"",20,-1,1);
+	h_ngenPhi_fine[iBin] = new TH1F(TString::Format("h_ngenPhi_fine_bin%d",iBin),"h_ngenPhi",20,-1,1);
+        h_naccPhi_fine[iBin] = new TH1F(TString::Format("h_naccPhi_fine_bin%d",iBin) ,"h_naccPhi" ,20,-1,1); 
+        h_accPhi_fine[iBin]  = new TH1F(TString::Format("h_accPhi_fine_bin%d",iBin),"",20,-1,1);
+        h2_ngen[iBin]->SetTitleOffset(2,"XYZ");
+        h2_ngen[iBin]->SetXTitle("genCosThetaL");
+        h2_ngen[iBin]->SetYTitle("genCosThetaK");
+        h2_ngen[iBin]->SetZTitle("Generated events");
+        h2_nacc[iBin]->SetTitleOffset(2,"XY");
+        h2_nacc[iBin]->SetXTitle("genCosThetaL");
+        h2_nacc[iBin]->SetYTitle("genCosThetaK");
+        h2_nacc[iBin]->SetZTitle("Events in acceptance");
+        h2_acc [iBin]->SetStats(0);
+        h2_acc [iBin]->SetMinimum(0.);
+        h2_acc [iBin]->SetMaximum(accUpperBound);
+        h2_acc [iBin]->SetTitleOffset(2,"XY");
+        h2_acc [iBin]->SetXTitle("genCosThetaL");
+        h2_acc [iBin]->SetYTitle("genCosThetaK");
+        h2_acc [iBin]->SetZTitle("Acceptance");
+        h2_ngen_fine[iBin]->SetTitleOffset(2,"XYZ");
+        h2_ngen_fine[iBin]->SetXTitle("genCosThetaL");
+        h2_ngen_fine[iBin]->SetYTitle("genCosThetaK");
+        h2_ngen_fine[iBin]->SetZTitle("Generated events");
+        h2_nacc_fine[iBin]->SetTitleOffset(2,"XY");
+        h2_nacc_fine[iBin]->SetXTitle("genCosThetaL");
+        h2_nacc_fine[iBin]->SetYTitle("genCosThetaK");
+        h2_nacc_fine[iBin]->SetZTitle("Events in acceptance");
+        h2_acc_fine [iBin]->SetStats(0);
+        h2_acc_fine [iBin]->SetMinimum(0.);
+        h2_acc_fine [iBin]->SetMaximum(accUpperBound);
+        h2_acc_fine [iBin]->SetTitleOffset(2,"XY");
+        h2_acc_fine [iBin]->SetXTitle("genCosThetaL");
+        h2_acc_fine [iBin]->SetYTitle("genCosThetaK");
+        h2_acc_fine [iBin]->SetZTitle("Acceptance");
+        h_ngenL_fine[iBin]->SetXTitle("genCosThetaL");
+        h_ngenL_fine[iBin]->SetZTitle("Generated events");
+        h_naccL_fine[iBin]->SetXTitle("genCosThetaL");
+        h_naccL_fine[iBin]->SetZTitle("Events in acceptance");
+        h_accL_fine [iBin]->SetStats(0);
+        h_accL_fine [iBin]->SetMinimum(0.);
+        h_accL_fine [iBin]->SetMaximum(accUpperBound);
+        h_accL_fine [iBin]->SetXTitle("genCosThetaL");
+        h_accL_fine [iBin]->SetZTitle("Acceptance");
+        h_ngenK_fine[iBin]->SetXTitle("genCosThetaK");
+        h_ngenK_fine[iBin]->SetZTitle("Generated events");
+        h_naccK_fine[iBin]->SetXTitle("genCosThetaK");
+        h_naccK_fine[iBin]->SetZTitle("Events in acceptance");
+        h_accK_fine [iBin]->SetStats(0);
+        h_accK_fine [iBin]->SetMinimum(0.);
+        h_accK_fine [iBin]->SetMaximum(accUpperBound);
+        h_accK_fine [iBin]->SetXTitle("genCosThetaK");
+        h_accK_fine [iBin]->SetZTitle("Acceptance");
+        h_ngenPhi_fine[iBin]->SetXTitle("genCosPhi");
+        h_ngenPhi_fine[iBin]->SetZTitle("Generated events");
+        h_naccPhi_fine[iBin]->SetXTitle("genCosPhi");
+        h_naccPhi_fine[iBin]->SetZTitle("Events in acceptance");
+        h_accPhi_fine [iBin]->SetStats(0);
+        h_accPhi_fine [iBin]->SetMinimum(0.);
+        h_accPhi_fine [iBin]->SetMaximum(accUpperBound);
+        h_accPhi_fine [iBin]->SetXTitle("genCosPhi");
+        h_accPhi_fine [iBin]->SetZTitle("Acceptance");	
+    }
+    
+    // Fill histograms
+        // Read data
+    for (int entry = 0; entry < treein->GetEntries(); entry++) {
+        treein->GetEntry(entry);
+        for(int iBin = 0; iBin < 10; iBin++){
+            if (gQ2 > q2rangeup[iBin] || gQ2 < q2rangedn[iBin]) continue;
+            h2_ngen[iBin]->Fill(gCosThetaL,gCosThetaK);
+            h2_ngen_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
+            h_ngenL_fine[iBin]->Fill(gCosThetaL);
+            h_ngenK_fine[iBin]->Fill(gCosThetaK);
+            if ( fabs(gmupeta) < 2.3 && gmuppt > 2.8 && fabs(gmumeta) < 2.3 && gmumpt > 2.8){
+                h2_nacc[iBin]->Fill(gCosThetaL,gCosThetaK);
+                h2_nacc_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
+                h_naccL_fine[iBin]->Fill(gCosThetaL);
+                h_naccK_fine[iBin]->Fill(gCosThetaK);
+            }
+        }
+    }
+        
+    for(int iBin = 0; iBin < 10; iBin++){
+        // Calculate acceptance
+        h2_acc[iBin]->SetAxisRange(0.,1.,"Z");
+        for (int i = 1; i <= 6; i++) {
+            for (int j = 1; j <= 5; j++) {
+                // Fill acceptance
+                if (h2_ngen[iBin]->GetBinContent(i,j) == 0) {
+                    printf("WARNING: Acceptance(%d,%d)=%f/%f\n",i,j,h2_nacc[iBin]->GetBinContent(i,j),h2_ngen[iBin]->GetBinContent(i,j));
+                    h2_acc[iBin]->SetBinContent(i,j,0.);
+                    h2_acc[iBin]->SetBinError(i,j,1.);
+                }else{
+                    h2_acc[iBin]->SetBinContent(i,j,h2_nacc[iBin]->GetBinContent(i,j)/h2_ngen[iBin]->GetBinContent(i,j));
+                    if (h2_nacc[iBin]->GetBinContent(i,j) != 0){
+                        h2_acc[iBin]->SetBinError(i,j,sqrt(h2_acc[iBin]->GetBinContent(i,j)*(1.-h2_acc[iBin]->GetBinContent(i,j))/h2_ngen[iBin]->GetBinContent(i,j)));
+                    }else{
+                        h2_acc[iBin]->SetBinError(i,j,0.);
+                    }
+                }
+            }
+        }
+        printf("INFO: h2_acc_bin%d built.\n",iBin);
+        
+        h2_acc_fine[iBin]->SetAxisRange(0.,1.,"Z");
+        for (int i = 1; i <= 20; i++) {//L
+            for (int j = 1; j <= 20; j++) {//K
+                // Fill acceptance
+                if (h2_ngen_fine[iBin]->GetBinContent(i,j) == 0) {
+                    h2_acc_fine[iBin]->SetBinContent(i,j,0.);
+                    h2_acc_fine[iBin]->SetBinError(i,j,1.);
+                }else{
+                    h2_acc_fine[iBin]->SetBinContent(i,j,h2_nacc_fine[iBin]->GetBinContent(i,j)/h2_ngen_fine[iBin]->GetBinContent(i,j));
+                    if (h2_nacc_fine[iBin]->GetBinContent(i,j) != 0){
+                        h2_acc_fine[iBin]->SetBinError(i,j,sqrt(h2_acc_fine[iBin]->GetBinContent(i,j)*(1.-h2_acc_fine[iBin]->GetBinContent(i,j))/h2_ngen_fine[iBin]->GetBinContent(i,j)));
+                    }else{
+                        h2_acc_fine[iBin]->SetBinError(i,j,0.);
+                    }
+                }
+                
+            }
+            
+            // 1-D
+            if (h_ngenL_fine[iBin]->GetBinContent(i) == 0) {
+                h_accL_fine[iBin]->SetBinContent(i,0.);
+                h_accL_fine[iBin]->SetBinError(i,1.);
+            }else{
+                h_accL_fine[iBin]->SetBinContent(i,h_naccL_fine[iBin]->GetBinContent(i)/h_ngenL_fine[iBin]->GetBinContent(i));
+                if (h_naccL_fine[iBin]->GetBinContent(i) != 0){
+                    h_accL_fine[iBin]->SetBinError(i,sqrt(h_accL_fine[iBin]->GetBinContent(i)*(1.-h_accL_fine[iBin]->GetBinContent(i))/h_ngenL_fine[iBin]->GetBinContent(i)));
+                }else{
+                    h_accL_fine[iBin]->SetBinError(i,0.);
+                }
+            }
+            
+        }
+        for (int i = 1; i <= 20; i++) {//K
+            // 1-D
+            if (h_ngenK_fine[iBin]->GetBinContent(i) == 0) {
+                h_accK_fine[iBin]->SetBinContent(i,0.);
+                h_accK_fine[iBin]->SetBinError(i,1.);
+            }else{
+                h_accK_fine[iBin]->SetBinContent(i,h_naccK_fine[iBin]->GetBinContent(i)/h_ngenK_fine[iBin]->GetBinContent(i));
+                if (h_naccK_fine[iBin]->GetBinContent(i) != 0){
+                    h_accK_fine[iBin]->SetBinError(i,sqrt(h_accK_fine[iBin]->GetBinContent(i)*(1.-h_accK_fine[iBin]->GetBinContent(i))/h_ngenK_fine[iBin]->GetBinContent(i)));
+                }else{
+                    h_accK_fine[iBin]->SetBinError(i,0.);
+                }
+            }
+        }
+        for (int i = 1; i <= 20; i++) {//Phi
+            // 1-D
+            if (h_ngenPhi_fine[iBin]->GetBinContent(i) == 0) {
+                h_accPhi_fine[iBin]->SetBinContent(i,0.);
+                h_accPhi_fine[iBin]->SetBinError(i,1.);
+            }else{
+                h_accPhi_fine[iBin]->SetBinContent(i,h_naccPhi_fine[iBin]->GetBinContent(i)/h_ngenPhi_fine[iBin]->GetBinContent(i));
+                if (h_naccPhi_fine[iBin]->GetBinContent(i) != 0){
+                    h_accPhi_fine[iBin]->SetBinError(i,sqrt(h_accPhi_fine[iBin]->GetBinContent(i)*(1.-h_accPhi_fine[iBin]->GetBinContent(i))/h_ngenPhi_fine[iBin]->GetBinContent(i)));
+                }else{
+                    h_accPhi_fine[iBin]->SetBinError(i,0.);
                 }
             }
         }
@@ -2404,6 +2738,7 @@ void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check
     c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
 //_________________________________________________________________________________
+
 
 void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool keepParam = false)
 {//{{{
@@ -3994,9 +4329,11 @@ void genToySignal(int iBin, int nEvents = 0) // For validation.
         printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
         return;
     }
-    afb->setVal(defAfb[iBin]);
+    //afb->setVal(defAfb[iBin]);
+    afb->setVal(0.1);
     as->setVal(defAs[iBin]);
-    fl->setVal(defFl[iBin]);
+    //fl->setVal(defFl[iBin]);
+    fl->setVal(0.4);
     fs->setVal(defFs[iBin]);
     if (nEvents == 0) nEvents = defNEvents[iBin];
 
@@ -4458,7 +4795,7 @@ int main(int argc, char** argv) {
         for (int iBin = 0; iBin < 8; iBin++) {
 //            if (iBin != 3 && iBin != 5) continue;
             if (iBin == 3 || iBin == 5) continue;
-            //genToySignal(iBin,10000);
+            //genToySignal(iBin,1000);
             //genToyCombBkg(iBin,10000);
             //angular3D_prior(iBin);
             //angular2D_data_bin(iBin);
@@ -4468,7 +4805,7 @@ int main(int argc, char** argv) {
         //splitMCSamples();
         //rndPickMCSamples(2);
         //genToyCombBkg(1,10000);
-        //genToySignal(2,100000);
+        //genToySignal(2,10000);
         angular2D_bin(2);
         //angular3D_bin(1);
     }else{ 
