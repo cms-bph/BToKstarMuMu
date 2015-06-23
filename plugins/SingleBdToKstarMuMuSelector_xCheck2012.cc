@@ -555,7 +555,6 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveGen()
     buff3 = genTk_4vec;//Take pion to avoid extra minus.
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     genCosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
-    printf("DEBUG\t\t: SaveGen\n");
 }//}}}
 
 #ifndef __CINT__ 
