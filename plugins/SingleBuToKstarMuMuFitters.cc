@@ -60,6 +60,7 @@
 #include <RooRandom.h>
 
 #include "tools.h" 
+#define PI 3.14159265358979
 
 using namespace std; 
 using namespace RooFit;
@@ -1568,239 +1569,6 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
     fout->Close();
 }//}}}
 
-void create3DAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
-{//{{{
-    double accUpperBound = 0.09;
-    double gQ2 = 0;
-    double gCosThetaK = 0;
-    double gCosThetaL = 0;
-    double gCosPhi = 0;
-    double gmuppt = 0;
-    double gmupeta= 0;
-    double gmupphi= 0;
-    double gmumpt = 0;
-    double gmumeta= 0;
-    double gmumphi= 0;
-
-    TChain *treein=ch;
-    if (treein == NULL) gSystem->Exit(0);
-    treein->SetBranchStatus("*",0);
-    treein->SetBranchStatus("genQ2"         , 1);
-    treein->SetBranchStatus("genCosTheta*"  , 1);
-    treein->SetBranchStatus("genMu*"        , 1);
-    treein->SetBranchAddress("genQ2"        , &gQ2);
-    treein->SetBranchAddress("genCosThetaK" , &gCosThetaK);
-    treein->SetBranchAddress("genCosThetaL" , &gCosThetaL);
-    treein->SetBranchAddress("genCosPhi"    , &gCosPhi);
-    treein->SetBranchAddress("genMupPt"     , &gmuppt);
-    treein->SetBranchAddress("genMupEta"    , &gmupeta);
-    treein->SetBranchAddress("genMupPhi"    , &gmupphi);
-    treein->SetBranchAddress("genMumPt"     , &gmumpt);
-    treein->SetBranchAddress("genMumEta"    , &gmumeta);
-    treein->SetBranchAddress("genMumPhi"    , &gmumphi);
-
-    // Create histograms
-    TFile *fout = new TFile("acceptance_8TeV.root","RECREATE");
-    float thetaKBins[6]={-1,-0.7,0.,0.4,0.8,1};
-    float thetaLBins[7]={-1,-0.7,-0.3,0.,0.3,0.7,1};
-    float phiBins[7]={-1,-0.7,-0.3,0.,0.3,0.7,1}; // don't know how the binning was done
-    TH2F *h2_ngen[10];
-    TH2F *h2_nacc[10];
-    TH2F *h2_acc[10];
-    TH2F *h2_ngen_fine[10];
-    TH2F *h2_nacc_fine[10];
-    TH2F *h2_acc_fine[10];
-    TH1F *h_ngenL_fine[10];
-    TH1F *h_naccL_fine[10];
-    TH1F *h_accL_fine[10];
-    TH1F *h_ngenK_fine[10];
-    TH1F *h_naccK_fine[10];
-    TH1F *h_accK_fine[10];
-    TH1F *h_ngenPhi_fine[10];
-    TH1F *h_naccPhi_fine[10];
-    TH1F *h_accPhi_fine[10];
-    for(int iBin = 0; iBin < 10; iBin++){
-        h2_ngen[iBin] = new TH2F(TString::Format("h2_ngen_bin%d",iBin),"h2_ngen",6,thetaLBins,5,thetaKBins);
-        h2_nacc[iBin] = new TH2F(TString::Format("h2_nacc_bin%d",iBin) ,"h2_nacc" ,6,thetaLBins,5,thetaKBins); 
-        h2_acc [iBin] = new TH2F(TString::Format("h2_acc_bin%d",iBin),"",6,thetaLBins,5,thetaKBins);
-        h2_ngen_fine[iBin] = new TH2F(TString::Format("h2_ngen_fine_bin%d",iBin),"h2_ngen",20,-1,1,20,-1,1);
-        h2_nacc_fine[iBin] = new TH2F(TString::Format("h2_nacc_fine_bin%d",iBin) ,"h2_nacc" ,20,-1,1,20,-1,1); 
-        h2_acc_fine[iBin]  = new TH2F(TString::Format("h2_acc_fine_bin%d",iBin),"",20,-1,1,20,-1,1);
-        h_ngenL_fine[iBin] = new TH1F(TString::Format("h_ngenL_fine_bin%d",iBin),"h_ngenL",20,-1,1);
-        h_naccL_fine[iBin] = new TH1F(TString::Format("h_naccL_fine_bin%d",iBin) ,"h_naccL" ,20,-1,1); 
-        h_accL_fine[iBin]  = new TH1F(TString::Format("h_accL_fine_bin%d",iBin),"",20,-1,1);
-        h_ngenK_fine[iBin] = new TH1F(TString::Format("h_ngenK_fine_bin%d",iBin),"h_ngenK",20,-1,1);
-        h_naccK_fine[iBin] = new TH1F(TString::Format("h_naccK_fine_bin%d",iBin) ,"h_naccK" ,20,-1,1); 
-        h_accK_fine[iBin]  = new TH1F(TString::Format("h_accK_fine_bin%d",iBin),"",20,-1,1);
-	h_ngenPhi_fine[iBin] = new TH1F(TString::Format("h_ngenPhi_fine_bin%d",iBin),"h_ngenPhi",20,-1,1);
-        h_naccPhi_fine[iBin] = new TH1F(TString::Format("h_naccPhi_fine_bin%d",iBin) ,"h_naccPhi" ,20,-1,1); 
-        h_accPhi_fine[iBin]  = new TH1F(TString::Format("h_accPhi_fine_bin%d",iBin),"",20,-1,1);
-        h2_ngen[iBin]->SetTitleOffset(2,"XYZ");
-        h2_ngen[iBin]->SetXTitle("genCosThetaL");
-        h2_ngen[iBin]->SetYTitle("genCosThetaK");
-        h2_ngen[iBin]->SetZTitle("Generated events");
-        h2_nacc[iBin]->SetTitleOffset(2,"XY");
-        h2_nacc[iBin]->SetXTitle("genCosThetaL");
-        h2_nacc[iBin]->SetYTitle("genCosThetaK");
-        h2_nacc[iBin]->SetZTitle("Events in acceptance");
-        h2_acc [iBin]->SetStats(0);
-        h2_acc [iBin]->SetMinimum(0.);
-        h2_acc [iBin]->SetMaximum(accUpperBound);
-        h2_acc [iBin]->SetTitleOffset(2,"XY");
-        h2_acc [iBin]->SetXTitle("genCosThetaL");
-        h2_acc [iBin]->SetYTitle("genCosThetaK");
-        h2_acc [iBin]->SetZTitle("Acceptance");
-        h2_ngen_fine[iBin]->SetTitleOffset(2,"XYZ");
-        h2_ngen_fine[iBin]->SetXTitle("genCosThetaL");
-        h2_ngen_fine[iBin]->SetYTitle("genCosThetaK");
-        h2_ngen_fine[iBin]->SetZTitle("Generated events");
-        h2_nacc_fine[iBin]->SetTitleOffset(2,"XY");
-        h2_nacc_fine[iBin]->SetXTitle("genCosThetaL");
-        h2_nacc_fine[iBin]->SetYTitle("genCosThetaK");
-        h2_nacc_fine[iBin]->SetZTitle("Events in acceptance");
-        h2_acc_fine [iBin]->SetStats(0);
-        h2_acc_fine [iBin]->SetMinimum(0.);
-        h2_acc_fine [iBin]->SetMaximum(accUpperBound);
-        h2_acc_fine [iBin]->SetTitleOffset(2,"XY");
-        h2_acc_fine [iBin]->SetXTitle("genCosThetaL");
-        h2_acc_fine [iBin]->SetYTitle("genCosThetaK");
-        h2_acc_fine [iBin]->SetZTitle("Acceptance");
-        h_ngenL_fine[iBin]->SetXTitle("genCosThetaL");
-        h_ngenL_fine[iBin]->SetZTitle("Generated events");
-        h_naccL_fine[iBin]->SetXTitle("genCosThetaL");
-        h_naccL_fine[iBin]->SetZTitle("Events in acceptance");
-        h_accL_fine [iBin]->SetStats(0);
-        h_accL_fine [iBin]->SetMinimum(0.);
-        h_accL_fine [iBin]->SetMaximum(accUpperBound);
-        h_accL_fine [iBin]->SetXTitle("genCosThetaL");
-        h_accL_fine [iBin]->SetZTitle("Acceptance");
-        h_ngenK_fine[iBin]->SetXTitle("genCosThetaK");
-        h_ngenK_fine[iBin]->SetZTitle("Generated events");
-        h_naccK_fine[iBin]->SetXTitle("genCosThetaK");
-        h_naccK_fine[iBin]->SetZTitle("Events in acceptance");
-        h_accK_fine [iBin]->SetStats(0);
-        h_accK_fine [iBin]->SetMinimum(0.);
-        h_accK_fine [iBin]->SetMaximum(accUpperBound);
-        h_accK_fine [iBin]->SetXTitle("genCosThetaK");
-        h_accK_fine [iBin]->SetZTitle("Acceptance");
-        h_ngenPhi_fine[iBin]->SetXTitle("genCosPhi");
-        h_ngenPhi_fine[iBin]->SetZTitle("Generated events");
-        h_naccPhi_fine[iBin]->SetXTitle("genCosPhi");
-        h_naccPhi_fine[iBin]->SetZTitle("Events in acceptance");
-        h_accPhi_fine [iBin]->SetStats(0);
-        h_accPhi_fine [iBin]->SetMinimum(0.);
-        h_accPhi_fine [iBin]->SetMaximum(accUpperBound);
-        h_accPhi_fine [iBin]->SetXTitle("genCosPhi");
-        h_accPhi_fine [iBin]->SetZTitle("Acceptance");	
-    }
-    
-    // Fill histograms
-        // Read data
-    for (int entry = 0; entry < treein->GetEntries(); entry++) {
-        treein->GetEntry(entry);
-        for(int iBin = 0; iBin < 10; iBin++){
-            if (gQ2 > q2rangeup[iBin] || gQ2 < q2rangedn[iBin]) continue;
-            h2_ngen[iBin]->Fill(gCosThetaL,gCosThetaK);
-            h2_ngen_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
-            h_ngenL_fine[iBin]->Fill(gCosThetaL);
-            h_ngenK_fine[iBin]->Fill(gCosThetaK);
-            if ( fabs(gmupeta) < 2.3 && gmuppt > 2.8 && fabs(gmumeta) < 2.3 && gmumpt > 2.8){
-                h2_nacc[iBin]->Fill(gCosThetaL,gCosThetaK);
-                h2_nacc_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
-                h_naccL_fine[iBin]->Fill(gCosThetaL);
-                h_naccK_fine[iBin]->Fill(gCosThetaK);
-            }
-        }
-    }
-        
-    for(int iBin = 0; iBin < 10; iBin++){
-        // Calculate acceptance
-        h2_acc[iBin]->SetAxisRange(0.,1.,"Z");
-        for (int i = 1; i <= 6; i++) {
-            for (int j = 1; j <= 5; j++) {
-                // Fill acceptance
-                if (h2_ngen[iBin]->GetBinContent(i,j) == 0) {
-                    printf("WARNING: Acceptance(%d,%d)=%f/%f\n",i,j,h2_nacc[iBin]->GetBinContent(i,j),h2_ngen[iBin]->GetBinContent(i,j));
-                    h2_acc[iBin]->SetBinContent(i,j,0.);
-                    h2_acc[iBin]->SetBinError(i,j,1.);
-                }else{
-                    h2_acc[iBin]->SetBinContent(i,j,h2_nacc[iBin]->GetBinContent(i,j)/h2_ngen[iBin]->GetBinContent(i,j));
-                    if (h2_nacc[iBin]->GetBinContent(i,j) != 0){
-                        h2_acc[iBin]->SetBinError(i,j,sqrt(h2_acc[iBin]->GetBinContent(i,j)*(1.-h2_acc[iBin]->GetBinContent(i,j))/h2_ngen[iBin]->GetBinContent(i,j)));
-                    }else{
-                        h2_acc[iBin]->SetBinError(i,j,0.);
-                    }
-                }
-            }
-        }
-        printf("INFO: h2_acc_bin%d built.\n",iBin);
-        
-        h2_acc_fine[iBin]->SetAxisRange(0.,1.,"Z");
-        for (int i = 1; i <= 20; i++) {//L
-            for (int j = 1; j <= 20; j++) {//K
-                // Fill acceptance
-                if (h2_ngen_fine[iBin]->GetBinContent(i,j) == 0) {
-                    h2_acc_fine[iBin]->SetBinContent(i,j,0.);
-                    h2_acc_fine[iBin]->SetBinError(i,j,1.);
-                }else{
-                    h2_acc_fine[iBin]->SetBinContent(i,j,h2_nacc_fine[iBin]->GetBinContent(i,j)/h2_ngen_fine[iBin]->GetBinContent(i,j));
-                    if (h2_nacc_fine[iBin]->GetBinContent(i,j) != 0){
-                        h2_acc_fine[iBin]->SetBinError(i,j,sqrt(h2_acc_fine[iBin]->GetBinContent(i,j)*(1.-h2_acc_fine[iBin]->GetBinContent(i,j))/h2_ngen_fine[iBin]->GetBinContent(i,j)));
-                    }else{
-                        h2_acc_fine[iBin]->SetBinError(i,j,0.);
-                    }
-                }
-                
-            }
-            
-            // 1-D
-            if (h_ngenL_fine[iBin]->GetBinContent(i) == 0) {
-                h_accL_fine[iBin]->SetBinContent(i,0.);
-                h_accL_fine[iBin]->SetBinError(i,1.);
-            }else{
-                h_accL_fine[iBin]->SetBinContent(i,h_naccL_fine[iBin]->GetBinContent(i)/h_ngenL_fine[iBin]->GetBinContent(i));
-                if (h_naccL_fine[iBin]->GetBinContent(i) != 0){
-                    h_accL_fine[iBin]->SetBinError(i,sqrt(h_accL_fine[iBin]->GetBinContent(i)*(1.-h_accL_fine[iBin]->GetBinContent(i))/h_ngenL_fine[iBin]->GetBinContent(i)));
-                }else{
-                    h_accL_fine[iBin]->SetBinError(i,0.);
-                }
-            }
-            
-        }
-        for (int i = 1; i <= 20; i++) {//K
-            // 1-D
-            if (h_ngenK_fine[iBin]->GetBinContent(i) == 0) {
-                h_accK_fine[iBin]->SetBinContent(i,0.);
-                h_accK_fine[iBin]->SetBinError(i,1.);
-            }else{
-                h_accK_fine[iBin]->SetBinContent(i,h_naccK_fine[iBin]->GetBinContent(i)/h_ngenK_fine[iBin]->GetBinContent(i));
-                if (h_naccK_fine[iBin]->GetBinContent(i) != 0){
-                    h_accK_fine[iBin]->SetBinError(i,sqrt(h_accK_fine[iBin]->GetBinContent(i)*(1.-h_accK_fine[iBin]->GetBinContent(i))/h_ngenK_fine[iBin]->GetBinContent(i)));
-                }else{
-                    h_accK_fine[iBin]->SetBinError(i,0.);
-                }
-            }
-        }
-        for (int i = 1; i <= 20; i++) {//Phi
-            // 1-D
-            if (h_ngenPhi_fine[iBin]->GetBinContent(i) == 0) {
-                h_accPhi_fine[iBin]->SetBinContent(i,0.);
-                h_accPhi_fine[iBin]->SetBinError(i,1.);
-            }else{
-                h_accPhi_fine[iBin]->SetBinContent(i,h_naccPhi_fine[iBin]->GetBinContent(i)/h_ngenPhi_fine[iBin]->GetBinContent(i));
-                if (h_naccPhi_fine[iBin]->GetBinContent(i) != 0){
-                    h_accPhi_fine[iBin]->SetBinError(i,sqrt(h_accPhi_fine[iBin]->GetBinContent(i)*(1.-h_accPhi_fine[iBin]->GetBinContent(i))/h_ngenPhi_fine[iBin]->GetBinContent(i)));
-                }else{
-                    h_accPhi_fine[iBin]->SetBinError(i,0.);
-                }
-            }
-        }
-        printf("INFO: h2_acc_fine_bin%d built.\n",iBin);
-    }
-    fout->Write();
-    fout->Close();
-}//}}}
-
 void createRecoEffHist(int iBin) // create reco efficiency histogram from official MC sample.
 {//{{{
     printf("Evaluate reconstruction efficiency for bin#%d\n",iBin);
@@ -2424,7 +2192,6 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         delete latex;
         
     }
-    
 
     // prepare output
     string out_accXrecoEff2_ord0;
@@ -2446,8 +2213,10 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
     if (true){
         RooRealVar CosThetaK("CosThetaK", "cos#theta_{K}", -1., 1.);
         RooRealVar CosThetaL("CosThetaL", "cos#theta_{L}", -1., 1.);
-        RooRealVar fl("fl", "F_{L}", genFl[iBin], 0., 1.);
-        RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -1., 1.);
+        //RooRealVar fl("fl", "F_{L}", genFl[iBin], 0., 1.);
+        //RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -1., 1.);
+        RooRealVar fl("fl", "F_{L}", genFl[iBin], -100, 100.);// unbounded fl
+        RooRealVar afb("afb", "A_{FB}", genAfb[iBin], -100., 100.);// unbounded afb
         RooRealVar fs("fs","F_{S}",0.0129254,-0.3,0.3);
         RooRealVar as("as","A_{S}",-0.0975919,-0.3,0.3);
         RooRealVar recK0L0("recK0L0","recK0L0",arrPar[ 0]);
@@ -2495,7 +2264,8 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         f_sigA_argset.add(RooArgSet(recK0L0,recK1L0,recK2L0,recK3L0));
         f_sigA_argset.add(RooArgSet(recK0L2,recK1L2,recK2L2,recK3L2));
         TString f_sigA_format;
-        TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
+        //TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
+        TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*(1/2+TMath::ATan(fl)/TMath::Pi())*CosThetaK**2*(1-CosThetaL**2)+1/2*(1/2-TMath::ATan(fl)/TMath::Pi())*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*(3/2*(1/2-TMath::ATan(fl)/TMath::Pi())*TMath::Tan(afb)/TMath::Pi())*(1-CosThetaK**2)*CosThetaL))";// unbounded fl, afb
         TString f_accXrecoEff2_ord0 = out_accXrecoEff2_ord0;
         TString f_accXrecoEff2_format, f_accXrecoEff2_L0, f_accXrecoEff2_L2, f_accXrecoEff2_L3, f_accXrecoEff2_L4, f_accXrecoEff2_L6;
         f_accXrecoEff2_L0 = "(recK0L0+recK1L0*CosThetaK+recK2L0*(3*CosThetaK**2-1)/2+recK3L0*(5*CosThetaK**3-3*CosThetaK)/2)";
@@ -2566,6 +2336,10 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
         fs = (RooRealVar*)wspace_sigA->var("fs");
         afb = (RooRealVar*)wspace_sigA->var("afb");
         as = (RooRealVar*)wspace_sigA->var("as");
+        fl->setRange(-10,10);// unbounded fl
+        fl->setVal(0.6);
+        afb->setRange(-10,10);// unbounded afb
+        afb->setVal(0.9);
     }else{
         printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
         return;
@@ -2575,11 +2349,27 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     RooExtendPdf f_ext("f_ext","f_ext",*f_sigA,nsig);
     
     // Get data and apply unbinned fit
-    //fs.setConstant(kTRUE); as.setConstant(kTRUE);
     int mumuMassWindowBin = 1+2*isCDFcut;
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(Q2, Bmass, Mumumass, Mumumasserr, CosThetaK,CosThetaL),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
-    f_ext.fitTo(*data,Minimizer("Minuit"));
-    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(kTRUE));
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f_ext.fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    fl  ->setConstant(kTRUE);
+    afb ->setConstant(kTRUE);
+    f_ext.fitTo(*data,Hesse(kFALSE));
+    fl  ->setConstant(kFALSE);
+    afb ->setConstant(kFALSE);
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f_ext.fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    RooFitResult *f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(RooArgSet(*afb,*fl)),Offset(kTRUE));
+    if (afb->getErrorLo()+afb->getErrorHi() == 0 || fl->getErrorLo()+fl->getErrorHi() == 0){
+        f_fitresult = f_ext.fitTo(*data,Extended(kTRUE),Save(kTRUE),Minimizer("Minuit"),Minos(RooArgSet(*afb,*fl)));
+    }
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -2603,8 +2393,10 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     if (iBin > 3) fixNDC = -0.5;
-    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl->getVal(),fl->getError()));
-    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb->getVal(),afb->getError()));
+    //t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl->getVal(),fl->getError()));
+    //t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb->getVal(),afb->getError()));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",0.5+TMath::ATan(fl->getVal())/PI,0.5+TMath::ATan(fl->getError())/PI));//unbounded fl
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",1.5*(0.5-TMath::ATan(fl->getVal())/PI)*TMath::Tan(afb->getVal())/PI,1.5*(0.5-TMath::ATan(fl->getVal()))*TMath::Tan(afb->getError())/PI));//unbounded afb
     c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // Draw projection to CosThetaL
@@ -2645,13 +2437,17 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
 
     //write output
     fl->Print();
-    double output[4] = {0,0};
+    double output[4] = {0,0,0,0};
     output[0] = fl->getVal();
     output[1] = fl->getError();
-    writeParam(iBin,"fl",output);
+    output[2] = fl->getErrorLo();
+    output[3] = fl->getErrorHi();
+    writeParam(iBin,"fl",output,4);
     output[0] = afb->getVal();
     output[1] = afb->getError();
-    writeParam(iBin,"afb",output);
+    output[2] = afb->getErrorLo();
+    output[3] = afb->getErrorHi();
+    writeParam(iBin,"afb",output,4);
     output[0] = as->getVal();
     output[1] = as->getError();
     writeParam(iBin,"as",output);
@@ -3310,26 +3106,43 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
     // Create combinatorial background distribution
     TString f_bkgCombL_format;
     RooRealVar bkgCombL_c1("bkgCombL_c1","c1",readParam(iBin,"bkgCombL_c1",0),-3,3);
-    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0,0.1,0.1),0.05,5);
+    RooRealVar bkgCombL_c2("bkgCombL_c2","c2",readParam(iBin,"bkgCombL_c2",0,0.1),-5,5);
     RooRealVar bkgCombL_c3("bkgCombL_c3","c3",readParam(iBin,"bkgCombL_c3",0),-3,3);
-    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0,0.1,0.1),0.05,5);
-    RooRealVar bkgCombL_c5("bkgCombL_c5","c5",readParam(iBin,"bkgCombL_c5",0,0.5,0.5),0.,1.);
+    RooRealVar bkgCombL_c4("bkgCombL_c4","c4",readParam(iBin,"bkgCombL_c4",0,0.1),-5,5);
+    RooRealVar bkgCombL_c5("bkgCombL_c5","c5",readParam(iBin,"bkgCombL_c5",0,0.5),0.,1.);
     RooArgSet f_bkgCombL_argset;
     TString f_bkgCombK_format;
-    RooRealVar bkgCombK_c1("bkgCombK_c1","c1",readParam(iBin,"bkgCombK_c1",0),-2.5,2.5);
-    RooRealVar bkgCombK_c2("bkgCombK_c2","c2",readParam(iBin,"bkgCombK_c2",0),-2.5,2.5);
+    RooRealVar bkgCombK_c1("bkgCombK_c1","c1",readParam(iBin,"bkgCombK_c1",0),-5,5);
+    RooRealVar bkgCombK_c2("bkgCombK_c2","c2",readParam(iBin,"bkgCombK_c2",0),-10,10);
     RooRealVar bkgCombK_c3("bkgCombK_c3","c3",readParam(iBin,"bkgCombK_c3",0),-5,5);
     RooRealVar bkgCombK_c4("bkgCombK_c4","c4",readParam(iBin,"bkgCombK_c4",0),-5,5);
+    RooRealVar bkgCombK_c5("bkgCombK_c5","c5",readParam(iBin,"bkgCombK_c5",0),-5,5);
     RooArgSet f_bkgCombK_argset;
     switch (iBin) {
         case 0:
-        case 1:
-        case 2:
-        case 3:
         case 4:
-        case 5:
         case 6:
-        case 7:
+            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 1: // need more tuning...
+            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            //f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 2:
             f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)+bkgCombL_c5*exp(-0.5*((CosThetaL-bkgCombL_c3)/bkgCombL_c4)**2)";
             f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
             f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
@@ -3337,8 +3150,28 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             f_bkgCombL_argset.add(RooArgSet(bkgCombL_c4));
             f_bkgCombL_argset.add(RooArgSet(bkgCombL_c5));
             f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
-            //f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3";
-            //f_bkgCombK_format = "exp(-0.5*((CosThetaK-bkgCombK_c1)/bkgCombK_c2)**2)+bkgCombK_c3*exp(bkgCombK_c4*(1-CosThetaK))";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 7:
+            f_bkgCombL_format = "1+bkgCombL_c1*CosThetaL";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 3:
+        case 5:
+            f_bkgCombL_format = "1+bkgCombL_c1*CosThetaL+bkgCombL_c2*CosThetaL**2+bkgCombL_c3*CosThetaL**3+bkgCombL_c4*CosThetaL**4";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c3));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c4));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
@@ -3690,8 +3523,26 @@ void angular2D_data_bin(int iBin, const char outfile[] = "angular2D_data")
     int mumuMassWindowBin = 1+2*isCDFcut;
     if (iBin==3 || iBin==5) mumuMassWindowBin = 0; // no cut
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK, CosThetaL, Bmass, Q2, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
-    fA->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
-    f->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"),Minos(kTRUE));
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    fl  ->setConstant(kTRUE);
+    afb ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fl  ->setConstant(kFALSE);
+    afb ->setConstant(kFALSE);
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    fA  ->fitTo(*data,ExternalConstraints(gausConstraints));
+    f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)),Offset(kTRUE));
+    if (afb->getErrorLo()+afb->getErrorHi() == 0 || fl->getErrorLo()+fl->getErrorHi() == 0){
+        f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)));
+    }
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -3764,15 +3615,15 @@ void angular2D_data_bin(int iBin, const char outfile[] = "angular2D_data")
     }
 
     // write output
-    double val[3]={0,0,0};
-    val[0] = fl->getVal();val[1] = fl->getError();
-    writeParam(iBin, "fl", val);
-    val[0] = afb->getVal();val[1] = afb->getError();
-    writeParam(iBin, "afb",val);
-    val[0] = fs->getVal();val[1] = fs->getError();
-    writeParam(iBin, "fs", val);
-    val[0] = as->getVal();val[1] = as->getError();
-    writeParam(iBin, "as", val);
+    double val[4]={0,0,0,0};
+    val[0] = fl->getVal();val[1] = fl->getError();val[2]=fl->getErrorLo();val[3]=fl->getErrorHi();
+    writeParam(iBin, "fl", val, 4);
+    val[0] = afb->getVal();val[1] = afb->getError();val[2]=afb->getErrorLo();val[3]=afb->getErrorHi();
+    writeParam(iBin, "afb",val, 4);
+    val[0] = fs->getVal();val[1] = fs->getError();val[2]=fs->getErrorLo();val[3]=fs->getErrorHi();
+    writeParam(iBin, "fs", val, 4);
+    val[0] = as->getVal();val[1] = as->getError();val[2]=as->getErrorLo();val[3]=as->getErrorHi();
+    writeParam(iBin, "as", val, 4);
     
     // clear
     delete t1;
@@ -4031,12 +3882,27 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     int mumuMassWindowBin = 1+2*isCDFcut;
     if (iBin==3 || iBin==5) mumuMassWindowBin = 0; // no cut
     RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK, CosThetaL, Bmass, Q2, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
-    printf("DEBUG\t\t: fM->fitTo\n");
-    fM->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
-    printf("DEBUG\t\t: fA->fitTo\n");
-    fA->fitTo(*data,ExternalConstraints(gausConstraints),Minimizer("Minuit"));
-    printf("DEBUG\t\t: f->fitTo\n");
-    f->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minimizer("Minuit"),Minos(kTRUE));
+    fM  ->fitTo(*data,ExternalConstraints(gausConstraints));
+    fA  ->fitTo(*data,ExternalConstraints(gausConstraints));
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    fl  ->setConstant(kTRUE);
+    afb ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fl  ->setConstant(kFALSE);
+    afb ->setConstant(kFALSE);
+    fs  ->setConstant(kTRUE);
+    as  ->setConstant(kTRUE);
+    f   ->fitTo(*data,Hesse(kFALSE));
+    fs  ->setConstant(kFALSE);
+    as  ->setConstant(kFALSE);
+    f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)),Offset(kTRUE));
+    if (afb->getErrorLo()+afb->getErrorHi() == 0 || fl->getErrorLo()+fl->getErrorHi() == 0){
+        f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)));
+    }
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
@@ -4128,15 +3994,15 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     }
 
     // write output
-    double val[3]={0,0,0};
-    val[0] = fl->getVal();val[1] = fl->getError();
-    writeParam(iBin, "fl", val);
-    val[0] = afb->getVal();val[1] = afb->getError();
-    writeParam(iBin, "afb",val);
-    val[0] = fs->getVal();val[1] = fs->getError();
-    writeParam(iBin, "fs", val);
-    val[0] = as->getVal();val[1] = as->getError();
-    writeParam(iBin, "as", val);
+    double val[4]={0,0,0,0};
+    val[0] = fl->getVal();val[1] = fl->getError();val[2]=fl->getErrorLo();val[3]=fl->getErrorHi();
+    writeParam(iBin, "fl", val, 4);
+    val[0] = afb->getVal();val[1] = afb->getError();val[2]=afb->getErrorLo();val[3]=afb->getErrorHi();
+    writeParam(iBin, "afb",val, 4);
+    val[0] = fs->getVal();val[1] = fs->getError();val[2]=fs->getErrorLo();val[3]=fs->getErrorHi();
+    writeParam(iBin, "fs", val, 4);
+    val[0] = as->getVal();val[1] = as->getError();val[2]=as->getErrorLo();val[3]=as->getErrorHi();
+    writeParam(iBin, "as", val, 4);
     
     // clear
     delete t1;
@@ -4806,8 +4672,9 @@ int main(int argc, char** argv) {
         //rndPickMCSamples(2);
         //genToyCombBkg(1,10000);
         //genToySignal(2,10000);
-        angular2D_bin(2);
+        //angular2D_bin(2);
         //angular3D_bin(1);
+        //angular3D_prior(1,"angular3D_prior",true);
     }else{ 
         cerr << "No function available for: " << func.Data() << endl; 
     }
