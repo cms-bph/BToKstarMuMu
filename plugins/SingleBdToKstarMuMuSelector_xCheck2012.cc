@@ -70,6 +70,10 @@ double Bctau       = 0;
 double Q2 = 0;
 double CosThetaL   = 999;
 double CosThetaK   = 999;
+double ThetaL      = 999;
+double ThetaK      = 999;
+double Phi         = 999;
+bool   isB0notB0bar= true;
 
 // Branches NOT included in 2012 analysis
 int TrkChg = 999;
@@ -111,6 +115,10 @@ double  genPimPhi    = 0;
 double  genQ2        = 0;
 double  genCosThetaL = 999;
 double  genCosThetaK = 999;
+double  genThetaL    = 999;
+double  genThetaK    = 999;
+double  genPhi       = 999;
+double  genIsB0notB0bar = true;
 
 void ClearEvent()
 {//{{{
@@ -256,6 +264,10 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SlaveBegin(TTree * /*tree*/)
     tree_->Branch("Q2"          , &Q2          , "Q2/D");
     tree_->Branch("CosThetaL"   , &CosThetaL   , "CosThetaL/D");
     tree_->Branch("CosThetaK"   , &CosThetaK   , "CosThetaK/D");
+    tree_->Branch("ThetaL"   , &ThetaL   , "ThetaL/D");
+    tree_->Branch("ThetaK"   , &ThetaK   , "ThetaK/D");
+    tree_->Branch("Phi", &Phi, "Phi/D");
+    tree_->Branch("isB0notB0bar", &isB0notB0bar, "isB0notB0bar/O");
 
     tree_->Branch("TrkChg"      , &TrkChg       , "TrkChg/I");
     tree_->Branch("EvtWeight"   , &EvtWeight    , "EvtWeight/D");
@@ -273,11 +285,27 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genBPhi"      , &genBPhi      , "genBPhi/D");
             tree_->Branch("genMupPt"     , &genMupPt     , "genMupPt/D");
             tree_->Branch("genMupEta"    , &genMupEta    , "genMupEta/D");
+            tree_->Branch("genMupPhi"    , &genMupPhi    , "genMupPhi/D");
             tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
             tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
+            tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+            tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
+            tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
+            tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
+            tree_->Branch("genTkChg"     , &genTkChg     , "genTkChg/I");
+            tree_->Branch("genTkPt"      , &genTkPt      , "genTkPt/D");
+            tree_->Branch("genTkEta"     , &genTkEta     , "genTkEta/D");
+            tree_->Branch("genTkPhi"     , &genTkPhi     , "genTkPhi/D");
+            tree_->Branch("genKPt"       , &genKPt       , "genKPt/D");
+            tree_->Branch("genKEta"      , &genKEta      , "genKEta/D");
+            tree_->Branch("genKPhi"      , &genKPhi      , "genKPhi/D");
             tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
             tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
+            tree_->Branch("genThetaL" , &genThetaL , "genThetaL/D");
+            tree_->Branch("genThetaK" , &genThetaK , "genThetaK/D");
+            tree_->Branch("genPhi",&genPhi,"genPhi/D");
+            tree_->Branch("genIsB0notB0bar", &genIsB0notB0bar, "genIsB0notB0bar/O"); 
             break;
         case 999:
             tree_->Branch("genBChg"      , &genBChg      , "genBChg/I");
@@ -315,6 +343,10 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
             tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
+            tree_->Branch("genThetaL" , &genThetaL , "genThetaL/D");
+            tree_->Branch("genThetaK" , &genThetaK , "genThetaK/D");
+            tree_->Branch("genPhi",&genPhi,"genPhi/D");
+            tree_->Branch("genIsB0notB0bar", &genIsB0notB0bar, "genIsB0notB0bar/O"); 
             break;
         default:
             printf("No compatible datatype found. Please check use following types...\n\t\t[");
@@ -476,6 +508,32 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveEvent(int i)
     Q2 = pow(mumuMass->at(i),2);
     CosThetaL = CosThetaMuArb;
     CosThetaK = CosThetaKArb;
+
+    buff1 = B_4vec;
+    buff2 = Mup_4vec+Mum_4vec;
+    buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
+    if ( TrkChg < 0) {
+        buff3 = Mum_4vec;//Take mu- to avoid extra minus sign.
+    }else{
+        buff3 = Mup_4vec;
+    }
+    buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
+    ThetaL = buff3.Theta()-buff1.Theta();// [-PI,PI]
+
+    buff1 = B_4vec;
+    buff2 = Kst_4vec;
+    buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
+    buff3 = Tk_4vec;//Take pion to avoid extra minus.
+    buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
+    ThetaK = buff3.Theta()-buff1.Theta();// [-PI,PI]
+    
+    buff1 = Mum_4vec;// Angle between mu- and K+
+    buff2 = Kst_4vec;
+    buff1.Boost(-B_4vec.X()/B_4vec.T(),-B_4vec.Y()/B_4vec.T(),-B_4vec.Z()/B_4vec.T());
+    buff2.Boost(-B_4vec.X()/B_4vec.T(),-B_4vec.Y()/B_4vec.T(),-B_4vec.Z()/B_4vec.T());
+    Phi = buff2.DeltaPhi(buff1);
+    
+    isB0notB0bar = B0notB0bar;
     EvtWeight = evWeight;
 }//}}}
 
@@ -497,10 +555,12 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveGen()
         genTk_4vec.SetXYZM(genKstTrkmPx,genKstTrkmPy,genKstTrkmPz,PION_MASS);
         genK_4vec.SetXYZM(genKstTrkpPx,genKstTrkpPy,genKstTrkpPz,KAON_MASS);
         genTkChg = -1;
+        genIsB0notB0bar = true;
     }else{
         genK_4vec.SetXYZM(genKstTrkmPx,genKstTrkmPy,genKstTrkmPz,KAON_MASS);
         genTk_4vec.SetXYZM(genKstTrkpPx,genKstTrkpPy,genKstTrkpPz,PION_MASS);
         genTkChg = 1;
+        genIsB0notB0bar = false;
     }
     genPip_4vec.SetXYZM(0,0,0,0);
     genPim_4vec.SetXYZM(0,0,0,0);
@@ -541,13 +601,14 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveGen()
     buff1 = genB_4vec;
     buff2 = genMup_4vec+genMum_4vec;
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
-    if ( genTkChg < 0){
+    if ( genTkChg < 0) {
         buff3 = genMum_4vec;//Take mu- to avoid extra minus sign.
     }else{
         buff3 = genMup_4vec;
     }
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     genCosThetaL = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
+    genThetaL = buff3.Theta()-buff1.Theta();// [-PI,PI], TVector3::Theta() {return TMath::ATan2(Prep(),fZ);}
 
     buff1 = genB_4vec;
     buff2 = genKst_4vec;
@@ -555,6 +616,14 @@ void SingleBdToKstarMuMuSelector_xCheck2012::SaveGen()
     buff3 = genTk_4vec;//Take pion to avoid extra minus.
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     genCosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
+    genThetaK = buff3.Theta()-buff1.Theta();// [-PI,PI]
+
+    buff1 = genMum_4vec;// Angle between mu- and K+
+    buff2 = genKst_4vec;
+    buff1.Boost(-genB_4vec.X()/genB_4vec.T(),-genB_4vec.Y()/genB_4vec.T(),-genB_4vec.Z()/genB_4vec.T());
+    buff2.Boost(-genB_4vec.X()/genB_4vec.T(),-genB_4vec.Y()/genB_4vec.T(),-genB_4vec.Z()/genB_4vec.T());
+    genPhi = buff2.DeltaPhi(buff1);
+
 }//}}}
 
 #ifndef __CINT__ 
