@@ -32,6 +32,7 @@
 #include <TChainElement.h>
 #include <TPaveText.h>
 #include <TLatex.h>
+#include <TLine.h>
 #include <TString.h>
 #include <TGraphAsymmErrors.h>
 #include <TLorentzVector.h>
@@ -56,6 +57,7 @@
 #include <RooPlot.h>
 #include <RooAddition.h>
 #include <RooProduct.h>
+#include <RooMinuit.h>
 #include <RooWorkspace.h>
 #include <RooRandom.h>
 
@@ -75,7 +77,7 @@ TString owspacepath=".";
 TString idatacardpath=".";
 TString odatacardpath=".";
 //Constants, Fit results for efficiency, etc.. //{{{
-char genQ2range[10][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
+char genQ2range[11][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
                            "genQ2 < 4.30 && genQ2 > 2.00",
                            "genQ2 < 8.68 && genQ2 > 4.30",
                            "genQ2 <10.09 && genQ2 > 8.68",
@@ -83,9 +85,10 @@ char genQ2range[10][32] = {"genQ2 < 2.00 && genQ2 > 1.00",
                            "genQ2 <14.18 && genQ2 >12.86",
                            "genQ2 <16.00 && genQ2 >14.18",
                            "genQ2 <19.00 && genQ2 >16.00",
+                           "genQ2 < 4.30 && genQ2 > 1.00",
                            "genQ2 <19.00 && genQ2 > 1.00",
                            "genQ2 < 6.00 && genQ2 > 1.00"};
-char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
+char q2range[11][32] = {"Q2 < 2.00 && Q2 > 1.00",
                         "Q2 < 4.30 && Q2 > 2.00",
                         "Q2 < 8.68 && Q2 > 4.30",
                         "Q2 <10.09 && Q2 > 8.68",
@@ -93,9 +96,11 @@ char q2range[10][32] = {"Q2 < 2.00 && Q2 > 1.00",
                         "Q2 <14.18 && Q2 >12.86",
                         "Q2 <16.00 && Q2 >14.18",
                         "Q2 <19.00 && Q2 >16.00",
+                        "Q2 < 4.30 && Q2 > 1.00",
+                        "Q2 <19.00 && Q2 > 1.00",
                         "Q2 < 6.00 && Q2 > 1.00"};
-double q2rangedn[10] = {1.00 , 2.00 , 4.30 , 8.68  , 10.09 , 12.86 , 14.18 , 16.00 ,  1.00 , 1.00};
-double q2rangeup[10] = {2.00 , 4.30 , 8.68 , 10.09 , 12.86 , 14.18 , 16.00 , 19.00 , 19.00 , 6.00};
+double q2rangedn[11] = {1.00 , 2.00 , 4.30 , 8.68  , 10.09 , 12.86 , 14.18 , 16.00 , 1.00 ,  1.00 , 1.00};
+double q2rangeup[11] = {2.00 , 4.30 , 8.68 , 10.09 , 12.86 , 14.18 , 16.00 , 19.00 , 4.30 , 19.00 , 6.00};
 char mumuMassWindow[7][512] = { "Mumumass > 0",
                                 "(Mumumass > 3.096916+3.5*Mumumasserr || Mumumass < 3.096916-5.5*Mumumasserr) && (Mumumass > 3.686109+3.5*Mumumasserr || Mumumass < 3.686109-3.5*Mumumasserr)",
                                 "(Mumumass < 3.096916+3*Mumumasserr && Mumumass > 3.096916-5*Mumumasserr) || (Mumumass < 3.686109+3*Mumumasserr && Mumumass > 3.686109-3*Mumumasserr)",
@@ -108,95 +113,11 @@ char mumuMassWindow[7][512] = { "Mumumass > 0",
                                 "Mumumasserr > 0",
                                 "Mumumasserr > 0"
 };//None, sig, bkg, #Jpsi, #Psi2S, CDF, anti-CDF, LHCb, anti-LHCb
-double genAfb[8]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376};
-double genAfberr[8]={0.000434,0.000285,0.000223,0.000383,0.000277,0.000421,0.000395,0.000422};
-double genFl [8]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341};
-double genFlerr[8]={0.000568,0.000409,0.000271,0.000420,0.000287,0.000415,0.000369,0.000361};
-double arrRecPar2011   [8][20] = {
-            {0.0017687,-8.73499e-06,-0.000935262,-0.000787674,
-            -0.00529644,0.00155626,0.00356542,0.000171319,
-            0,0,0,0,
-            0.00551706,-0.00339678,-0.00463866,0.00240596,
-            -0.00197731,0.00184597,0.00200529,-0.00178549},
-            {0.00157318,7.37446e-05,-0.000749493,-0.000781159,
-            -0.00288927,0.000261854,0.00187545,0.000883533,
-            0,0,0,0,
-            0.00132593,-0.000331488,-0.00112174,-0.000108788,
-            0,0,0,0},
-            {0.00118453,-1.23943e-05,-0.000454793,-0.000541742,
-            -2.12267e-05,0.000714674,-9.69142e-05,-0.000768923,
-            -7.59472e-05,0.000229203,5.36592e-05,-6.0488e-05,
-            -0.00106615,-0.000896725,0.000710503,0.00156238,
-            0,0,0,0},
-            {0.00106852,-7.35469e-05,-0.000403409,-0.00035673,
-            0.000637779,0.000294361,-0.000303145,-0.000885132,
-            5.60979e-05,8.91354e-05,-0.000103992,-5.73688e-05,
-            -0.00112888,9.3696e-05,0.000728873,0.000650714,
-            0,0,0,0},
-            {0.00102525,-0.000118438,-0.000346987,-0.000315243,
-            0.000741172,0.000462559,-0.000313513,-0.00064603,
-            -0.0007614,0.00153595,0.000840568,-0.0014875,
-            -1.66019e-05,-0.00190496,-0.000546402,0.00220778,
-            0,0,0,0},
-            {0.00108772,0.000130305,-0.000457955,-0.000514284,
-            0.000225576,-0.00108671,0.000283481,0.000592928,
-            4.66766e-05,-0.00017112,4.27933e-05,0.000247925,
-            7.59011e-05,0.000852078,-0.000514188,-8.52169e-05,
-            0,0,0,0},
-            {0.000964546,4.77019e-05,-0.000249802,-0.00035122,
-            0.00120212,-0.0013481,-0.00081191,0.00109161,
-            -0.000838523,0.00118858,0.000579591,-0.00101538,
-            0,0,0,0,
-            0,0,0,0},
-            {0.00103644,7.27679e-05,-0.000366081,-0.000162294,
-            0.000571208,-0.00089218,-1.99667e-05,0.00066918,
-            -0.000423471,0.000360459,0.000228834,-0.000207738,
-            0,0,0,0,
-            0,0,0,0}};
-
-double arrRecParErr2011[8][20] = {
-            {9.77352e-06,1.45679e-05,1.44267e-05,1.71613e-05,
-            1.7851e-05,2.42707e-05,2.66439e-05,2.89112e-05,
-            0,0,0,0,
-            2.06968e-05,2.87918e-05,3.2287e-05,3.52259e-05,
-            1.71744e-05,2.50134e-05,2.75925e-05,3.13877e-05},
-            {1.93048e-05,4.54403e-05,3.19836e-05,6.34448e-05,
-            6.97046e-05,0.000175846,0.000127026,0.000252818,
-            0,0,0,0,
-            5.60232e-05,0.000145372,0.000105324,0.000210834,
-            0,0,0,0},
-            {1.20764e-05,2.99275e-05,2.12433e-05,4.24699e-05,
-            5.88911e-05,0.000155115,0.0001176,0.000229393,
-            1.73594e-05,3.28355e-05,3.60904e-05,5.2698e-05,
-            5.76856e-05,0.000147459,0.000126591,0.000229798,
-            0,0,0,0},
-            {1.07973e-05,2.65747e-05,1.89528e-05,3.78338e-05,
-            8.26138e-05,0.000208233,0.000148573,0.000297846,
-            1.46533e-05,4.07354e-05,3.25714e-05,6.24532e-05,
-            0.000102431,0.000261492,0.00018865,0.000376784,
-            0,0,0,0},
-            {1.43812e-05,3.69822e-05,2.68571e-05,5.34828e-05,
-            0.000109918,0.000289434,0.000212286,0.000422439,
-            4.35946e-05,9.76997e-05,7.60719e-05,0.000139613,
-            0.000142318,0.000374508,0.000278563,0.000548987,
-            0,0,0,0},
-            {4.57551e-05,0.000116528,7.84802e-05,0.000164459,
-            0.000350888,0.000882504,0.000628837,0.00126522,
-            6.95431e-05,0.000192566,0.000150432,0.000293712,
-            0.000438904,0.00111066,0.000809841,0.00160928,
-            0,0,0,0},
-            {1.41088e-05,3.73896e-05,2.85699e-05,5.60619e-05,
-            5.72502e-05,0.000142174,0.000109448,0.000209836,
-            5.66788e-05,0.000139079,0.000107494,0.00020466,
-            0,0,0,0,
-            0,0,0,0},
-            {1.32107e-05,3.6017e-05,2.71503e-05,5.4467e-05,
-            3.99561e-05,0.000108688,8.82189e-05,0.000169816,
-            3.68927e-05,0.000100146,8.35791e-05,0.000158447,
-            0,0,0,0,
-            0,0,0,0}};
-
-std::string f_accXrecoEff_ord0[8] = { // default values
+double genAfb[9]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376, -0.098};
+double genAfberr[9]={0.000434,0.000285,0.000223,0.000383,0.000277,0.000421,0.000395,0.000422,0.000333};
+double genFl [9]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341, 0.7620};
+double genFlerr[9]={0.000568,0.000409,0.000271,0.000420,0.000287,0.000415,0.000369,0.000361, 0.000240};
+std::string f_accXrecoEff_ord0[9] = { // default values
     "11627.982364*((1.195422e-04*exp(-0.5*((CosThetaL-(-1.727343e-01))/2.021796e-01)**2)+1.156964e-04*exp(-0.5*((CosThetaL-(2.507083e-01))/2.478225e-01)**2)+4.629809e-05*exp(-0.5*((CosThetaL-(-5.148565e-01))/1.407258e-01)**2))*(7.165504e-05-2.621913e-05*CosThetaK+1.453609e-04*CosThetaK**2+2.274953e-05*CosThetaK**3-2.398253e-04*CosThetaK**4-4.428545e-05*CosThetaK**5+9.677067e-05*CosThetaK**6))",
     "9916.540629*((7.278431e-05*exp(-0.5*((CosThetaL-(-4.905860e-01))/1.878949e-01)**2)+7.448700e-05*exp(-0.5*((CosThetaL-(5.058518e-01))/2.003984e-01)**2)+1.425194e-04*exp(-0.5*((CosThetaL-(1.313125e-02))/2.957232e-01)**2))*(8.311598e-05-2.316101e-05*CosThetaK+1.476586e-04*CosThetaK**2-2.367362e-05*CosThetaK**3-1.683845e-04*CosThetaK**4+5.042865e-06*CosThetaK**5+1.243843e-05*CosThetaK**6))",
     "8.353802e+03*((1.344021e-04+1.980409e-05*CosThetaL+4.029664e-05*CosThetaL**2+1.560540e-05*CosThetaL**3-2.131400e-04*CosThetaL**4-3.310795e-05*CosThetaL**5+5.462426e-05*CosThetaL**6)*(1.136958e-04-3.718097e-05*CosThetaK+6.443598e-05*CosThetaK**2+5.683602e-05*CosThetaK**3-4.802073e-05*CosThetaK**4-7.413557e-05*CosThetaK**5-3.107261e-05*CosThetaK**6))",
@@ -204,7 +125,8 @@ std::string f_accXrecoEff_ord0[8] = { // default values
     "6.506619e+03*((1.349742e-04+1.528919e-05*CosThetaL+8.605597e-05*CosThetaL**2+1.312572e-05*CosThetaL**3-2.948919e-05*CosThetaL**4-9.566140e-06*CosThetaL**5-5.879247e-05*CosThetaL**6)*(1.581494e-04-3.384666e-05*CosThetaK-1.447583e-05*CosThetaK**2+3.758161e-05*CosThetaK**3+6.777260e-05*CosThetaK**4-5.585069e-05*CosThetaK**5-8.495213e-05*CosThetaK**6))",
     "4.625695e+04*((1.803216e-05+6.423635e-07*CosThetaL+9.704679e-06*CosThetaL**2+1.065779e-05*CosThetaL**3-1.658277e-06*CosThetaL**4-1.799046e-05*CosThetaL**5+6.089049e-06*CosThetaL**6)*(2.270524e-05-9.322913e-06*CosThetaK-1.587276e-05*CosThetaK**2+2.152708e-05*CosThetaK**3+5.615584e-05*CosThetaK**4-1.901528e-05*CosThetaK**5-4.887378e-05*CosThetaK**6))",
     "5.118383e+03*((1.668313e-04+1.911185e-05*CosThetaL+1.716389e-05*CosThetaL**2-3.192265e-05*CosThetaL**3+2.000329e-04*CosThetaL**4+1.783316e-05*CosThetaL**5-1.334724e-04*CosThetaL**6)*(2.056593e-04-4.151040e-05*CosThetaK-6.658669e-05*CosThetaK**2+3.742139e-05*CosThetaK**3+1.666491e-04*CosThetaK**4-5.072888e-05*CosThetaK**5-1.492963e-04*CosThetaK**6))",
-    "3.837453e+03*((2.362599e-04-4.438020e-06*CosThetaL+3.318080e-05*CosThetaL**2+1.313482e-05*CosThetaL**3+7.878926e-05*CosThetaL**4-3.939653e-06*CosThetaL**5-2.211163e-05*CosThetaL**6)*(2.669904e-04-4.272653e-05*CosThetaK+1.487773e-05*CosThetaK**2+1.983652e-05*CosThetaK**3-9.317172e-05*CosThetaK**4-3.937610e-05*CosThetaK**5+4.831201e-05*CosThetaK**6))"
+    "3.837453e+03*((2.362599e-04-4.438020e-06*CosThetaL+3.318080e-05*CosThetaL**2+1.313482e-05*CosThetaL**3+7.878926e-05*CosThetaL**4-3.939653e-06*CosThetaL**5-2.211163e-05*CosThetaL**6)*(2.669904e-04-4.272653e-05*CosThetaK+1.487773e-05*CosThetaK**2+1.983652e-05*CosThetaK**3-9.317172e-05*CosThetaK**4-3.937610e-05*CosThetaK**5+4.831201e-05*CosThetaK**6))",
+    "9916.540629*((7.278431e-05*exp(-0.5*((CosThetaL-(-4.905860e-01))/1.878949e-01)**2)+7.448700e-05*exp(-0.5*((CosThetaL-(5.058518e-01))/2.003984e-01)**2)+1.425194e-04*exp(-0.5*((CosThetaL-(1.313125e-02))/2.957232e-01)**2))*(8.311598e-05-2.316101e-05*CosThetaK+1.476586e-04*CosThetaK**2-2.367362e-05*CosThetaK**3-1.683845e-04*CosThetaK**4+5.042865e-06*CosThetaK**5+1.243843e-05*CosThetaK**6))"
 };
 // Lumi = Nreco/(cross section*branch factor*filter efficiency), cross section is 49.59e9 [pb] for 8TeV and 48.44e9 [pb] for 7TeV.
 // BF_BuToK*MuMu = 1.07E-6, 1.12E-6(2014)
@@ -402,7 +324,20 @@ void writeParam(int iBin, const char parName[], string instring, bool overwrite=
     fclose(fp);
     fclose(fi);
     remove(TString::Format("%s/fitParameters%d.txt.temp",odatacardpath.Data(),iBin));
+    return;
 }//}}}
+double toUnboundedFl(float fl){
+    return TMath::Tan((fl-0.5)*TMath::Pi());
+}
+double toBoundedFl(float fl_ubd){
+    return 0.5+TMath::ATan(fl_ubd)/TMath::Pi();
+}
+double toUnboundedAfb(float afb, float fl){
+    return TMath::Tan(2./3.*afb*TMath::Pi()/(1-fl));
+}
+double toBoundedAfb(float afb_ubd, float fl_ubd){
+    return 3./2.*(0.5-TMath::ATan(fl_ubd)/TMath::Pi())*TMath::ATan(afb_ubd)/TMath::Pi();
+}
 
 TF2  *f2_fcn = NULL;
 double model_2D(double *x, double *par)
@@ -682,8 +617,8 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     double fixNDC = -0.5;
     if (iBin < 5) fixNDC = 0.;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
-    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
-    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f,(%7f)",fl.getVal(),fl.getError(),TMath::Tan((fl.getVal()-0.5)*PI)));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f,(%7f)",afb.getVal(),afb.getError(),TMath::Tan(2.0*PI*afb.getVal()/3.0/(1.0-fl.getVal()))));
     c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     //
@@ -696,10 +631,10 @@ std::vector<double> angular_gen_bin(int iBin, const char outfile[] = "angular_ge
     framecosl->Draw();
 
     fixNDC = -0.5;
-    if (iBin > 4) fixNDC = 0.;
+    if (iBin > 4 && iBin != 8) fixNDC = 0.;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",genQ2range[iBin]));
-    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl.getVal(),fl.getError()));
-    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb.getVal(),afb.getError()));
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f,(%7f)",fl.getVal(),fl.getError(),TMath::Tan((fl.getVal()-0.5)*PI)));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f,(%7f)",afb.getVal(),afb.getError(),TMath::Tan(2.0*PI*afb.getVal()/3.0/(1.0-fl.getVal()))));
     c->Update();
     c->Print(TString::Format("%s/%s_cosl_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
@@ -1415,22 +1350,23 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
     treein->SetBranchAddress("genMumPhi"    , &gmumphi);
 
     // Create histograms
+    const int nQ2Ranges = 11;
     TFile *fout = new TFile("acceptance_8TeV.root","RECREATE");
     float thetaKBins[6]={-1,-0.7,0.,0.4,0.8,1};
     float thetaLBins[7]={-1,-0.7,-0.3,0.,0.3,0.7,1};
-    TH2F *h2_ngen[10];
-    TH2F *h2_nacc[10];
-    TH2F *h2_acc[10];
-    TH2F *h2_ngen_fine[10];
-    TH2F *h2_nacc_fine[10];
-    TH2F *h2_acc_fine[10];
-    TH1F *h_ngenL_fine[10];
-    TH1F *h_naccL_fine[10];
-    TH1F *h_accL_fine[10];
-    TH1F *h_ngenK_fine[10];
-    TH1F *h_naccK_fine[10];
-    TH1F *h_accK_fine[10];
-    for(int iBin = 0; iBin < 10; iBin++){
+    TH2F *h2_ngen[nQ2Ranges];
+    TH2F *h2_nacc[nQ2Ranges];
+    TH2F *h2_acc[nQ2Ranges];
+    TH2F *h2_ngen_fine[nQ2Ranges];
+    TH2F *h2_nacc_fine[nQ2Ranges];
+    TH2F *h2_acc_fine[nQ2Ranges];
+    TH1F *h_ngenL_fine[nQ2Ranges];
+    TH1F *h_naccL_fine[nQ2Ranges];
+    TH1F *h_accL_fine[nQ2Ranges];
+    TH1F *h_ngenK_fine[nQ2Ranges];
+    TH1F *h_naccK_fine[nQ2Ranges];
+    TH1F *h_accK_fine[nQ2Ranges];
+    for(int iBin = 0; iBin < nQ2Ranges; iBin++){
         h2_ngen[iBin] = new TH2F(TString::Format("h2_ngen_bin%d",iBin),"h2_ngen",6,thetaLBins,5,thetaKBins);
         h2_nacc[iBin] = new TH2F(TString::Format("h2_nacc_bin%d",iBin) ,"h2_nacc" ,6,thetaLBins,5,thetaKBins); 
         h2_acc [iBin] = new TH2F(TString::Format("h2_acc_bin%d",iBin),"",6,thetaLBins,5,thetaKBins);
@@ -1497,7 +1433,7 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
         // Read data
     for (int entry = 0; entry < treein->GetEntries(); entry++) {
         treein->GetEntry(entry);
-        for(int iBin = 0; iBin < 10; iBin++){
+        for(int iBin = 0; iBin < nQ2Ranges; iBin++){
             if (gQ2 > q2rangeup[iBin] || gQ2 < q2rangedn[iBin]) continue;
             h2_ngen[iBin]->Fill(gCosThetaL,gCosThetaK);
             h2_ngen_fine[iBin]->Fill(gCosThetaL,gCosThetaK);
@@ -1512,7 +1448,7 @@ void createAccptanceHist() // create acceptance histogram from UNFILTERED GEN.
         }
     }
         
-    for(int iBin = 0; iBin < 10; iBin++){
+    for(int iBin = 0; iBin < nQ2Ranges; iBin++){
         // Calculate acceptance
         h2_acc[iBin]->SetAxisRange(0.,1.,"Z");
         for (int i = 1; i <= 6; i++) {
@@ -1716,7 +1652,7 @@ void createRecoEffHist(int iBin) // create reco efficiency histogram from offici
 
 std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
 {//{{{
-    printf("Evaluate reconstruction efficiency for bin#%d\n",iBin);
+    printf("Evaluate full efficiency for bin#%d\n",iBin);
         // cut3-8TeV
     double effUpperBound = 0.00045;
     if (iBin == 3 || iBin == 5) effUpperBound = 4e-5;
@@ -1887,13 +1823,14 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
     // Quick check order0 (decoupled)
     TF1 *f_effK_ord0 = new TF1("f_effK_ord0","pol6",-1,1);//y, pol6
     TF1 *f_effL_ord0 = 0;
-    if (iBin > 1){
-        f_effL_ord0 = new TF1("f_effL_ord0","pol6",-1,1);//x
-    }else{
+    //if (iBin < 2 || iBin == 8){
+    if (iBin < 2 ){
         f_effL_ord0 = new TF1("f_effL_ord0","[2]*exp(-0.5*((x-[0])/[1])**2)+[5]*exp(-0.5*((x-[3])/[4])**2)+[8]*exp(-0.5*((x-[6])/[7])**2)",-1,1);//x
         f_effL_ord0->SetParameter(1,0.5);// width must be non-zero.
         f_effL_ord0->SetParameter(4,0.5);// width must be non-zero.
         f_effL_ord0->SetParameter(7,0.5);// width must be non-zero.
+    }else{
+        f_effL_ord0 = new TF1("f_effL_ord0","pol6",-1,1);//x
     }
     h_effL.Fit("f_effL_ord0","S");
     h_effK.Fit("f_effK_ord0","S");
@@ -1938,7 +1875,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
             f_effK_ord0->GetParameter(4),\
             f_effK_ord0->GetParameter(5),\
             f_effK_ord0->GetParameter(6));
-    //printf("%s\n",f2_model_format_ord0.Data());
+    printf("DEBUG\t\t: f2_model_format_ord0=%s\n",f2_model_format_ord0.Data());
     TString f2_model_format_ord1 = "([0]+[1]*y+[2]*(3*y**2-1)/2+[3]*(5*y**3-3*y)/2)+([4]+[5]*y+[6]*(3*y**2-1)/2+[7]*(5*y**3-3*y)/2)*x**2+([8]+[9]*y+[10]*(3*y**2-1)/2+[11]*(5*y**3-3*y)/2)*x**3+([12]+[13]*y+[14]*(3*y**2-1)/2+[15]*(5*y**3-3*y)/2)*x**4+([16]+[17]*y+[18]*(3*y**2-1)/2+[19]*(5*y**3-3*y)/2)*x**6";
     TF2 f2_model_ord0("f2_model_ord0",f2_model_format_ord0,-1.,1.,-1.,1.);
     TF2 f2_model_ord1("f2_model_ord1",f2_model_format_ord1,-1.,1.,-1.,1.);
@@ -1996,6 +1933,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         gMinuit->Command("FIX 18");
         gMinuit->Command("FIX 19");
         gMinuit->Command("FIX 20");
+    //}else if (iBin == 1 || iBin == 8) {
     }else if (iBin == 1) {
         gMinuit->Command("SET PARM 9 0");
         gMinuit->Command("SET PARM 10 0");
@@ -2013,7 +1951,8 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         gMinuit->Command("FIX 18");
         gMinuit->Command("FIX 19");
         gMinuit->Command("FIX 20");
-    }else if (iBin > 1 && iBin < 6 ) {
+    //}else if (iBin > 1 && iBin < 6 ) {
+    }else if (iBin > 1) {
         gMinuit->Command("SET PARM 17 0");
         gMinuit->Command("SET PARM 18 0");
         gMinuit->Command("SET PARM 19 0");
@@ -2285,7 +2224,7 @@ std::string accXrecoEff2(int iBin) // acceptance*reconstruction efficiency
         TString f_sigA_format;
         TString f_sigA_MK_format;
         //TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*fl*CosThetaK**2*(1-CosThetaL**2)+1/2*(1-fl)*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*afb*(1-CosThetaK**2)*CosThetaL))";
-        TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*(1/2+TMath::ATan(fl)/TMath::Pi())*CosThetaK**2*(1-CosThetaL**2)+1/2*(1/2-TMath::ATan(fl)/TMath::Pi())*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*(3/2*(1/2-TMath::ATan(fl)/TMath::Pi())*TMath::Tan(afb)/TMath::Pi())*(1-CosThetaK**2)*CosThetaL))";// unbounded fl, afb
+        TString f_ang_format = "9/16*((2/3*fs+4/3*as*CosThetaK)*(1-CosThetaL**2)+(1-fs)*(2*(0.5+TMath::ATan(fl)/TMath::Pi())*CosThetaK**2*(1-CosThetaL**2)+0.5*(0.5-TMath::ATan(fl)/TMath::Pi())*(1-CosThetaK**2)*(1+CosThetaL**2)+4/3*(3/2*(1/2-TMath::ATan(fl)/TMath::Pi())*TMath::ATan(afb)/TMath::Pi())*(1-CosThetaK**2)*CosThetaL))";// unbounded fl, afb
 
         TString f_accXrecoEff2_ord0 = out_accXrecoEff2_ord0;
         TString f_accXrecoEff2_format, f_accXrecoEff2_L0, f_accXrecoEff2_L2, f_accXrecoEff2_L3, f_accXrecoEff2_L4, f_accXrecoEff2_L6;
@@ -2427,17 +2366,15 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
     if (iBin > 3) fixNDC = -0.5;
-    //t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",fl->getVal(),fl->getError()));
-    //t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",afb->getVal(),afb->getError()));
-    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L}=%5.3f#pm%8.6f",0.5+TMath::ATan(fl->getVal())/PI,0.5+TMath::ATan(fl->getError())/PI));//unbounded fl
-    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB}=%5.3f#pm%8.6f",1.5*(0.5-TMath::ATan(fl->getVal())/PI)*TMath::Tan(afb->getVal())/PI,1.5*(0.5-TMath::ATan(fl->getVal()))*TMath::Tan(afb->getError())/PI));//unbounded afb
+    t1->DrawLatex(.35,.80+fixNDC,TString::Format("F_{L,ubd}=%5.3f%+.6f%+.6f",fl->getVal(),fl->getErrorHi(),fl->getErrorLo()));
+    t1->DrawLatex(.35,.74+fixNDC,TString::Format("A_{FB,ubd}=%5.3f%+.6f%+.6f",afb->getVal(),afb->getErrorHi(),afb->getErrorLo()));
     c->Print(TString::Format("%s/%s_cosk_bin%d.pdf",plotpath.Data(),outfile,iBin));
 
     // Draw projection to CosThetaL
     RooPlot* framecosl = CosThetaL.frame(); 
     data->plotOn(framecosl,Binning(20)); 
     f_ext.plotOn(framecosl); 
-    if (false) {
+    if (false) { // put generator level curve for comparison
         double buffFl = fl->getVal();
         double buffAfb = afb->getVal();
         fl->setVal(genFl[iBin]); afb->setVal(genAfb[iBin]);
@@ -2499,76 +2436,99 @@ void angular2D_bin(int iBin, const char outfile[] = "angular2D")
 
 void angular2D(const char outfile[] = "angular2D", bool doFit=false) // 2D check for signal MC at RECO level
 {//{{{
-
-    double x[8]={1.5,3.15,6.49,9.385,11.475,13.52,15.09,17.5};
-    double xerr[8]={0.5,1.15,2.09,0.705,1.385,0.66,0.91,1.5};
-    double yafb[8],yerrafb[8],yfl[8],yerrfl[8];
+    double x[9]={1.5    , 3.15 , 6.49 , 9.385 , 11.475 , 13.52 , 15.09 , 17.5 , 2.65};
+    double xerr[9]={0.5 , 1.15 , 2.09 , 0.705 , 1.385  , 0.66  , 0.91  , 1.5  , 1.65};
+    double yafb[9],yerrafbLo[9],yerrafbHi[9],yfl[9],yerrflLo[9],yerrflHi[9];
 
     if (doFit){
-        angular2D_bin(0);
-        angular2D_bin(1);
+        //angular2D_bin(0);
+        //angular2D_bin(1);
         angular2D_bin(2);
         angular2D_bin(4);
         angular2D_bin(6);
         angular2D_bin(7);
+        angular2D_bin(8);
     }
 
+
     // Checkout input data
-    for(int ibin = 0; ibin < 8; ibin++){
-        if (ibin ==3 || ibin ==5 ){
-            yfl[ibin]       = 0;
-            yerrfl[ibin]    = 0;
-            yafb[ibin]      = 0;
-            yerrafb[ibin]   = 0;
+    for(int ibin = 2; ibin < 9; ibin++){
+        if (ibin == 3 || ibin ==5){
+            yfl[ibin] = -100;
+            yerrflLo[ibin] = 0;
+            yerrflHi[ibin] = 0;
+            yafb[ibin] = -100;
+            yerrafbLo[ibin] = 0;
+            yerrafbHi[ibin] = 0;
         }else{
-            yfl[ibin]       = readParam(ibin,"fl",0);
-            yerrfl[ibin]    = readParam(ibin,"fl",1);
-            yafb[ibin]      = readParam(ibin,"afb",0);
-            yerrafb[ibin]   = readParam(ibin,"afb",1);
+            yfl[ibin]           = toBoundedFl(readParam(ibin,"fl",0));
+            yerrflLo[ibin]      = fabs(toBoundedFl(readParam(ibin,"fl",0)+readParam(ibin,"fl",2))-yfl[ibin]);
+            yerrflHi[ibin]      = fabs(toBoundedFl(readParam(ibin,"fl",0)+readParam(ibin,"fl",3))-yfl[ibin]);
+            if (yerrflHi[ibin] == -1){
+                yerrflHi[ibin] = 0;
+            }
+            if (yerrflLo[ibin] == -1){
+                yerrflLo[ibin] = 0;
+            }
+            if (yerrflHi[ibin] == yerrflLo[ibin]){
+                yerrflHi[ibin] = 0;
+                yerrflLo[ibin] = 0;
+            }
+            yafb[ibin]          = toBoundedAfb(readParam(ibin,"afb",0),readParam(ibin,"fl",0));
+            yerrafbLo[ibin]     = fabs(toBoundedAfb(readParam(ibin,"afb",0)+readParam(ibin,"afb",2),readParam(ibin,"fl",0))-yafb[ibin]);
+            yerrafbHi[ibin]     = fabs(toBoundedAfb(readParam(ibin,"afb",0)+readParam(ibin,"afb",3),readParam(ibin,"fl",0))-yafb[ibin]);
+            if (yerrafbHi[ibin] == -1){
+                yerrafbHi[ibin] = 0;
+            }
+            if (yerrafbLo[ibin] == -1){
+                yerrafbLo[ibin] = 0;
+            }
+            if (yerrafbHi[ibin] == yerrafbLo[ibin]){
+                yerrafbHi[ibin] = 0;
+                yerrafbLo[ibin] = 0;
+            }
         }
-        printf("yafb[%d]=%6.4f +- %6.4f\n",ibin,yafb[ibin],yerrafb[ibin]);
-        printf("yfl [%d]=%6.4f +- %6.4f\n",ibin,yfl[ibin],yerrfl[ibin]);
+        printf("yafb[%d]=%6.4f + %6.4f - %6.4f\n",ibin,yafb[ibin],yerrafbHi[ibin],yerrafbLo[ibin]);
+        printf("yfl [%d]=%6.4f + %6.4f - %6.4f\n",ibin,yfl[ibin],yerrflHi[ibin],yerrflLo[ibin]);
     }
     
     // Draw
     TCanvas *c = new TCanvas("c");
-    TH2F *frame = new TH2F("frame","",18,1,19,10,-1,1);
-    frame->SetStats(kFALSE);
-
-    frame->SetXTitle("q^{2} [(GeV)^{2}]");
-    frame->SetYTitle("F_{L}");
-    frame->SetAxisRange(0,1,"Y");
-    frame->Draw();
-    TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(8,x,yfl,xerr,xerr,yerrfl,yerrfl);
+    TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(7,&x[2],&yfl[2],&xerr[2],&xerr[2],&yerrflLo[2],&yerrflHi[2]);
+    g_fl->SetTitle("");
+    g_fl->GetXaxis()->SetTitle("q^{2} [(GeV)^{2}]");
+    g_fl->GetYaxis()->SetTitle("F_{L}");
+    g_fl->GetYaxis()->SetRangeUser(0,1);
     g_fl->SetFillColor(2);
     g_fl->SetFillStyle(3001);
-    g_fl->Draw("P2");
-    TGraphAsymmErrors *gen_fl  = new TGraphAsymmErrors(8,x,genFl,xerr,xerr,genFlerr,genFlerr);
-    gen_fl->SetMarkerStyle(2);
+    g_fl->Draw("a2");
+    g_fl->Draw("P");
+    TGraphAsymmErrors *gen_fl  = new TGraphAsymmErrors(7,&x[2],&genFl[2],&xerr[2],&xerr[2],&genFlerr[2],&genFlerr[2]);
+    gen_fl->SetMarkerStyle(21);
     gen_fl->SetFillColor(4);
     gen_fl->SetFillStyle(3001);
     gen_fl->Draw("P2 same");
     c->Print(TString::Format("%s/%s_fl.pdf",plotpath.Data(),outfile));
     c->Clear();
 
-    frame->SetTitle("");
-    frame->SetXTitle("q^{2} [(GeV)^{2}]");
-    frame->SetYTitle("A_{FB}");
-    frame->SetAxisRange(-1,1,"Y");
-    frame->Draw();
-    TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(8,x,yafb,xerr,xerr,yerrafb,yerrafb);
+    TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(7,&x[2],&yafb[2],&xerr[2],&xerr[2],&yerrafbLo[2],&yerrafbHi[2]);
+    g_afb->SetTitle("");
+    g_afb->GetXaxis()->SetTitle("q^{2} [(GeV)^{2}]");
+    g_afb->GetYaxis()->SetTitle("A_{FB}");
+    g_afb->GetYaxis()->SetRangeUser(-1,1);
     g_afb->SetFillColor(2);
     g_afb->SetFillStyle(3001);
-    g_afb->Draw("P2");
-    TGraphAsymmErrors *gen_afb = new TGraphAsymmErrors(8,x,genAfb,xerr,xerr,genAfberr,genAfberr);
-    gen_afb->SetMarkerStyle(2);
+    g_afb->Draw("a2");
+    g_afb->Draw("P");
+    TGraphAsymmErrors *gen_afb = new TGraphAsymmErrors(7,&x[2],&genAfb[2],&xerr[2],&xerr[2],&genAfberr[2],&genAfberr[2]);
+    gen_afb->SetMarkerStyle(21);
     gen_afb->SetFillColor(4);
     gen_afb->SetFillStyle(3001);
     gen_afb->Draw("P2 same");
     c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
-//_________________________________________________________________________________
 
+//_________________________________________________________________________________
 
 void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool keepParam = false)
 {//{{{
@@ -2634,24 +2594,21 @@ void angular3D_1a_Sm(int iBin, const char outfile[] = "angular3D_1a_Sm", bool ke
     }
 
     // Prepare datacard
-    double val[3]={0,0,0};
+    double val[4]={0,0,0,0};
     writeParam(iBin, "iBin", new double((double)iBin), 1, keepParam);
-    //if (is7TeVCheck){
-    //    writeParam(iBin, "mode", new double(2011), 1, keepParam);
-    //}else{
-    //    writeParam(iBin, "mode", new double(2012), 1, keepParam);
-    //}
-    val[0]=sigGauss1_sigma.getVal();val[1]=sigGauss1_sigma.getError();
-    writeParam(iBin, "sigGauss1_sigma", val, 2 , keepParam);
-    val[0]=sigGauss2_sigma.getVal();val[1]=sigGauss2_sigma.getError();
-    writeParam(iBin, "sigGauss2_sigma", val, 2 , keepParam);
-    val[0]=sigM_frac.getVal();val[1]=sigM_frac.getError();
-    writeParam(iBin, "sigM_frac", val, 2 , keepParam);
+    val[0]=sigGauss1_sigma.getVal();val[1]=sigGauss1_sigma.getError();val[2]=sigGauss1_sigma.getErrorLo();val[3]=sigGauss1_sigma.getErrorHi();
+    writeParam(iBin, "sigGauss1_sigma", val, 4 , keepParam);
+    val[0]=sigGauss2_sigma.getVal();val[1]=sigGauss2_sigma.getError();val[2]=sigGauss2_sigma.getErrorLo();val[3]=sigGauss2_sigma.getErrorHi();
+    writeParam(iBin, "sigGauss2_sigma", val, 4 , keepParam);
+    val[0]=sigM_frac.getVal();val[1]=sigM_frac.getError();val[2]=sigM_frac.getErrorLo();val[3]=sigM_frac.getErrorHi();
+    writeParam(iBin, "sigM_frac", val, 4 , keepParam);
     
     // clear
     delete t1;
     delete c;
     delete data;
+
+    return;
 }//}}}
 
 void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
@@ -2664,7 +2621,7 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     printf("Processing Bin#%d, decmode=%s\n",iBin,decmode);
 
     //if (iBin ==0 || iBin%2 == 1){//0,1,3,5,7
-    if (iBin < 2 || iBin == 7){//0,1,7
+    if (iBin < 2 || iBin == 7 || iBin == 8){//0,1,7,{0,1}
         double val[3]={1,0,0};
         //writeParam(iBin , TString::Format("bkg%sGauss1_mean1"      , decmode) , val , 2 , keepParam);
         //writeParam(iBin , TString::Format("bkg%sGauss1_mean2"      , decmode) , val , 2 , keepParam);
@@ -2858,19 +2815,6 @@ void angular3D_1b_YpPm(int iBin, const char outfile[] = "angular3D_1b_YpPm", boo
     printf("INFO\t\t: End of angular3D_1b_YpPm(%d)\n",iBin);
 }//}}}
 
-void angular3D_1b_YpPm_keys(int iBin, const char outfile[] = "angular3D_1b_YpPm", bool keepParam = false)
-{//{{{
-    // Create model using smooth function(RooKeysPdf) for events with limited entries. 
-    static char decmode[10];
-    while(strcmp(decmode,"jpsi")*strcmp(decmode, "psi2s") != 0){
-        printf("Please insert background type [ jpsi / psi2s ]:");
-        scanf("%19s",decmode);
-    }
-    printf("Processing Bin#%d, decmode=%s\n",iBin,decmode);
-    
-    RooWorkspace wspace("wspace", "wspace");
-}//}}}
-
 void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", bool keepParam = false)
 {//{{{
     static char decmode[20];
@@ -2881,7 +2825,7 @@ void angular3D_2a_PkPl(int iBin, const char outfile[] = "angular3D_2a_PkPl", boo
 
     // Gaussian constraint on yields and mass is needed.
     //if (iBin ==0 || iBin%2 == 1){//0,1,3,5,7
-    if (iBin < 2 || iBin == 7){//0,1,7
+    if (iBin < 2 || iBin == 7 || iBin == 8){//0,1,7,{0,1}
         // Pm is flat(and the yield is 0) for bins other than 2,4,6
         double val[3]={0,0,0};
         writeParam(iBin, TString::Format("bkg%sPeak_c1",decmode), val , 2 , keepParam);
@@ -3159,17 +3103,6 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             f_bkgCombK_format = "exp(-(CosThetaK+1)*bkgCombK_c1)";
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
             break;
-        case 4:
-        case 6:
-            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
-            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
-            break;
         case 1: // need more tuning...
             f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
             f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
@@ -3191,15 +3124,6 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
             break;
-        case 7:
-            f_bkgCombL_format = "1+bkgCombL_c1*CosThetaL";
-            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
-            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
-            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
-            break;
         case 3:
         case 5:
             f_bkgCombL_format = "1+bkgCombL_c1*CosThetaL+bkgCombL_c2*CosThetaL**2+bkgCombL_c3*CosThetaL**3+bkgCombL_c4*CosThetaL**4";
@@ -3212,6 +3136,35 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
             f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 4:
+        case 6:
+            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 7:
+            f_bkgCombL_format = "1+bkgCombL_c1*CosThetaL";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3+bkgCombK_c4*CosThetaK**4";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c4));
+            break;
+        case 8:
+            f_bkgCombL_format = "exp(-0.5*((CosThetaL-bkgCombL_c1)/bkgCombL_c2)**2)";
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c1));
+            f_bkgCombL_argset.add(RooArgSet(bkgCombL_c2));
+            f_bkgCombK_format = "1+bkgCombK_c1*CosThetaK+bkgCombK_c2*CosThetaK**2+bkgCombK_c3*CosThetaK**3";
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c1));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c2));
+            f_bkgCombK_argset.add(RooArgSet(bkgCombK_c3));
             break;
         default:
             bkgCombL_c1.setVal(0.);
@@ -3258,6 +3211,7 @@ void angular3D_prior(int iBin, const char outfile[] = "angular3D_prior", bool ke
         case 3:
         case 5:
         case 7:
+        case 8:
             nbkgjpsiPeak.setVal(0.);
             nbkgpsi2sPeak.setVal(0.);
             nbkgjpsiPeak.setConstant(kTRUE);
@@ -3670,7 +3624,7 @@ void angular2D_data_bin(int iBin, const char outfile[] = "angular2D_data")
 
 }//}}}
 
-void angular3D_bin(int iBin, const char outfile[] = "angular3D")
+void angular3D_bin(int iBin, const char outfile[] = "angular3D", double dataScaleFactor = 1)
 {//{{{
     // Remark: You must use RooFit!! It's better in unbinned fit.
     //         Extended ML fit is adopted by Mauro, just follow!!
@@ -3705,12 +3659,12 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
         afb = (RooRealVar*)wspace_sigA->var("afb");
         as = (RooRealVar*)wspace_sigA->var("as");
         fs->setRange(-0.1,1.1);
-        fs->setVal(readParam(iBin,"fs",0,0.1));
+        fs->setVal(readParam(iBin,"fs",0,0.1,0.1));
         as->setRange(-1.1,1.1);
-        as->setVal(readParam(iBin,"as",0,0.1));
+        as->setVal(readParam(iBin,"as",0,0.1,0.05));
         fl->setRange(-100,100);// unbounded fl
         fl->setVal(readParam(iBin,"fl",0,0.6));
-        afb->setRange(-20,20);// unbounded afb
+        afb->setRange(-100,100);// unbounded afb
         afb->setVal(readParam(iBin,"afb",0,0.9));
     }else{
         printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
@@ -3761,6 +3715,7 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
         case 5:
         case 6:
         case 7:
+        case 8:
             f_bkgCombM_argset.add(RooArgSet(bkgCombM_c1));
             break;
         default:
@@ -3847,10 +3802,10 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     printf("INFO: f_bkgPeak prepared.\n");
 
     // Observed spectrum = model*fullEfficiency
-    const double sigScaleFactor = 1;
-    const double bkgScaleFactor = 1;
-    const double jpsiScaleFactor = 1.;// for validation.
-    const double psi2sScaleFactor = 1.;// for validation.
+    const double sigScaleFactor = dataScaleFactor;
+    const double bkgScaleFactor = dataScaleFactor;
+    const double jpsiScaleFactor = dataScaleFactor;// for validation.
+    const double psi2sScaleFactor = dataScaleFactor;// for validation.
     RooRealVar nsig("nsig"                   , "nsig"          , 50 *sigScaleFactor   , -10 , 5E3*sigScaleFactor   );
     RooRealVar nbkgComb("nbkgComb"           , "nbkgComb"      , 100*bkgScaleFactor   , -10 , 5E5*bkgScaleFactor   );
     RooRealVar nbkgjpsiPeak("nbkgjpsiPeak"   , "nbkgjpsiPeak"  , 10 *jpsiScaleFactor  , -10 , 5E5*jpsiScaleFactor  );
@@ -3910,11 +3865,6 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
 
 
     // Extra penalty term to confine As, Fs, Fl, Afb.
-    //RooRealVar t_penalty("t_penalty","t",0.01);
-    //RooGenericPdf f_penaltyAfb("f_penaltyAfb","(1-TMath::Erf((afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))*(1-TMath::Erf((-afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))",RooArgSet(afb,fl,t_penalty));
-    //RooGenericPdf f_penaltyAs("f_penaltyAfb","(1-TMath::Erf((afb-2*(1-fl)/3)/(1.5*t_penalty*(1-fl))))*(1-TMath::Erf((-afb-0.75*(1-fl))/(1.5*t_penalty*(1-fl))))",RooArgSet(afb,fl,t_penalty));
-    //RooProdPdf f_penalty("f_penalty","f_penalty",f_penaltyAfb,f_penaltyAs);
-    //RooProdPdf f("f","f",f_model,f_penalty);
     printf("INFO: f_penalty NOT applied. Instead, unbounded afb/fl is taken into account.\n");
 
     // Gaussian constraints
@@ -3981,23 +3931,46 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     fs  ->setConstant(kFALSE);
     as  ->setConstant(kFALSE);
     nbkgComb.setConstant(kFALSE);
-    printf("INFO\t\t: Pre-fit finished.\n");
-    f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)),Offset(kTRUE));
-    if (afb->getErrorLo()+afb->getErrorHi() == 0 || fl->getErrorLo()+fl->getErrorHi() == 0){
-      f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)));
-    }
+    printf("\nINFO\t\t: Pre-fit finished.\n\n");
     
-    // Fitting procedure candidate 2
-    //fM      ->fitTo(*data,ExternalConstraints(gausConstraints));
-    //nbkgComb.setConstant(kTRUE);
-    //fA_MK   ->fitTo(*data,ExternalConstraints(gausConstraints),Minos(RooArgSet(*fl)));
-    //fs  ->setConstant(kTRUE);
-    //as  ->setConstant(kTRUE);
-    //fl  ->setConstant(kTRUE);
-    //f   ->fitTo(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb)),Offset(kTRUE));
+    // Fitting procedure in TMinuit
+    double isMigradConverge[2] = {-1,0};
+    double isMinosValid = -1;
+    RooAbsReal *nll = f->createNLL(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),Minos(RooArgSet(*afb,*fl)),Offset(kFALSE),NumCPU(4),Save(kTRUE));
+    RooMinuit minuit(*nll);
+    printf("INFO\t\t: Start MIGRAD loop\n");
+    for(int iLoop = 0; iLoop < 10; iLoop++){
+        isMigradConverge[0] = minuit.migrad();
+        printf("INFO\t\t: MIGRAD return code=%.0f\n",isMigradConverge[0]);
+        if (isMigradConverge[0] == 0) break;
+    }
+    isMigradConverge[1] = minuit.save()->minNll();
+    writeParam(iBin, "migrad", isMigradConverge);
+    minuit.hesse();
+    printf("INFO\t\t: Start MINOS loop\n");
+    for(int iLoop = 0; iLoop < 5; iLoop++){
+        isMinosValid = minuit.minos(RooArgSet(*afb,*fl));
+        printf("INFO\t\t: MINOS return code=%.0f\n",isMinosValid);
+        if (isMinosValid == 0) break;
+    }
+    writeParam(iBin, "minos", &isMinosValid, 1);
 
     // Draw the frame on the canvas
     TCanvas* c = new TCanvas("c");
+
+    RooPlot *frameafb = afb->frame(Bins(10),Title("-ln(L) in afb"));
+    frameafb->SetMinimum(0);
+    frameafb->SetMaximum(5);
+    frameafb->Draw();
+    c->Print(TString::Format("%s/%s_afbNLL_bin%d.pdf",plotpath.Data(),outfile,iBin));
+
+    RooPlot *framefl  = fl->frame (Bins(10),Title("-ln(L) in fl"));
+    framefl->SetMinimum(0);
+    framefl->SetMaximum(5);
+    framefl->Draw();
+    c->Update();
+    c->Print(TString::Format("%s/%s_flNLL_bin%d.pdf",plotpath.Data(),outfile,iBin));
+
     RooPlot* framemass = Bmass.frame();
     data->plotOn(framemass,Binning(20));// TGraphPainter options are allowed by DrawOption()
     f->plotOn(framemass,LineColor(1));
@@ -4014,22 +3987,23 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     t1->SetNDC();
     double fixNDC = 0;
     t1->DrawLatex(.35,.86+fixNDC,TString::Format("%s",q2range[iBin]));
-    t1->DrawLatex(.6,.79+fixNDC,TString::Format("Y_{Signal}=%.3f%+.3f",nsig.getVal(),nsig.getError()));
+    t1->DrawLatex(.6,.79+fixNDC,TString::Format("Y_{Signal}=%.3f#pm%.3f",nsig.getVal(),nsig.getError()));
     switch(iBin){
         case 2:
-            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f%+.3f",nbkgjpsiPeak.getVal(),nbkgjpsiPeak.getError()));
-            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{Comb}=%.3f%+.3f",nbkgComb.getVal(),nbkgComb.getError()));
+            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f#pm%.3f",nbkgjpsiPeak.getVal(),nbkgjpsiPeak.getError()));
+            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{Comb}=%.3f#pm%.3f",nbkgComb.getVal(),nbkgComb.getError()));
             break;
         case 4:
-            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f%+.3f",nbkgjpsiPeak.getVal(),nbkgjpsiPeak.getError()));
-            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{#Psi'}=%.3f%+.3f",nbkgpsi2sPeak.getVal(),nbkgpsi2sPeak.getError()));
-            t1->DrawLatex(.6,.58+fixNDC,TString::Format("Y_{Comb}=%.3f%+.3f",nbkgComb.getVal(),nbkgComb.getError()));
+            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{J/#Psi}=%.3f#pm%.3f",nbkgjpsiPeak.getVal(),nbkgjpsiPeak.getError()));
+            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{#Psi'}=%.3f#pm%.3f",nbkgpsi2sPeak.getVal(),nbkgpsi2sPeak.getError()));
+            t1->DrawLatex(.6,.58+fixNDC,TString::Format("Y_{Comb}=%.3f#pm%.3f",nbkgComb.getVal(),nbkgComb.getError()));
             break;
         case 6:
-            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{#Psi'}=%.3f%+.3f",nbkgpsi2sPeak.getVal(),nbkgpsi2sPeak.getError()));
-            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{Comb}=%.3f%+.3f",nbkgComb.getVal(),nbkgComb.getError()));
+            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{#Psi'}=%.3f#pm%.3f",nbkgpsi2sPeak.getVal(),nbkgpsi2sPeak.getError()));
+            t1->DrawLatex(.6,.65+fixNDC,TString::Format("Y_{Comb}=%.3f#pm%.3f",nbkgComb.getVal(),nbkgComb.getError()));
             break;
         default:
+            t1->DrawLatex(.6,.72+fixNDC,TString::Format("Y_{Comb}=%.3f#pm%.3f",nbkgComb.getVal(),nbkgComb.getError()));
             break;
     }
     c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
@@ -4079,10 +4053,10 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
         bkgCombM_c2.setConstant(kTRUE);
         bkgCombM_c3.setConstant(kTRUE);
         bkgCombM_c4.setConstant(kTRUE);
-        sigGauss_mean  ->setConstant(kFALSE);
-        sigGauss1_sigma->setConstant(kFALSE);
-        sigGauss2_sigma->setConstant(kFALSE);
-        sigM_frac      ->setConstant(kFALSE);
+        sigGauss_mean  ->setConstant(kTRUE);
+        sigGauss1_sigma->setConstant(kTRUE);
+        sigGauss2_sigma->setConstant(kTRUE);
+        sigM_frac      ->setConstant(kTRUE);
         fs->setConstant(kTRUE);
         as->setConstant(kTRUE);
         fl->setConstant(kTRUE);
@@ -4092,6 +4066,7 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
         nbkgjpsiPeak.setConstant(kTRUE);
         nbkgpsi2sPeak.setConstant(kTRUE);
         wspace->import(*f);
+        wspace->import(gausConstraints);
         wspace->writeToFile(TString::Format("%s/wspace_angular3D_bin%d.root",owspacepath.Data(),iBin),true);
     }
 
@@ -4110,52 +4085,422 @@ void angular3D_bin(int iBin, const char outfile[] = "angular3D")
     delete t1;
     delete c;
     delete data;
-
+    
 }//}}}
 
-void angular3D(const char outfile[] = "angular", bool doFit = true)
+void scanNLL(int iBin, const char outfile[] = "scanNLL")
+{//{{{
+    // Get data
+    RooRealVar CosThetaK("CosThetaK"     , "cos#theta_{K}"       , -1. , 1.   ) ;
+    RooRealVar CosThetaL("CosThetaL"     , "cos#theta_{L}"       , -1. , 1.   ) ;
+    RooRealVar Bmass("Bmass"             , "M_{K^{*}#mu#mu}"     , 5.  , 5.56 ) ;
+    RooRealVar Mumumass("Mumumass"       , "M^{#mu#mu}"          , 0.  , 10.  ) ;
+    RooRealVar Mumumasserr("Mumumasserr" , "Error of M^{#mu#mu}" , 0.  , 10.  ) ;
+    RooRealVar Q2("Q2"                   , "q^{2}"               , 0.5 , 20.  ) ;
+    int mumuMassWindowBin = 1+2*isCDFcut;
+    if (iBin==3 || iBin==5) mumuMassWindowBin = 0; // no cut
+    RooDataSet *data = new RooDataSet("data","data",ch,RooArgSet(CosThetaK, CosThetaL, Bmass, Q2, Mumumass, Mumumasserr),TString::Format("(%s) && (%s)",q2range[iBin],mumuMassWindow[mumuMassWindowBin]),0);
+
+    // Load f from wspace_angular3D_bin and datacard
+    double minNll = readParam(iBin,"migrad",1);
+    TFile *f_wspace = new TFile(TString::Format("%s/wspace_angular3D_bin%d.root",iwspacepath.Data(),iBin));
+    RooWorkspace *wspace = (RooWorkspace*)f_wspace->Get("wspace");
+    RooAddPdf  *f = 0;
+    RooRealVar *fl = 0;
+    RooRealVar *afb = 0;
+    RooRealVar *bkgCombM_c1 = 0;
+    RooRealVar *fs = 0;
+    RooRealVar *as = 0;
+    RooRealVar *nsig = 0;
+    RooRealVar *nbkgComb = 0;
+    RooRealVar *nbkgjpsiPeak = 0;
+    RooRealVar *nbkgpsi2sPeak = 0;
+    RooRealVar *sigGauss_mean  =0;
+    RooRealVar *sigGauss1_sigma=0;
+    RooRealVar *sigGauss2_sigma=0;
+    RooRealVar *sigM_frac      =0;
+    RooArgSet  gausConstraints;
+    if (wspace){
+        f = (RooAddPdf*)wspace->pdf("kernel");
+        fl = (RooRealVar*)wspace->var("fl");
+        afb = (RooRealVar*)wspace->var("afb");
+        bkgCombM_c1 = (RooRealVar*)wspace->var("bkgCombM_c1");
+        fs          = (RooRealVar*)wspace->var("fs");
+        as          = (RooRealVar*)wspace->var("as");
+        nsig        = (RooRealVar*)wspace->var("nsig");
+        nbkgComb    = (RooRealVar*)wspace->var("nbkgComb");
+        sigGauss_mean    = (RooRealVar*)wspace->var("sigGauss_mean");
+        sigGauss1_sigma  = (RooRealVar*)wspace->var("sigGauss1_sigma");
+        sigGauss2_sigma  = (RooRealVar*)wspace->var("sigGauss2_sigma");
+        sigM_frac        = (RooRealVar*)wspace->var("sigM_frac");
+        switch(iBin){
+            case 2:
+                gausConstraints = wspace->argSet("gaus_sigGauss1_mean,gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac,gaus_nbkgjpsiPeak");
+                nbkgjpsiPeak = (RooRealVar*)wspace->var("nbkgjpsiPeak");
+                //nbkgjpsiPeak    ->setConstant(kFALSE);
+                break;
+            case 4:
+                gausConstraints = wspace->argSet("gaus_sigGauss1_mean,gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac,gaus_nbkgjpsiPeak,gaus_nbkgpsi2sPeak");
+                nbkgjpsiPeak = (RooRealVar*)wspace->var("nbkgjpsiPeak");
+                nbkgpsi2sPeak = (RooRealVar*)wspace->var("nbkgpsi2sPeak");
+                //nbkgjpsiPeak    ->setConstant(kFALSE);
+                //nbkgpsi2sPeak   ->setConstant(kFALSE);
+                break;
+            case 6:
+                gausConstraints = wspace->argSet("gaus_sigGauss1_mean,gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac,gaus_nbkgpsi2sPeak");
+                nbkgpsi2sPeak = (RooRealVar*)wspace->var("nbkgpsi2sPeak");
+                //nbkgpsi2sPeak   ->setConstant(kFALSE);
+                break;
+            default:
+                gausConstraints = wspace->argSet("gaus_sigGauss1_mean,gaus_sigGauss1_sigma,gaus_sigGauss2_sigma,gaus_sigM_frac");
+                break;
+        }
+        fl->setRange(-100,100);// unbounded fl
+        afb->setRange(-100,100);// unbounded afb
+    }else{
+        printf("ERROR\t\t: Please have wsapce_angular3D_bin?.root prepared.\n");
+        return;
+    }
+    bkgCombM_c1     ->setConstant(kFALSE);
+    fs              ->setConstant(kFALSE);
+    as              ->setConstant(kFALSE);
+    nsig            ->setConstant(kFALSE);
+    nbkgComb        ->setConstant(kFALSE);
+    sigGauss_mean   ->setConstant(kTRUE);
+    sigGauss1_sigma ->setConstant(kTRUE);
+    sigGauss2_sigma ->setConstant(kTRUE);
+    sigM_frac       ->setConstant(kTRUE);
+    
+    fl              ->setConstant(kTRUE);
+    afb             ->setConstant(kTRUE);
+    printf("INFO: f prepared.\n");
+    
+    // Create nll and minuit
+    int isMigradConverge = -1;
+    int isMinosValid = -1;
+    RooAbsReal *nll = f->createNLL(*data,Extended(kTRUE),ExternalConstraints(gausConstraints),NumCPU(8));
+    RooMinuit minuit(*nll);
+
+    // Create test function to find possible domain for fl/afb. CosThetaL as x, CosThetaK as y.
+    TString f2_format = "2.*[0]*y**2*(1.-x**2)+0.5*(1-[0])*(1.-y**2)*(1.+x**2)+4./3*[1]*(1-y**2)*x";
+    TF2 *f2_model = new TF2("f2_model", f2_format.Data(),-1.,1.,-1.,1.);
+    f2_model->SetTitle("PDF value;cos#theta_{L};cos#theta_{K}");
+    TCanvas *c = new TCanvas();
+    TH2F *h2_minNLLValue        = new TH2F("h2_minNLLValue","",100,-1,1,100,0,1);
+    h2_minNLLValue->SetStats(false);
+    h2_minNLLValue->SetXTitle("A_{FB}");
+    h2_minNLLValue->SetYTitle("F_{L}");
+
+    double minNLLInScan=1e10;
+    double maxNLLInScan=-1e10;
+    int fatBinWidth = 4;
+    int minNLLAfbBin=0;// keep minimum point for second iteration
+    int minNLLFlBin =0;// keep minimum value for second iteration
+    // remark: the order of afb/fl matters since sometimes it's trapped in local minimum.
+    for( int yBin = 1; yBin <= h2_minNLLValue->GetNbinsY(); yBin++){//fl
+        for( int xBin = 1; xBin <= h2_minNLLValue->GetNbinsX(); xBin++){//afb
+            // Rough scan in first iteration
+            if (h2_minNLLValue->GetBinContent(xBin,yBin) != 0) continue;
+
+            // Set Afb/Fl values
+            f2_model->SetParameter(0,((double)yBin-0.5)/h2_minNLLValue->GetNbinsY());
+            f2_model->SetParameter(1,(2.*xBin-1.)/h2_minNLLValue->GetNbinsX()-1.);
+            fl ->setVal(toUnboundedFl(((double)yBin-0.5)/h2_minNLLValue->GetNbinsY()));
+            afb->setVal(toBoundedAfb((2.*xBin-1.)/h2_minNLLValue->GetNbinsX()-1.,((double)yBin-0.5)/h2_minNLLValue->GetNbinsY()));
+
+            // Scan positive-definite PDF
+            bool isPositivePDF=true;
+            if ( fabs(f2_model->GetParameter(1)) > 3./4 ){
+                isPositivePDF = false;
+            } else if (f2_model->Eval(1.,0.) < 0 || f2_model->Eval(-1,0) < 0){
+                isPositivePDF = false;
+            } else {
+                for (int i = 0; i <= 100; ++i) {//cosThetaL
+                    for (int j = 0; j <= 100; ++j) {//cosThetaK
+                        if (f2_model->Eval(0.02*i-1,0.02*j-1) < 0){
+                            isPositivePDF = false;
+                            break;
+                        }
+                    }
+                    if (!isPositivePDF) break;
+                }
+            }
+
+            if(isPositivePDF){
+                isMigradConverge = minuit.migrad();
+                for(int iLoop = 0; iLoop < 10; iLoop++){
+                    if (iLoop < 2 || iLoop > 7) isMigradConverge = minuit.minos();
+                    if (isMigradConverge != 0) isMigradConverge = minuit.migrad();
+                    if (isMigradConverge == 0 && fabs(minuit.save()->minNll()) < 1e8) {
+                        double nllValue = minuit.save()->minNll();
+                        printf("INFO\t\t: Found NLL=%f at (afb=%f, fl=%f)\n",nllValue,(2.*xBin-1)/h2_minNLLValue->GetNbinsX()-1,((double)yBin-0.5)/h2_minNLLValue->GetNbinsY());
+                        for(int xFatBin=0;xFatBin<fatBinWidth;xFatBin++){
+                            for(int yFatBin=0;yFatBin<fatBinWidth;yFatBin++){
+                                h2_minNLLValue->SetBinContent(xBin+xFatBin,yBin+yFatBin,-nllValue);
+                            }
+                        }
+                        if (nllValue > maxNLLInScan) {
+                            maxNLLInScan = nllValue;
+                        }
+                        if(nllValue < minNLLInScan){
+                            minNLLInScan = nllValue;
+                            minNLLAfbBin = xBin;
+                            minNLLFlBin  = yBin;
+                        }
+                        break;
+                    }else{
+                        printf("INFO\t\t: Loop %d, MIGRAD return code=%d at (afb=%f, fl=%f)\n",iLoop,isMigradConverge,(2.*xBin-1)/h2_minNLLValue->GetNbinsX()-1,((double)yBin-0.5)/h2_minNLLValue->GetNbinsY());
+                        for(int xFatBin=0;xFatBin<fatBinWidth;xFatBin++){
+                            for(int yFatBin=0;yFatBin<fatBinWidth;yFatBin++){
+                                h2_minNLLValue->SetBinContent(xBin+xFatBin,yBin+yFatBin,-1);
+                            }
+                        }
+                    }
+                }
+            }else{
+                printf("INFO\t\t: Non-positive-definite PDF at Afb=%.3f, Fl=%.3f\n",(2.*xBin-1)/h2_minNLLValue->GetNbinsX()-1,((double)yBin-0.5)/h2_minNLLValue->GetNbinsY());
+                for(int xFatBin=0;xFatBin<fatBinWidth;xFatBin++){
+                    for(int yFatBin=0;yFatBin<fatBinWidth;yFatBin++){
+                        h2_minNLLValue->SetBinContent(xBin+xFatBin,yBin+yFatBin,-1);
+                    }
+                }
+            }
+        }
+    }
+
+    // Draw
+    h2_minNLLValue->SetMaximum(-(minNLLInScan-0.1));
+    h2_minNLLValue->SetMinimum(-(minNLLInScan+2.5));
+    h2_minNLLValue->Draw("COLZ0");
+    c->Print(TString::Format("%s/%s_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    h2_minNLLValue->SaveAs(TString::Format("%s/wspace_scanNLL_bin%d.root",owspacepath.Data(),iBin));
+
+    // Scan with fine binning
+    TH2F *h2_minNLLValueFine = new TH2F(*h2_minNLLValue);
+    h2_minNLLValueFine->SetName("h2_minNLLValueFine");
+    h2_minNLLValueFine->SetStats(false);
+    h2_minNLLValueFine->SetXTitle("A_{FB}");
+    h2_minNLLValueFine->SetYTitle("F_{L}");
+    double minNLLInFineScan = 1e10;
+    int fineScanBandWidth = 7;
+    for( int yBin = 1; yBin <= h2_minNLLValueFine->GetNbinsY(); yBin++){//fl
+        //continue;
+        for( int xBin = 1; xBin <= h2_minNLLValueFine->GetNbinsX(); xBin++){//afb
+            if (abs(xBin-minNLLAfbBin) > fineScanBandWidth && abs(yBin-minNLLFlBin) > fineScanBandWidth) continue;
+            if (fabs( h2_minNLLValueFine->GetBinContent(xBin,yBin) + minNLLInScan ) > 1 ) continue;
+            
+            f2_model->SetParameter(0,(yBin-0.5)/h2_minNLLValueFine->GetNbinsY());
+            f2_model->SetParameter(1,(2.*xBin-1.)/h2_minNLLValueFine->GetNbinsX()-1.);
+            fl ->setVal(toUnboundedFl((yBin-0.5)/h2_minNLLValueFine->GetNbinsY()));
+            afb->setVal(toBoundedAfb((2.*xBin-1.)/h2_minNLLValueFine->GetNbinsX()-1.,((double)yBin-0.5)/h2_minNLLValueFine->GetNbinsY()));
+            
+            // Scan positive-definite PDF
+            bool isPositivePDF=true;
+            if ( fabs(f2_model->GetParameter(1)) > 3./4 ){
+                isPositivePDF = false;
+            } else if (f2_model->Eval(1.,0.) < 0 || f2_model->Eval(-1,0) < 0){
+                isPositivePDF = false;
+            }else{
+                for (int i = 0; i <= 100; ++i) {//cosThetaL
+                    for (int j = 0; j <= 100; ++j) {//cosThetaK
+                        if (f2_model->Eval(0.02*i-1,0.02*j-1) < 0){
+                            isPositivePDF = false;
+                            break;
+                        }
+                    }
+                    if (!isPositivePDF) break;
+                }
+            }
+
+            if(isPositivePDF){
+                isMigradConverge = minuit.migrad();
+                for(int iLoop = 0; iLoop < 8; iLoop++){
+                    if (iLoop < 2 || iLoop > 6) isMigradConverge = minuit.minos();
+                    if (isMigradConverge != 0) isMigradConverge = minuit.migrad();
+                    if (isMigradConverge == 0 && fabs(minuit.save()->minNll()) < 1e8){
+                        double nllValue = minuit.save()->minNll();
+                        printf("INFO\t\t: Found NLL=%f at (afb=%f, fl=%f)\n",nllValue,(2.*xBin-1)/h2_minNLLValueFine->GetNbinsX()-1,(yBin-0.5)/h2_minNLLValueFine->GetNbinsY());
+                        h2_minNLLValueFine->SetBinContent(xBin,yBin,-nllValue);
+                        if (nllValue < minNLLInFineScan) {
+                            minNLLInFineScan = nllValue;
+                        }
+                        break;
+                    }else{
+                        printf("INFO\t\t: Loop %d, MIGRAD return code=%d at (afb=%f, fl=%f)\n",iLoop,isMigradConverge,(2.*xBin-1)/h2_minNLLValueFine->GetNbinsX()-1,(yBin-0.5)/h2_minNLLValueFine->GetNbinsY());
+                        h2_minNLLValueFine->SetBinContent(xBin,yBin,-1);
+                    }
+                }
+            }else{
+                printf("INFO\t\t: Non-positive-definite PDF at Afb=%.3f, Fl=%.3f\n",(2.*xBin-1)/h2_minNLLValueFine->GetNbinsX()-1,(yBin-0.5)/h2_minNLLValueFine->GetNbinsY());
+                h2_minNLLValueFine->SetBinContent(xBin,yBin,-1);
+            }
+        }
+    }
+
+    // Draw
+    h2_minNLLValueFine->SetMaximum(-(minNLLInScan-0.1));
+    h2_minNLLValueFine->SetMinimum(-(minNLLInScan+2.5));
+    h2_minNLLValueFine->Draw("COLZ0");
+
+    TLine *line = new TLine();
+    line->DrawLine(h2_minNLLValueFine->GetXaxis()->GetBinLowEdge(minNLLAfbBin-fineScanBandWidth),0.,h2_minNLLValueFine->GetXaxis()->GetBinLowEdge(minNLLAfbBin-fineScanBandWidth),1.);
+    line->DrawLine(h2_minNLLValueFine->GetXaxis()->GetBinUpEdge(minNLLAfbBin+fineScanBandWidth),0.,h2_minNLLValueFine->GetXaxis()->GetBinUpEdge(minNLLAfbBin+fineScanBandWidth),1.);
+    line->DrawLine(-1.,h2_minNLLValueFine->GetYaxis()->GetBinLowEdge(minNLLFlBin-fineScanBandWidth),1.,h2_minNLLValueFine->GetYaxis()->GetBinLowEdge(minNLLFlBin-fineScanBandWidth));
+    line->DrawLine(-1.,h2_minNLLValueFine->GetYaxis()->GetBinUpEdge(minNLLFlBin+fineScanBandWidth),1.,h2_minNLLValueFine->GetYaxis()->GetBinUpEdge(minNLLFlBin+fineScanBandWidth));
+
+    c->Update();
+    c->Print(TString::Format("%s/%s_fine_bin%d.pdf",plotpath.Data(),outfile,iBin));
+    h2_minNLLValueFine->SaveAs(TString::Format("%s/wspace_scanNLL_fine_bin%d.root",owspacepath.Data(),iBin));
+
+    return;
+}//}}} 
+
+void getErrFromNllScan(int iBin, bool keepParam = false)
+{//{{{
+    TFile *fin = new TFile(TString::Format("%s/wspace_scanNLL_fine_bin%d.root",iwspacepath.Data(),iBin));
+    TH2F  *h2= (TH2F*)fin->Get("h2_minNLLValueFine");
+
+    //int fatBinWidth = 5;
+
+    double maxLLInfo[3]={-1,0,0};//maxLL, afbBin, flBin
+    for( int xBin = 1; xBin <= h2->GetNbinsX(); xBin++){//afb
+        for( int yBin = 1; yBin <= h2->GetNbinsY(); yBin++){//fl
+            if (h2->GetBinContent(xBin,yBin) > maxLLInfo[0]){
+                maxLLInfo[0] = h2->GetBinContent(xBin,yBin);
+                maxLLInfo[1] = xBin;
+                maxLLInfo[2] = yBin;
+            }
+        }
+    }
+
+    double afb[4]={maxLLInfo[1],0,1,h2->GetNbinsX()};// mean symmErr errLo errHi
+    for( int xBin = 1; xBin <= h2->GetNbinsX(); xBin++){//afb
+        if ( maxLLInfo[0]-h2->GetBinContent(xBin,(int)maxLLInfo[2]) < 0.5 ) continue;
+        int categoryAfb= 0;
+        if (xBin > maxLLInfo[1]){
+            categoryAfb = 1;
+        }
+        if (abs(xBin-maxLLInfo[1])<abs(afb[2+categoryAfb]-maxLLInfo[1])){
+            afb[2+categoryAfb] = xBin;
+        }
+    }
+    
+    double fl[4]={maxLLInfo[2],0,1,h2->GetNbinsY()};// mean symmErr errLo errHi
+    for( int yBin = 1; yBin <= h2->GetNbinsY(); yBin++){//fl
+        if ( maxLLInfo[0]-h2->GetBinContent((int)maxLLInfo[1],yBin) < 0.5 ) continue;
+        int categoryFl= 0;
+        if (yBin > maxLLInfo[2]){
+            categoryFl = 1;
+        }
+        if (abs(yBin-maxLLInfo[2])<abs(fl[2+categoryFl]-maxLLInfo[2])){
+            fl[2+categoryFl] = yBin;
+        }
+    }
+    
+    // Handle special case, keep record for hitting boundary.
+    if (h2->GetBinContent(afb[2],maxLLInfo[2]) == -1){
+        printf("WARNING\t\t: Afb error hit lower boundary.\n");
+        afb[1]+=1;
+    }
+    if (h2->GetBinContent(afb[3],maxLLInfo[2]) == -1){
+        printf("WARNING\t\t: Afb error hit upper boundary.\n");
+        afb[1]*=-1;
+    }
+    if (h2->GetBinContent(maxLLInfo[1],fl[2]) == -1){
+        printf("WARNING\t\t: Fl error hit lower boundary.\n");
+        fl[1]+=1;
+    }
+    if (h2->GetBinContent(maxLLInfo[1],fl[3]) == -1){
+        printf("WARNING\t\t: Fl error hit upper boundary.\n");
+        fl[1]*=-1;
+    }
+
+    // Transform bin into afb/fl value
+    afb[0]=h2->GetXaxis()->GetBinCenter(afb[0]);
+    afb[2]=h2->GetXaxis()->GetBinCenter(afb[2])-afb[0];
+    afb[3]=h2->GetXaxis()->GetBinCenter(afb[3])-afb[0];
+    fl [0]=h2->GetYaxis()->GetBinCenter(fl [0]);
+    fl [2]=h2->GetYaxis()->GetBinCenter(fl [2])-fl [0];
+    fl [3]=h2->GetYaxis()->GetBinCenter(fl [3])-fl [0];
+
+    // write to datacards
+    if (true){
+        writeParam(iBin,  "scanFl",  fl, 4);
+        writeParam(iBin, "scanAfb", afb, 4);
+    }
+
+    return;
+}//}}}
+
+void angular3D(const char outfile[] = "angular3D", bool doFit = false)
 {//{{{
 
-    double x[8]={1.5,3.15,6.49,9.385,11.475,13.52,15.09,17.5};
-    double xerr[8]={0.5,1.15,2.09,0.705,1.385,0.66,0.91,1.5};
-    double yafb[8],yerrafbLo[8],yerrafbHi[8],yfl[8],yerrflLo[8],yerrflHi[8];
+    double x[9]={1.5,3.15,6.49,9.385,11.475,13.52,15.09,17.5,2.65};
+    double xerr[9]={0.5,1.15,2.09,0.705,1.385,0.66,0.91,1.5,1.65};
+    double yafb[9],yerrafbLo[9],yerrafbHi[9],yfl[9],yerrflLo[9],yerrflHi[9];
 
     if (doFit){
-        angular3D_bin(0);
-        angular3D_bin(1);
         angular3D_bin(2);
         angular3D_bin(4);
         angular3D_bin(6);
         angular3D_bin(7);
+        angular3D_bin(8);
+        scanNLL(2);
+        scanNLL(4);
+        scanNLL(6);
+        scanNLL(7);
+        scanNLL(8);
+        getErrFromNllScan(2,true);
+        getErrFromNllScan(4,true);
+        getErrFromNllScan(6,true);
+        getErrFromNllScan(7,true);
+        getErrFromNllScan(8,true);
+
     }
 
     // Checkout input data
-    for(int ibin = 0; ibin < 8; ibin++){
-        yfl[ibin]           = readParam(ibin,"fl",0);
-        yerrflLo[ibin]      = -1*readParam(ibin,"fl",2);
-        yerrflHi[ibin]      = readParam(ibin,"fl",3);
-        if (yerrflHi[ibin] == -1){
-            yerrflHi[ibin] = 0;
-        }
-        if (yerrflLo[ibin] == -1){
+    for(int ibin = 2; ibin < 9; ibin++){
+        if (ibin == 3 || ibin ==5){
+            yfl[ibin] = -100;
             yerrflLo[ibin] = 0;
-        }
-        if (yerrflHi[ibin] == yerrflLo[ibin]){
             yerrflHi[ibin] = 0;
-            yerrflLo[ibin] = 0;
-        }
-        yafb[ibin]          = readParam(ibin,"afb",0);
-        yerrafbLo[ibin]     = -1*readParam(ibin,"afb",2);
-        yerrafbHi[ibin]     = readParam(ibin,"afb",3);
-        if (yerrafbHi[ibin] == -1){
-            yerrafbHi[ibin] = 0;
-        }
-        if (yerrafbLo[ibin] == -1){
+            yafb[ibin] = -100;
             yerrafbLo[ibin] = 0;
-        }
-        if (yerrafbHi[ibin] == yerrafbLo[ibin]){
             yerrafbHi[ibin] = 0;
-            yerrafbLo[ibin] = 0;
+        }else{
+            yfl[ibin]           = readParam(ibin,"scanFl",0);
+            yerrflLo[ibin]      = fabs(readParam(ibin,"scanFl",2));
+            yerrflHi[ibin]      = fabs(readParam(ibin,"scanFl",3));
+            yfl[ibin]           = toBoundedFl(readParam(ibin,"fl",0));
+            //yerrflLo[ibin]      = fabs(toBoundedFl(readParam(ibin,"fl",0)+readParam(ibin,"fl",2))-yfl[ibin]);
+            //yerrflHi[ibin]      = fabs(toBoundedFl(readParam(ibin,"fl",0)+readParam(ibin,"fl",3))-yfl[ibin]);
+            //if (yerrflHi[ibin] == -1){
+            //    yerrflHi[ibin] = 0;
+            //}
+            //if (yerrflLo[ibin] == -1){
+            //    yerrflLo[ibin] = 0;
+            //}
+            //if (yerrflHi[ibin] == yerrflLo[ibin]){
+            //    yerrflHi[ibin] = 0;
+            //    yerrflLo[ibin] = 0;
+            //}
+
+            yafb[ibin]          = readParam(ibin,"scanAfb",0);
+            yerrafbLo[ibin]     = fabs(readParam(ibin,"scanAfb",2));
+            yerrafbHi[ibin]     = fabs(readParam(ibin,"scanAfb",3));
+            yafb[ibin]          = toBoundedAfb(readParam(ibin,"afb",0),readParam(ibin,"fl",0));
+            //yerrafbLo[ibin]     = fabs(toBoundedAfb(readParam(ibin,"afb",0)+readParam(ibin,"afb",2),readParam(ibin,"fl",0))-yafb[ibin]);
+            //yerrafbHi[ibin]     = fabs(toBoundedAfb(readParam(ibin,"afb",0)+readParam(ibin,"afb",3),readParam(ibin,"fl",0))-yafb[ibin]);
+            //if (yerrafbHi[ibin] == -1){
+            //    yerrafbHi[ibin] = 0;
+            //}
+            //if (yerrafbLo[ibin] == -1){
+            //    yerrafbLo[ibin] = 0;
+            //}
+            //if (yerrafbHi[ibin] == yerrafbLo[ibin]){
+            //    yerrafbHi[ibin] = 0;
+            //    yerrafbLo[ibin] = 0;
+            //}
         }
         printf("yafb[%d]=%6.4f + %6.4f - %6.4f\n",ibin,yafb[ibin],yerrafbHi[ibin],yerrafbLo[ibin]);
         printf("yfl [%d]=%6.4f + %6.4f - %6.4f\n",ibin,yfl[ibin],yerrflHi[ibin],yerrflLo[ibin]);
@@ -4163,28 +4508,42 @@ void angular3D(const char outfile[] = "angular", bool doFit = true)
     
     // Draw
     TCanvas *c = new TCanvas("c");
-    TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(8,x,yfl,xerr,xerr,yerrflLo,yerrflHi);
+    TGraphAsymmErrors *g_fl  = new TGraphAsymmErrors(7,&x[2],&yfl[2],&xerr[2],&xerr[2],&yerrflLo[2],&yerrflHi[2]);
     g_fl->SetTitle("");
     g_fl->GetXaxis()->SetTitle("q^{2} [(GeV)^{2}]");
     g_fl->GetYaxis()->SetTitle("F_{L}");
+    g_fl->GetYaxis()->SetRangeUser(0,1);
     g_fl->SetFillColor(2);
     g_fl->SetFillStyle(3001);
     g_fl->Draw("a2");
     g_fl->Draw("P");
+    TGraphAsymmErrors *gen_fl  = new TGraphAsymmErrors(7,&x[2],&genFl[2],&xerr[2],&xerr[2],&genFlerr[2],&genFlerr[2]);
+    gen_fl->SetMarkerStyle(21);
+    gen_fl->SetFillColor(4);
+    gen_fl->SetFillStyle(3001);
+    gen_fl->Draw("P2 same");
     c->Print(TString::Format("%s/%s_fl.pdf",plotpath.Data(),outfile));
     c->Clear();
 
-    TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(8,x,yafb,xerr,xerr,yerrafbLo,yerrafbHi);
+    TGraphAsymmErrors *g_afb = new TGraphAsymmErrors(7,&x[2],&yafb[2],&xerr[2],&xerr[2],&yerrafbLo[2],&yerrafbHi[2]);
     g_afb->SetTitle("");
     g_afb->GetXaxis()->SetTitle("q^{2} [(GeV)^{2}]");
     g_afb->GetYaxis()->SetTitle("A_{FB}");
+    g_afb->GetYaxis()->SetRangeUser(-1,1);
     g_afb->SetFillColor(2);
     g_afb->SetFillStyle(3001);
     g_afb->Draw("a2");
     g_afb->Draw("P");
+    TGraphAsymmErrors *gen_afb = new TGraphAsymmErrors(7,&x[2],&genAfb[2],&xerr[2],&xerr[2],&genAfberr[2],&genAfberr[2]);
+    gen_afb->SetMarkerStyle(21);
+    gen_afb->SetFillColor(4);
+    gen_afb->SetFillStyle(3001);
+    gen_afb->Draw("P2 same");
     c->Print(TString::Format("%s/%s_afb.pdf",plotpath.Data(),outfile));
 }//}}}
+
 //_________________________________________________________________________________
+
 // Validation tools
 void getToyFromUnfilterGen(int iBin) // For validation, DEPRECATED.
 {//{{{
@@ -4268,11 +4627,11 @@ void getToyFromUnfilterGen(int iBin) // For validation, DEPRECATED.
 
 void genToySignal(int iBin, int nEvents = 0) // For validation.
 {//{{{
-    int defNEvents[8]={30,30,30,30,30,30,30,30};
-    double defAfb [8]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376};
-    double defFl  [8]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341};
-    double defAs  [8]={-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1};
-    double defFs  [8]={0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01};
+    int defNEvents[9]={30,30,30,30,30,30,30,30,30};
+    double defAfb [9]={-0.160,-0.066,0.182,0.317,0.374,0.412,0.421,0.376,-0.098};
+    double defFl  [9]={0.705,0.791,0.649,0.524,0.454,0.399,0.369,0.341,0.7620620620620620620};
+    double defAs  [9]={-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1};
+    double defFs  [9]={0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01};
 
     // Get PDF and parameters
     TFile *f_wspace_Sm = new TFile(TString::Format("%s/wspace_Sm_bin%d.root",iwspacepath.Data(),iBin));
@@ -4307,10 +4666,10 @@ void genToySignal(int iBin, int nEvents = 0) // For validation.
         f_sigA = (RooGenericPdf*)wspace_sigA->pdf("f_sigA");
         CosThetaK = (RooRealVar*)wspace_sigA->var("CosThetaK");
         CosThetaL = (RooRealVar*)wspace_sigA->var("CosThetaL");
-        afb             = (RooRealVar*)wspace_sigA->var("afb");
-        as              = (RooRealVar*)wspace_sigA->var("as");
-        fl              = (RooRealVar*)wspace_sigA->var("fl");
-        fs              = (RooRealVar*)wspace_sigA->var("fs");
+        afb       = (RooRealVar*)wspace_sigA->var("afb");
+        as        = (RooRealVar*)wspace_sigA->var("as");
+        fl        = (RooRealVar*)wspace_sigA->var("fl");
+        fs        = (RooRealVar*)wspace_sigA->var("fs");
     }else{
         printf("ERROR\t\t: Please have wsapce_sigA_bin?.root prepared.\n");
         return;
@@ -4353,7 +4712,7 @@ void genToySignal(int iBin, int nEvents = 0) // For validation.
     return;
 }//}}}
 
-void genToyCombBkg(int iBin, int nEvents = 0) // For validation, todo: fix shape parameters.
+void genToyCombBkg(int iBin, int nEvents = 0) // For validation.
 {//{{{
     TFile *f_wspace_comb_A = new TFile(TString::Format("%s/wspace_prior_bin%d.root",iwspacepath.Data(),iBin));
     RooWorkspace *wspace_comb_A = (RooWorkspace*)f_wspace_comb_A->Get("wspace");
@@ -4576,12 +4935,71 @@ void rndPickMCSamples(int nSets = 1, double oLumis=datasetLumi[0]) // Pick disti
     }
 }//}}}
 
+// Other tools
+
+void scanFlAfbPositivePdf()
+{//{{{
+    // Create test function to find possible domain for fl/afb. CosThetaL as x, CosThetaK as y.
+    TString f2_format = "2.*[0]*y**2*(1.-x**2)+0.5*(1-[0])*(1.-y**2)*(1.+x**2)+4./3*[1]*(1-y**2)*x";
+    TF2 *f2_model = new TF2("f2_model", f2_format.Data(),-1.,1.,-1.,1.);
+    f2_model->SetTitle("PDF value;cos#theta_{L};cos#theta_{K}");
+    TCanvas *canvas = new TCanvas();
+    TH2F *h2_minPdfValue = new TH2F("h2_minPdfValue","",200,-1,1,200,0,1);
+    h2_minPdfValue->SetStats(false);
+    h2_minPdfValue->SetXTitle("A_{FB}");
+    h2_minPdfValue->SetYTitle("F_{L}");
+
+    // Find minimum position
+    // partial_f2  / partial_x  = "-4.*[0]*y**2*x+(1-[0])*(1-y**2)*x+4./3*[1]*(1-y**2)"
+    //      zero points:    x = 4*[1]*(1-y**2)/3/(4*[0]*y**2-(1-[0])*(1-y**2))
+    // partial_f2  / partial_y  = "4*[0]*y*(1-x**2)-(1-[0])*y*(1.+x**2)-8./3*[1]*y*x" = "y*(4*[0]*(1-x**2)-(1-[0])*(1+x**2)-8/3*[1]*x)"
+    //      zero points:    y = 0, x = (-b #pm sqrt(b**2-4*a*c))/2/a
+    // Don't use f2_model->GetMinimumXY(xxMin,yyMin), the minimum cannot be found.
+    double xxMin;
+    double yyMin = 0;
+    for( int xBin = 1; xBin <= h2_minPdfValue->GetNbinsX(); xBin++){//afb
+        for( int yBin = 1; yBin <= h2_minPdfValue->GetNbinsY(); yBin++){//fl
+            f2_model->SetParameter(1,(2.*xBin-1.)/h2_minPdfValue->GetNbinsX()-1);
+            f2_model->SetParameter(0,(yBin-0.5)/h2_minPdfValue->GetNbinsY());
+
+            // Show the contour. Remark: very SLOW!
+            //f2_model->Draw("CONT4Z");
+            //canvas->Update();
+                // Scan minimum
+            bool isPositivePDF=true;
+            if (f2_model->Eval(1.,0.) < 0 || f2_model->Eval(-1,0) < 0){
+                isPositivePDF = false;
+            }else{
+                for (int i = 0; i < 100; ++i) {//cosThetaL
+                    for (int j = 0; j < 100; ++j) {//cosThetaK
+                        if (f2_model->Eval(0.02*i-1,0.02*j-1) < 0){
+                            isPositivePDF = false;
+                            break;
+                        }
+                    }
+                    if (!isPositivePDF) break;
+                }
+            }
+
+            if(isPositivePDF){
+                h2_minPdfValue->SetBinContent(xBin,yBin,1);
+            }else{
+            }
+        }
+    }
+
+    // Draw contour
+    h2_minPdfValue->Draw("COL");
+    canvas->Update();
+    canvas->Print(TString::Format("%s/scanFlAfbPositivePdf.pdf",plotpath.Data()));
+}//}}}
+
 //_________________________________________________________________________________
 
 void printListOfTChainElements(TChain *chain){
     TObjArray *fileElements=chain->GetListOfFiles();
     int nFiles = fileElements->GetEntries();
-    printf("DEBUG\t\t: %d files in the chain\n",nFiles);
+    //printf("DEBUG\t\t: %d files in the chain\n",nFiles);
     TIter next(fileElements);
     TChainElement *chEl=0;
     for( int entry=0; entry < nFiles; entry++ ) {
@@ -4603,15 +5021,17 @@ void printHelpMessage(){
     printf("    angular3D_1b_YpPm   Leading step2 to angular3D, determine mass spectrum of peaking bkg from simulation.\n");
     printf("    angular3D_2a_PkPl   Leading step3 to angular3D, determine angular dist. of peaking bkg from simulation.\n");
     printf("    angular3D_prior     Leading step4 to angular3D, fit to data sideband to get initial values of combinatorial bkg.\n");
-    printf("    angular2D_data      Same as 'angular3D', but only fit to angular axes.\n");
+    //printf("    angular2D_data      Same as 'angular3D', but only fit to angular axes. DEPRECATED for bad distinguish signal/background.\n");
     printf("    angular3D           Derive F_{L} and A_{FB} by fitting to mass and angular distribution.\n");
+    printf("    scanNLL             In case of low statistics, scan log(L) for better error determination. (VERY SLOW!)\n");
     printf("Options     :\n");
     printf("    --help              Show this help message.\n");
     printf("    --plotpath          Path to output plots.                               [ Default: \"./plots\" ]\n");
-    printf("    --iwspacepath       Path to input wspaces.                              [ Default: \".\" ]\n");
+    printf("    --iwspacepath       Path to input  wspaces.                             [ Default: \".\" ]\n");
     printf("    --owspacepath       Path to output wspaces.                             [ Default: \".\" ]\n");
-    printf("    --idatacardpath     Path to input datacards.                            [ Default: \".\" ]\n");
+    printf("    --idatacardpath     Path to input  datacards.                           [ Default: \".\" ]\n");
     printf("    --odatacardpath     Path to output datacards.                           [ Default: \".\" ]\n");
+    printf("    --iallpath          Path to input  datacards/wspaces.                   [ Default: \".\" ]\n");
     printf("    --oallpath          Path to output plots/datacards/wspaces.             [ Default: \".\" ]\n");
     printf("Remark      :\n");
     printf("    1. Outputs will be by default stored in ./plots, please keep the directory.\n");
@@ -4646,8 +5066,9 @@ int main(int argc, char** argv) {
         {"odatacardpath" , 1 , NULL , 3 }  ,
         {"iwspacepath"   , 1 , NULL , 4 }  ,
         {"owspacepath"   , 1 , NULL , 5 }  ,
-        {"oallpath"      , 1 , NULL , 6 }  ,
-        {NULL            , 0 , NULL , 0  }
+        {"iallpath"      , 1 , NULL , 6 }  ,
+        {"oallpath"      , 1 , NULL , 7 }  ,
+        {NULL            , 0 , NULL , 0 }
     };
     int arg;
     while ((arg = getopt_long(argc,argv,short_options,long_options,NULL)) != -1){
@@ -4676,7 +5097,12 @@ int main(int argc, char** argv) {
                 l_opt_arg = optarg;
                 owspacepath=l_opt_arg;
                 break;  
-            case 6:
+            case 6:   
+                l_opt_arg = optarg;
+                idatacardpath=l_opt_arg;
+                iwspacepath=l_opt_arg;
+                break;  
+            case 7:
                 l_opt_arg = optarg;
                 plotpath=l_opt_arg;
                 odatacardpath=l_opt_arg;
@@ -4718,14 +5144,23 @@ int main(int argc, char** argv) {
         if (false) createAccptanceHist(); // For experts only. Set to true if no given acceptance_8TeV.root
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
-        for (int iBin = 0; iBin < 8; iBin++) {
+        for (int iBin = 0; iBin < 9; iBin++) {
             accXrecoEff2(iBin);
         }
     }else if (func == "angular2D"){
-        ch->Add(infile.Data());
-        if (ch == NULL) return 1;
+        static char wantDoFit[10];
+        while(strcmp(wantDoFit,"y")*strcmp(wantDoFit, "n") != 0){
+            printf("Do you want to redo fitting? [y/n]:");
+            scanf("%19s",wantDoFit);
+        }
+        bool doFit = false;
+        if (strcmp(wantDoFit,"y")==0){
+            doFit=true;
+            ch->Add(infile.Data());
+            if (ch == NULL) return 1;
+        }
         const char outfile[]="angular2D";
-        angular2D("angular2D",true);
+        angular2D("angular2D",doFit);
         //for (int iBin = 0; iBin < 8; iBin++) {
         //    if (iBin == 3 || iBin == 5) continue;
         //    angular2D_bin(iBin);
@@ -4751,7 +5186,7 @@ int main(int argc, char** argv) {
         }
         ch->Add(infile.Data());
         if (ch == NULL) return 1;
-        for (int iBin = 0; iBin < 8; iBin++) {
+        for (int iBin = 2; iBin < 9; iBin++) {
             if (iBin == 3 || iBin == 5) continue;
             fx(iBin,func,keepParam); // By default overwrite exist parameters.
         }
@@ -4763,6 +5198,19 @@ int main(int argc, char** argv) {
             if (iBin == 3 || iBin == 5) continue;
             angular2D_data_bin(iBin,outfile);
         }
+    }else if (func == "scanNLL"){
+        int whichBin=-1;
+        while(whichBin < 0 || whichBin > 8 || whichBin == 3 || whichBin == 5){
+            printf("Which bin do you want to scan? ");
+            scanf("%d",&whichBin);
+        }
+        ch->Add(infile.Data());
+        if (ch == NULL) return 1;
+        
+        const char outfile[]="scanNLL";
+        printf("INFO\t\t: Call scanNLL for bin%d\n",whichBin);
+        scanNLL(whichBin,outfile);
+        getErrFromNllScan(whichBin,true);
     }else if (func == "angular3D"){
         static char wantDoFit[10];
         while(strcmp(wantDoFit,"y")*strcmp(wantDoFit, "n") != 0){
@@ -4778,29 +5226,31 @@ int main(int argc, char** argv) {
         const char outfile[]="angular3D";
         angular3D(outfile, doFit);
     }else if (func == "test"){
-        double scaleFactor = 100;
+        double scaleFactor = 100;// for emsenble test
         ch->Add(infile.Data());
         printListOfTChainElements(ch);
         //if (ch == NULL) return 1;
         const char outfile[]="test";
-        for (int iBin = 0; iBin < 8; iBin++) {
+        for (int iBin = 0; iBin < 9; iBin++) {
 //            if (iBin != 3 && iBin != 5) continue;
             if (iBin == 3 || iBin == 5) continue;
             //genToySignal(iBin,1000);
             //genToyCombBkg(iBin,10000);
+            //angular_gen_bin(iBin);
         }
         //createAccptanceHist();
         //splitMCSamples();
         //rndPickMCSamples(2);
-        //genToyCombBkg(0,40*scaleFactor);
-        //genToyCombBkg(1,100*scaleFactor);
+        ////genToyCombBkg(0,40*scaleFactor);
+        ////genToyCombBkg(1,100*scaleFactor);
+        //genToyCombBkg(8,140*scaleFactor);
         //genToyCombBkg(2,400*scaleFactor);
         //genToyCombBkg(4,100*scaleFactor);
         //genToyCombBkg(6,70*scaleFactor);
         //genToyCombBkg(7,100*scaleFactor);
         //genToySignal(2,50);
-        //angular2D_bin(2);
-        //angular3D_bin(4);
+        //angular3D_bin(7,"angular3D",scaleFactor);
+        angular3D_bin(4,"angular3D");
     }else{ 
         cerr << "No function available for: " << func.Data() << endl; 
     }
