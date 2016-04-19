@@ -26,6 +26,7 @@ const double KSHORT_MASS = 0.497614;
 // user defined variables
 TDatime t_begin_ , t_now_ ;
 int n_processed_, n_selected_; 
+int n_triggers0, n_triggers1;
 
 TTree *tree_; 
 
@@ -51,9 +52,11 @@ double Bcosalphabs    = 0;
 double Bcosalphabs2d  = 0;
 double Bctau          = 0;
 
-double Q2 = 0;
+double Q2          = 0;
+double dimupt      = 0;
 double CosThetaL   = 999;
 double CosThetaK   = 999;
+int Triggers       = 0;
 
 // Branches for Generator level information
 int     genBChg      = 999;
@@ -116,8 +119,12 @@ void ClearEvent()
     Bctau          = 0;
 
     Q2             = 0;
+
+    dimupt         = 0;
     CosThetaL      = 999;
     CosThetaK      = 999;
+
+    Triggers       = 0;
 
         // mc
     genBChg = 999;
@@ -196,6 +203,10 @@ void SingleBuToKstarMuMuSelector::Begin(TTree * /*tree*/)
 
   n_processed_ = 0;
   n_selected_ = 0;
+
+  n_triggers0 = 0;
+  n_triggers1 = 0;
+
 }//}}}
 
 void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
@@ -224,8 +235,10 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
     tree_->Branch("Bctau"         , &Bctau         , "Bctau/D");
 
     tree_->Branch("Q2"            , &Q2            , "Q2/D");
+    tree_->Branch("dimupt"        , &dimupt        , "dimupt/D");
     tree_->Branch("CosThetaL"     , &CosThetaL     , "CosThetaL/D");
     tree_->Branch("CosThetaK"     , &CosThetaK     , "CosThetaK/D");
+    tree_->Branch("Triggers"      , &Triggers      , "Triggers/I");
 
     string datatype = get_option_value(option, "datatype");
     std::map<string,int> maptype;
@@ -332,6 +345,9 @@ Bool_t SingleBuToKstarMuMuSelector::Process(Long64_t entry)
         n_processed_ += 1; 
         Nb = nb; 
 
+	if (triggernames->size() == 0) n_triggers0++;
+	if (triggernames->size() == 1) n_triggers1++;
+
         if (datatype != "data") SaveGen();
 
         int i = SelectB(cut); 
@@ -367,6 +383,10 @@ void SingleBuToKstarMuMuSelector::Terminate()
             n_processed_, n_selected_, 
             t_now_.Convert() - t_begin_.Convert(), 
             float(n_processed_)/(t_now_.Convert()-t_begin_.Convert()) );
+
+    printf("Triggers0 : %i\n", n_triggers0);
+    printf("Triggers1 : %i\n", n_triggers1);
+
 }//}}}
 
 int SingleBuToKstarMuMuSelector::SelectB(string cut)
@@ -576,6 +596,9 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
 
     buff1 = B_4vec;
     buff2 = Mup_4vec+Mum_4vec;
+
+    dimupt = buff2.Pt();
+
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     if ( Bchg > 0){
         buff3 = Mum_4vec;//Take mu- to avoid extra minus sign.
@@ -591,6 +614,9 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     buff3 = Tk_4vec;//Take pion to avoid extra minus.
     buff3.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     CosThetaK = buff1.Vect().Dot(buff3.Vect())/buff1.Vect().Mag()/buff3.Vect().Mag();
+
+    Triggers = triggernames->size();
+
 }//}}}
 
 void SingleBuToKstarMuMuSelector::SaveGen()
