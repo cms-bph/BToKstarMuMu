@@ -44,6 +44,7 @@ double Pippt          = 0;
 
 double Bmass          = 0;
 double Bpt            = 0;
+double Beta           = 0;
 double Bphi           = 0;
 int    Bchg           = 0;
 double Bvtxcl         = 0;
@@ -54,6 +55,7 @@ double Bctau          = 0;
 
 double Q2          = 0;
 double dimupt      = 0;
+double dimueta     = 0;
 double CosThetaL   = 999;
 double CosThetaK   = 999;
 int Triggers       = 0;
@@ -72,6 +74,11 @@ double  genMupPhi    = 0;
 double  genMumPt     = 0;
 double  genMumEta    = 0;
 double  genMumPhi    = 0;
+
+double gendimuPt     = 0;
+double gendimuEta    = 0;
+double gendimuPhi    = 0;
+
 double  genKstPt     = 0;
 double  genKstEta    = 0;
 double  genKstPhi    = 0;
@@ -110,6 +117,7 @@ void ClearEvent()
     
     Bmass          = 0;
     Bpt            = 0;
+    Beta           = 0;
     Bphi           = 0;
     Bchg           = 0;
     Bvtxcl         = 0;
@@ -121,6 +129,8 @@ void ClearEvent()
     Q2             = 0;
 
     dimupt         = 0;
+    dimueta        = 0;
+
     CosThetaL      = 999;
     CosThetaK      = 999;
 
@@ -140,6 +150,11 @@ void ClearEvent()
     genMumPt = 0;
     genMumEta= 0;
     genMumPhi= 0;
+    
+    gendimuPt = 0;
+    gendimuEta = 0;
+    gendimuPhi = 0;
+
     genKstPt = 0;
     genKstEta= 0;
     genKstPhi= 0;
@@ -225,6 +240,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
 
     tree_->Branch("Bmass"         , &Bmass         , "Bmass/D");
     tree_->Branch("Bpt"           , &Bpt           , "Bpt/D");
+    tree_->Branch("Beta"          , &Beta          , "Beta/D");
     tree_->Branch("Bphi"          , &Bphi          , "Bphi/D");
     tree_->Branch("Bchg"          , &Bchg          , "Bchg/I");
 
@@ -236,6 +252,7 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
 
     tree_->Branch("Q2"            , &Q2            , "Q2/D");
     tree_->Branch("dimupt"        , &dimupt        , "dimupt/D");
+    tree_->Branch("dimueta"       , &dimueta       , "dimueta/D");
     tree_->Branch("CosThetaL"     , &CosThetaL     , "CosThetaL/D");
     tree_->Branch("CosThetaK"     , &CosThetaK     , "CosThetaK/D");
     tree_->Branch("Triggers"      , &Triggers      , "Triggers/I");
@@ -258,6 +275,11 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
             tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
             tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+
+	    tree_->Branch("gendimuPt"    , &gendimuPt    , "gendimuPt/D");
+	    tree_->Branch("gendimuEta"   , &gendimuEta   , "gendimuEta/D");
+	    tree_->Branch("gendimuPhi"   , &gendimuPhi   , "gendimuPhi/D");
+
             tree_->Branch("genQ2"        , &genQ2        , "genQ2/D");
             tree_->Branch("genCosThetaL" , &genCosThetaL , "genCosThetaL/D");
             tree_->Branch("genCosThetaK" , &genCosThetaK , "genCosThetaK/D");
@@ -276,6 +298,11 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
             tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
             tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+
+	    tree_->Branch("gendimuPt"    , &gendimuPt    , "gendimuPt/D");
+            tree_->Branch("gendimuEta"   , &gendimuEta   , "gendimuEta/D");
+            tree_->Branch("gendimuPhi"   , &gendimuPhi   , "gendimuPhi/D");
+
             tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
             tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
             tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
@@ -298,6 +325,11 @@ void SingleBuToKstarMuMuSelector::SlaveBegin(TTree * /*tree*/)
             tree_->Branch("genMumPt"     , &genMumPt     , "genMumPt/D");
             tree_->Branch("genMumEta"    , &genMumEta    , "genMumEta/D");
             tree_->Branch("genMumPhi"    , &genMumPhi    , "genMumPhi/D");
+
+	    tree_->Branch("gendimuPt"    , &gendimuPt    , "gendimuPt/D");
+            tree_->Branch("gendimuEta"   , &gendimuEta   , "gendimuEta/D");
+            tree_->Branch("gendimuPhi"   , &gendimuPhi   , "gendimuPhi/D");
+
             tree_->Branch("genKstPt"     , &genKstPt     , "genKstPt/D");
             tree_->Branch("genKstEta"    , &genKstEta    , "genKstEta/D");
             tree_->Branch("genKstPhi"    , &genKstPhi    , "genKstPhi/D");
@@ -584,6 +616,7 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     Pippt = sqrt( (pippx->at(i))*(pippx->at(i)) + (pippy->at(i))*(pippy->at(i)) );
 
     Bpt = B_4vec.Pt(); 
+    Beta = B_4vec.Eta();
     Bphi = B_4vec.Phi();
 
     Mumumass = mumumass->at(i); 
@@ -598,6 +631,7 @@ void SingleBuToKstarMuMuSelector::SaveEvent(int i)
     buff2 = Mup_4vec+Mum_4vec;
 
     dimupt = buff2.Pt();
+    dimueta = buff2.Eta();
 
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     if ( Bchg > 0){
@@ -644,6 +678,7 @@ void SingleBuToKstarMuMuSelector::SaveGen()
     genMumPt     = genMum_4vec.Pt();
     genMumEta    = genMum_4vec.Eta();
     genMumPhi    = genMum_4vec.Phi();
+
     genKstPt     = genKst_4vec.Pt();
     genKstEta    = genKst_4vec.Eta();
     genKstPhi    = genKst_4vec.Phi();
@@ -667,6 +702,11 @@ void SingleBuToKstarMuMuSelector::SaveGen()
     
     buff1 = genB_4vec;
     buff2 = genMup_4vec+genMum_4vec;
+
+    gendimuPt = buff2.Pt();
+    gendimuEta = buff2.Eta();
+    gendimuPhi = buff2.Phi();
+
     buff1.Boost(-buff2.X()/buff2.T(),-buff2.Y()/buff2.T(),-buff2.Z()/buff2.T());
     if (genBChg > 0){
         buff3 = genMum_4vec;//Take mu- to avoid extra minus sign.
@@ -754,7 +794,7 @@ int main(int argc, char** argv) {
     }
 
     TString option; 
-    option.Form("datatype=%s;cut=%s;ofile=sel_%s_%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), datatype.Data(), iStart); 
+    option.Form("datatype=%s;cut=%s;ofile=sel_%s_%s_%s_s%d.root", datatype.Data(), cut.Data(), outfile.Data(), datatype.Data(), cut.Data(), iStart); 
 
     
     // It's not allowed to run with fat trees!
